@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>ML Service Viewer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #0b1020;
+        --bg-card: #151a2c;
+        --border: #262b3f;
+        --accent: #4f46e5;
+        --accent-soft: rgba(79, 70, 229, 0.2);
+        --text: #e5e7eb;
+        --muted: #9ca3af;
+        --ok: #22c55e;
+        --bad: #ef4444;
+        --warn: #eab308;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+          "Segoe UI", sans-serif;
+        background: radial-gradient(circle at top, #111827 0, #020617 55%);
+        color: var(--text);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        padding: 32px 16px;
+      }
+
+      .shell {
+        width: 100%;
+        max-width: 1080px;
+        background: linear-gradient(145deg, #020617 0, #020617 45%, #0b1120 100%);
+        border-radius: 18px;
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        box-shadow:
+          0 24px 80px rgba(15, 23, 42, 0.9),
+          0 0 0 1px rgba(15, 23, 42, 0.8) inset;
+        overflow: hidden;
+      }
+
+      header {
+        padding: 18px 22px 8px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: radial-gradient(circle at top left, #1f2937 0, #020617 60%);
+      }
+
+      .title-block {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .badge {
+        width: 26px;
+        height: 26px;
+        border-radius: 11px;
+        background: radial-gradient(circle at 30% 0, #a855f7, #4f46e5);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow:
+          0 0 0 1px rgba(191, 219, 254, 0.35),
+          0 0 25px rgba(79, 70, 229, 0.8);
+        font-size: 16px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 17px;
+        letter-spacing: 0.03em;
+        font-weight: 600;
+      }
+
+      .subtitle {
+        margin: 2px 0 0;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .pill {
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 11px;
+        border: 1px solid rgba(148, 163, 184, 0.4);
+        color: var(--muted);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(15, 23, 42, 0.9);
+      }
+
+      .pill-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: #22c55e;
+        box-shadow: 0 0 8px rgba(34, 197, 94, 0.9);
+      }
+
+      main {
+        padding: 16px 18px 20px;
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+        gap: 14px;
+      }
+
+      @media (max-width: 800px) {
+        main {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+
+      section {
+        background: radial-gradient(circle at top, #020617 0, #020617 55%, #020617);
+        border-radius: 14px;
+        padding: 14px 14px 10px;
+        border: 1px solid rgba(31, 41, 55, 0.9);
+        box-shadow:
+          0 16px 40px rgba(15, 23, 42, 0.95),
+          0 0 0 1px rgba(15, 23, 42, 0.9) inset;
+      }
+
+      section h2 {
+        margin: 0 0 10px;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #9ca3af;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      section h2 span.dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: rgba(148, 163, 184, 0.5);
+      }
+
+      .kv-list {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 6px;
+        font-size: 12px;
+      }
+
+      .kv-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 6px 8px;
+        border-radius: 9px;
+        background: rgba(15, 23, 42, 0.95);
+        border: 1px solid rgba(31, 41, 55, 0.95);
+      }
+
+      .kv-label {
+        color: var(--muted);
+        white-space: nowrap;
+      }
+
+      .kv-value {
+        font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo,
+          Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 11px;
+        color: #e5e7eb;
+        text-align: right;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        border: 1px solid rgba(55, 65, 81, 0.9);
+        background: rgba(8, 47, 73, 0.2);
+      }
+
+      .status-pill.ok {
+        border-color: rgba(34, 197, 94, 0.7);
+        background: rgba(22, 163, 74, 0.16);
+        color: #bbf7d0;
+      }
+
+      .status-pill.bad {
+        border-color: rgba(239, 68, 68, 0.7);
+        background: rgba(220, 38, 38, 0.18);
+        color: #fecaca;
+      }
+
+      .status-pill.warn {
+        border-color: rgba(234, 179, 8, 0.7);
+        background: rgba(202, 138, 4, 0.16);
+        color: #fef3c7;
+      }
+
+      .status-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        box-shadow: 0 0 8px currentColor;
+      }
+
+      .status-pill.ok .status-dot {
+        background: var(--ok);
+      }
+
+      .status-pill.bad .status-dot {
+        background: var(--bad);
+      }
+
+      .status-pill.warn .status-dot {
+        background: var(--warn);
+      }
+
+      .mini-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+        margin-top: 6px;
+      }
+
+      .mini-card {
+        border-radius: 9px;
+        border: 1px solid rgba(31, 41, 55, 0.9);
+        background: radial-gradient(circle at top left, #020617 0, #020617 60%);
+        padding: 7px 8px 6px;
+      }
+
+      .mini-label {
+        font-size: 10px;
+        color: var(--muted);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .mini-value {
+        margin-top: 3px;
+        font-size: 12px;
+      }
+
+      .mini-sub {
+        margin-top: 2px;
+        font-size: 10px;
+        color: var(--muted);
+      }
+
+      .log-pane {
+        margin-top: 6px;
+        border-radius: 9px;
+        border: 1px solid rgba(31, 41, 55, 0.9);
+        background: radial-gradient(circle at top left, #020617 0, #020617 60%);
+        max-height: 170px;
+        overflow: auto;
+        font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo,
+          Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 11px;
+        padding: 6px 0;
+      }
+
+      .log-line {
+        padding: 2px 10px;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        color: #9ca3af;
+      }
+
+      .log-line:nth-child(odd) {
+        background: rgba(15, 23, 42, 0.65);
+      }
+
+      .log-line:nth-child(even) {
+        background: rgba(15, 23, 42, 0.35);
+      }
+
+      .log-line strong {
+        color: #e5e7eb;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        border-radius: 999px;
+        padding: 2px 7px;
+        font-size: 10px;
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(55, 65, 81, 0.9);
+        color: var(--muted);
+      }
+
+      .footer {
+        padding: 6px 14px 10px;
+        border-top: 1px solid rgba(17, 24, 39, 0.85);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .footer span.key {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", "Courier New", monospace;
+        padding: 2px 6px;
+        border-radius: 6px;
+        border: 1px solid rgba(55, 65, 81, 0.85);
+        background: rgba(15, 23, 42, 0.9);
+      }
+
+      .pill-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border-radius: 999px;
+        border: 1px solid rgba(79, 70, 229, 0.7);
+        background: rgba(15, 23, 42, 0.95);
+        color: #e5e7eb;
+        padding: 4px 10px;
+        font-size: 11px;
+        cursor: pointer;
+      }
+
+      .pill-button:hover {
+        background: rgba(30, 64, 175, 0.5);
+      }
+
+      .pill-button-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: var(--accent);
+        box-shadow: 0 0 8px rgba(79, 70, 229, 1);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header>
+        <div class="title-block">
+          <div class="badge">μ</div>
+          <div>
+            <h1>ML Prediction Service · Viewer</h1>
+            <p class="subtitle">
+              Live view into model, Kafka, and PostgreSQL connections.
+            </p>
+          </div>
+        </div>
+        <div class="pill">
+          <span class="pill-dot"></span>
+          <span id="overall-status-label">Connecting…</span>
+        </div>
+      </header>
+
+      <main>
+        <section>
+          <h2>
+            <span class="dot"></span>
+            Service Overview
+          </h2>
+          <div class="kv-list">
+            <div class="kv-row">
+              <span class="kv-label">Model version</span>
+              <span class="kv-value" id="model-version">—</span>
+            </div>
+            <div class="kv-row">
+              <span class="kv-label">Feature count</span>
+              <span class="kv-value" id="feature-count">—</span>
+            </div>
+            <div class="kv-row">
+              <span class="kv-label">Uptime</span>
+              <span class="kv-value" id="uptime">—</span>
+            </div>
+            <div class="kv-row">
+              <span class="kv-label">Environment</span>
+              <span class="kv-value" id="environment">—</span>
+            </div>
+          </div>
+
+          <div class="mini-grid">
+            <div class="mini-card">
+              <div class="mini-label">PostgreSQL</div>
+              <div class="mini-value">
+                <span
+                  class="status-pill"
+                  id="pg-status-pill"
+                  data-kind="status"
+                >
+                  <span class="status-dot"></span>
+                  <span id="pg-status-label">Unknown</span>
+                </span>
+              </div>
+              <div class="mini-sub" id="pg-details">dsn: —</div>
+            </div>
+
+            <div class="mini-card">
+              <div class="mini-label">Kafka</div>
+              <div class="mini-value">
+                <span
+                  class="status-pill"
+                  id="kafka-status-pill"
+                  data-kind="status"
+                >
+                  <span class="status-dot"></span>
+                  <span id="kafka-status-label">Unknown</span>
+                </span>
+              </div>
+              <div class="mini-sub" id="kafka-details">bootstrap: —</div>
+            </div>
+
+            <div class="mini-card">
+              <div class="mini-label">MinIO / Model Storage</div>
+              <div class="mini-value">
+                <span
+                  class="status-pill"
+                  id="minio-status-pill"
+                  data-kind="status"
+                >
+                  <span class="status-dot"></span>
+                  <span id="minio-status-label">Unknown</span>
+                </span>
+              </div>
+              <div class="mini-sub" id="minio-details">endpoint: —</div>
+            </div>
+          </div>
+
+          <div class="log-pane" id="log-pane"></div>
+        </section>
+
+        <section>
+          <h2>
+            <span class="dot"></span>
+            Processes & Connections
+          </h2>
+
+          <div class="kv-list">
+            <div class="kv-row">
+              <span class="kv-label">Kafka consumer</span>
+              <span class="kv-value">
+                <span
+                  class="status-pill"
+                  id="consumer-status-pill"
+                  data-kind="status"
+                >
+                  <span class="status-dot"></span>
+                  <span id="consumer-status-label">Unknown</span>
+                </span>
+              </span>
+            </div>
+
+            <div class="kv-row">
+              <span class="kv-label">Kafka producer</span>
+              <span class="kv-value">
+                <span
+                  class="status-pill"
+                  id="producer-status-pill"
+                  data-kind="status"
+                >
+                  <span class="status-dot"></span>
+                  <span id="producer-status-label">Unknown</span>
+                </span>
+              </span>
+            </div>
+
+            <div class="kv-row">
+              <span class="kv-label">DB pool</span>
+              <span class="kv-value">
+                <span
+                  class="status-pill"
+                  id="pool-status-pill"
+                  data-kind="status"
+                >
+                  <span class="status-dot"></span>
+                  <span id="pool-status-label">Unknown</span>
+                </span>
+              </span>
+            </div>
+
+            <div class="kv-row">
+              <span class="kv-label">Model loaded</span>
+              <span class="kv-value">
+                <span
+                  class="status-pill"
+                  id="model-status-pill"
+                  data-kind="status"
+                >
+                  <span class="status-dot"></span>
+                  <span id="model-status-label">Unknown</span>
+                </span>
+              </span>
+            </div>
+          </div>
+
+          <div style="margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap;">
+            <div class="tag" id="worker-tag">
+              <span>worker: —</span>
+            </div>
+            <div class="tag" id="tz-tag">
+              <span>timezone: —</span>
+            </div>
+          </div>
+
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-top: 12px;
+            "
+          >
+            <div style="font-size: 11px; color: var(--muted);">
+              Next poll in
+              <span id="refresh-countdown">—</span>
+              s
+            </div>
+            <button id="refresh-btn" class="pill-button" type="button">
+              <span class="pill-button-dot"></span>
+              <span>Refresh now</span>
+            </button>
+          </div>
+        </section>
+      </main>
+
+      <div class="footer">
+        <div>
+          Keyboard:
+          <span class="key">R</span>
+          to refresh,
+          <span class="key">Shift</span> +
+          <span class="key">R</span>
+          to toggle auto-refresh.
+        </div>
+        <div id="auto-refresh-label">Auto-refresh: on (5s)</div>
+      </div>
+    </div>
+
+    <script>
+      const statusMap = {
+        ok: { className: "ok", label: "Connected" },
+        bad: { className: "bad", label: "Unavailable" },
+        warn: { className: "warn", label: "Degraded" },
+        unknown: { className: "", label: "Unknown" },
+      };
+
+      function setStatus(idBase, status, label) {
+        const pill = document.getElementById(idBase + "-pill");
+        const text = document.getElementById(idBase + "-label");
+        if (!pill || !text) return;
+
+        Object.values(statusMap).forEach((s) => {
+          if (s.className) pill.classList.remove(s.className);
+        });
+
+        const cfg = statusMap[status] || statusMap.unknown;
+        if (cfg.className) pill.classList.add(cfg.className);
+        text.textContent = label || cfg.label;
+      }
+
+      function appendLog(lines) {
+        const pane = document.getElementById("log-pane");
+        pane.innerHTML = "";
+        (lines || []).forEach((line) => {
+          const div = document.createElement("div");
+          div.className = "log-line";
+          div.textContent = line;
+          pane.appendChild(div);
+        });
+        pane.scrollTop = pane.scrollHeight;
+      }
+
+      let autoRefresh = true;
+      let countdown = 5;
+      let timerId = null;
+
+      async function fetchStatus() {
+        try {
+          const res = await fetch("/internal/status");
+          if (!res.ok) {
+            throw new Error("HTTP " + res.status);
+          }
+          const data = await res.json();
+
+          // Overview
+          document.getElementById("model-version").textContent =
+            data.model_version || "—";
+          document.getElementById("feature-count").textContent =
+            data.feature_count?.toString() ?? "—";
+          document.getElementById("uptime").textContent =
+            data.uptime || "—";
+          document.getElementById("environment").textContent =
+            data.environment || "—";
+
+          // Backends
+          setStatus(
+            "pg-status",
+            data.postgres?.status || "unknown",
+            data.postgres?.label
+          );
+          document.getElementById("pg-details").textContent =
+            data.postgres?.details || "dsn: —";
+
+          setStatus(
+            "kafka-status",
+            data.kafka?.status || "unknown",
+            data.kafka?.label
+          );
+          document.getElementById("kafka-details").textContent =
+            data.kafka?.details || "bootstrap: —";
+
+          setStatus(
+            "minio-status",
+            data.minio?.status || "unknown",
+            data.minio?.label
+          );
+          document.getElementById("minio-details").textContent =
+            data.minio?.details || "endpoint: —";
+
+          // Processes
+          setStatus(
+            "consumer-status",
+            data.consumer?.status || "unknown",
+            data.consumer?.label
+          );
+          setStatus(
+            "producer-status",
+            data.producer?.status || "unknown",
+            data.producer?.label
+          );
+          setStatus(
+            "pool-status",
+            data.pool?.status || "unknown",
+            data.pool?.label
+          );
+          setStatus(
+            "model-status",
+            data.model?.status || "unknown",
+            data.model?.label
+          );
+
+          // Misc
+          document.getElementById("worker-tag").textContent =
+            "worker: " + (data.worker || "—");
+          document.getElementById("tz-tag").textContent =
+            "timezone: " + (data.timezone || "—");
+
+          appendLog(data.recent_events || []);
+
+          // Overall status
+          const overall =
+            data.overall_status || (data.status === "ok" ? "ok" : "warn");
+          const overallLabel = document.getElementById(
+            "overall-status-label"
+          );
+          overallLabel.textContent =
+            overall === "ok"
+              ? "All systems nominal"
+              : overall === "bad"
+              ? "Attention required"
+              : "Partially available";
+        } catch (err) {
+          const overallLabel = document.getElementById(
+            "overall-status-label"
+          );
+          overallLabel.textContent = "Viewer cannot reach /internal/status";
+          setStatus("pg-status", "unknown");
+          setStatus("kafka-status", "unknown");
+          setStatus("minio-status", "unknown");
+          setStatus("consumer-status", "unknown");
+          setStatus("producer-status", "unknown");
+          setStatus("pool-status", "unknown");
+          setStatus("model-status", "unknown");
+          appendLog([
+            "viewer: failed to fetch /internal/status",
+            String(err),
+          ]);
+        }
+      }
+
+      function tick() {
+        if (!autoRefresh) return;
+        countdown -= 1;
+        if (countdown <= 0) {
+          countdown = 5;
+          fetchStatus();
+        }
+        document.getElementById("refresh-countdown").textContent =
+          countdown.toString();
+      }
+
+      function syncAutoRefreshLabel() {
+        document.getElementById("auto-refresh-label").textContent =
+          "Auto-refresh: " + (autoRefresh ? "on (5s)" : "off");
+      }
+
+      window.addEventListener("load", () => {
+        document.getElementById("refresh-countdown").textContent =
+          countdown.toString();
+        syncAutoRefreshLabel();
+        fetchStatus();
+        timerId = setInterval(tick, 1000);
+
+        document
+          .getElementById("refresh-btn")
+          .addEventListener("click", () => {
+            countdown = 5;
+            fetchStatus();
+          });
+
+        window.addEventListener("keydown", (e) => {
+          if (e.key.toLowerCase() === "r" && !e.repeat) {
+            if (e.shiftKey) {
+              autoRefresh = !autoRefresh;
+              syncAutoRefreshLabel();
+            } else {
+              countdown = 5;
+              fetchStatus();
+            }
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

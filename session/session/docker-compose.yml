@@ -1,0 +1,49 @@
+services:
+  session:
+    build:
+      context: ..
+      dockerfile: session/Dockerfile
+    ports:
+      - "8002:8002"
+    env_file: .env
+    environment:
+      KAFKA_BOOTSTRAP: kafka:9092
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      PG_DSN: postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/observer
+    networks:
+      - observer
+      - supplies
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: "1.0"
+
+  session-celery:
+    build:
+      context: ..
+      dockerfile: session/Dockerfile
+    command: ["celery", "-A", "celery_app", "worker", "--loglevel=info", "--concurrency=4"]
+    env_file: .env
+    environment:
+      KAFKA_BOOTSTRAP: kafka:9092
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      PG_DSN: postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/observer
+    networks:
+      - observer
+      - supplies
+    restart: unless-stopped
+    mem_limit: 256m
+    cpus: "1.0"
+
+networks:
+  observer:
+    name: observer_experiment_default
+    external: true
+  supplies:
+    name: supplies-service_default
+    external: true

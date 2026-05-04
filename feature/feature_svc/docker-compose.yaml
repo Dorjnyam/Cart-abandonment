@@ -1,0 +1,26 @@
+services:
+  feature-svc:
+    build:
+      context: .
+    image: feature-svc:local
+    container_name: feature-svc
+    restart: unless-stopped
+    ports:
+      - "8003:8003"
+    environment:
+      KAFKA_BOOTSTRAP: kafka:9092
+      SESSION_ENRICHED_TOPIC: session_enriched
+      FEATURE_READY_TOPIC: feature_ready
+      FEATURE_CONSUMER_GROUP: feature-svc-group
+      FEATURE_VERSION: "1.0.0"
+      FEATURE_VARIANT: C
+      FEATURE_SET: full
+      LOG_LEVEL: INFO
+      PORT: "8003"
+    networks:
+      - supplies-service
+
+networks:
+  supplies-service:
+    external: true
+    name: supplies-service_default

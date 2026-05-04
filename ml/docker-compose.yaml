@@ -1,0 +1,35 @@
+name: ml-service
+
+services:
+  ml-svc:
+    build:
+      context: .
+    image: ml-svc:local
+    container_name: ml-svc
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PG_DSN: "postgresql+asyncpg://postgres:${POSTGRES_PASSWORD}@db:5432/machinelearning"
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      MODEL_VARIANT: full
+      MODEL_PATH_XGBOOST_BASELINE: /app/models/model_baseline_xgboost.pkl
+      MODEL_PATH_XGBOOST_EXTENDED: /app/models/model_extended_xgboost.pkl
+      MODEL_PATH_XGBOOST_FULL: /app/models/model_full_xgboost.pkl
+      MODEL_PATH_LSTM: /app/models/model_v1_lstm.pt
+    ports:
+      - "8004:8004"
+    volumes:
+      - ./models:/app/models:ro
+      - ./viewer.html:/app/viewer.html:ro
+    networks:
+      - observer_net
+      - supplies_net
+
+networks:
+  observer_net:
+    external: true
+    name: observer_experiment_default
+  supplies_net:
+    external: true
+    name: supplies-service_default

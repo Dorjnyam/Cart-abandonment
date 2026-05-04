@@ -1,0 +1,4 @@
+# Minimal deps for diagnosis_consumer.py (Main Service process).
+# Observer app already includes asyncpg; add redis if not present.
+asyncpg>=0.29.0
+redis>=5.0.0

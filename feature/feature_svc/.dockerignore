@@ -1,0 +1,8 @@
+.git
+.pytest_cache
+__pycache__
+*.py[cod]
+
+# Keep host-local settings out of the image. Pass container settings with
+# docker run -e or --env-file instead.
+.env

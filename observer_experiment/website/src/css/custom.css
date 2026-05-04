@@ -1,0 +1,99 @@
+/**
+ * Global design tokens for Observer docs.
+ * Focus: technical dark aesthetic with strong contrast in both modes.
+ */
+
+:root {
+  --ifm-color-primary: #3055ff;
+  --ifm-color-primary-dark: #274aed;
+  --ifm-color-primary-darker: #2143dc;
+  --ifm-color-primary-darkest: #1832b1;
+  --ifm-color-primary-light: #5171ff;
+  --ifm-color-primary-lighter: #6a86ff;
+  --ifm-color-primary-lightest: #8ea5ff;
+  --ifm-font-color-base: #101323;
+  --ifm-background-color: #f6f8ff;
+  --ifm-navbar-background-color: #f6f8ff;
+  --ifm-footer-background-color: #11162c;
+  --ifm-card-background-color: #ffffff;
+  --ifm-heading-color: #0e1325;
+  --ifm-link-color: #2448f8;
+  --ifm-link-hover-color: #1838d8;
+  --ifm-code-font-size: 92%;
+  --ifm-font-family-monospace: 'JetBrains Mono', 'Fira Code', 'SFMono-Regular',
+    Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  --ifm-font-family-base: Inter, 'Segoe UI', Roboto, Arial, sans-serif;
+  --ifm-line-height-base: 1.65;
+  --ifm-global-shadow-lw: 0 8px 24px rgba(31, 55, 160, 0.08);
+  --ifm-toc-border-color: #dae2ff;
+  --docusaurus-highlighted-code-line-bg: rgba(48, 85, 255, 0.1);
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #6b88ff;
+  --ifm-color-primary-dark: #5777ff;
+  --ifm-color-primary-darker: #4b6dff;
+  --ifm-color-primary-darkest: #2f52f7;
+  --ifm-color-primary-light: #839cff;
+  --ifm-color-primary-lighter: #99adff;
+  --ifm-color-primary-lightest: #bac9ff;
+  --ifm-font-color-base: #c6d0f5;
+  --ifm-background-color: #090c16;
+  --ifm-navbar-background-color: #090c16;
+  --ifm-footer-background-color: #060910;
+  --ifm-card-background-color: #101525;
+  --ifm-heading-color: #f5f7ff;
+  --ifm-link-color: #90a6ff;
+  --ifm-link-hover-color: #afbeff;
+  --ifm-global-shadow-lw: 0 12px 36px rgba(5, 7, 15, 0.7);
+  --ifm-toc-border-color: #202b4b;
+  --docusaurus-highlighted-code-line-bg: rgba(107, 136, 255, 0.2);
+}
+
+html[data-theme='dark'] body {
+  background-image: radial-gradient(circle at 12% 0%, #161e3a 0%, transparent 38%),
+    radial-gradient(circle at 88% 0%, #25184a 0%, transparent 34%);
+  background-attachment: fixed;
+}
+
+.navbar {
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid color-mix(in srgb, var(--ifm-color-primary) 18%, transparent);
+}
+
+.footer {
+  border-top: 1px solid color-mix(in srgb, var(--ifm-color-primary) 25%, transparent);
+}
+
+.theme-doc-sidebar-menu .menu__link--active,
+.menu__link--active {
+  background: color-mix(in srgb, var(--ifm-color-primary) 14%, transparent);
+  border-left: 2px solid var(--ifm-color-primary);
+}
+
+.button {
+  border-radius: 12px;
+  font-family: var(--ifm-font-family-monospace);
+  letter-spacing: 0.01em;
+}
+
+.button--primary {
+  border: 1px solid color-mix(in srgb, var(--ifm-color-primary) 60%, #7a4dff 40%);
+  background: linear-gradient(120deg, var(--ifm-color-primary), #8b5cf6);
+}
+
+.button--secondary {
+  border: 1px solid color-mix(in srgb, var(--ifm-color-primary) 45%, transparent);
+}
+
+.theme-code-block {
+  border: 1px solid color-mix(in srgb, var(--ifm-color-primary) 30%, transparent);
+  box-shadow: var(--ifm-global-shadow-lw);
+}
+
+code,
+.navbar__item,
+.menu__list-item,
+.theme-doc-version-badge {
+  font-family: var(--ifm-font-family-monospace);
+}

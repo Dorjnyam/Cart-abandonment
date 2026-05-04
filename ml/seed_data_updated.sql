@@ -1,0 +1,19 @@
+-- Delete old seed data and insert new seed data with ALL numeric values
+DELETE FROM sessions.sessions WHERE state IN ('CONVERTED', 'ABANDONED');
+
+INSERT INTO sessions.sessions 
+  (session_id, visitor_id, tenant_id, started_at, ended_at, 
+   event_count, state, is_completed_purchase, 
+   device_type, session_duration_sec, raw_session_payload)
+VALUES
+-- Converted session (happy path) - all numeric values
+(gen_random_uuid(), gen_random_uuid(), '00000000-0000-0000-0000-000000000001'::uuid,
+ NOW() - INTERVAL '2 hours', NOW() - INTERVAL '1 hour',
+ 25, 'CONVERTED', true, 'desktop', 3600,
+ '{"session_duration_sec":3600,"page_view_count":5,"cart_item_count":2,"event_count":25,"device_type":1,"is_logged_in":1,"checkout_step_detected":1,"cart_churn_count":0,"is_mobile":0,"rage_click":0,"max_scroll_pct":85.5,"active_time_ms":3000000,"mouse_distance":45000,"time_on_page_sec":720,"cart_abandonment_signal":0,"time_to_first_action_ms":5000,"page_load_ms":2500,"payment_method":2,"product_availability":1,"selected_quantity":2,"avg_price_in_session":49.99,"frustration_index":2,"commitment_depth":3,"price_hesitation_score":0.1,"hedonic_ratio":0.8,"mongolian_trust_barrier":0,"dist_product_count":5,"hour_sin":0.5,"hour_cos":0.866,"back_navigation":0,"js_error":0,"selected_size":1,"selected_qty":2,"form_fields_touched":5,"checkout_step":3,"copy_count":0,"tab_hidden_ms":0,"outbound_click":0,"cart_value":99.98,"cart_abandoned_count":0,"end_reason":2,"customer_type":2,"language":0,"dow_sin":0.6,"dow_cos":0.8,"time_to_first_action":5,"js_error_count":0,"page_dwell_ms":300000,"idle_time_ms":5000,"click_count":15,"scroll_count":8,"form_submit_count":1,"add_to_cart_count":2,"remove_from_cart_count":0,"search_count":0,"filter_count":1,"sort_count":1,"wishlist_add_count":0,"share_count":0,"review_view_count":2,"coupon_applied":0,"discount_amount":0,"shipping_cost":10,"return_visit":0,"visit_count":1,"days_since_last_visit":0,"referrer_type":0,"utm_source":0,"browser_type":0,"os_type":1,"screen_width":1920,"screen_height":1080,"viewport_width":1920,"connection_type":1,"timezone_offset":480}'::jsonb),
+
+-- Abandoned session (user drops off) - all numeric values
+(gen_random_uuid(), gen_random_uuid(), '00000000-0000-0000-0000-000000000001'::uuid,
+ NOW() - INTERVAL '1 hour', NOW() - INTERVAL '30 minutes',
+ 8, 'ABANDONED', false, 'mobile', 1800,
+ '{"session_duration_sec":1800,"page_view_count":2,"cart_item_count":1,"event_count":8,"device_type":0,"is_logged_in":0,"checkout_step_detected":0,"cart_churn_count":1,"is_mobile":1,"rage_click":3,"max_scroll_pct":30.0,"active_time_ms":800000,"mouse_distance":5000,"time_on_page_sec":300,"cart_abandonment_signal":1,"time_to_first_action_ms":8000,"page_load_ms":4500,"payment_method":0,"product_availability":0,"selected_quantity":1,"avg_price_in_session":29.99,"frustration_index":7,"commitment_depth":1,"price_hesitation_score":0.9,"hedonic_ratio":0.2,"mongolian_trust_barrier":1,"dist_product_count":2,"hour_sin":0.8,"hour_cos":0.6,"back_navigation":2,"js_error":1,"selected_size":0,"selected_qty":1,"form_fields_touched":2,"checkout_step":0,"copy_count":1,"tab_hidden_ms":60000,"outbound_click":1,"cart_value":29.99,"cart_abandoned_count":1,"end_reason":0,"customer_type":0,"language":0,"dow_sin":0.7,"dow_cos":0.714,"time_to_first_action":8,"js_error_count":1,"page_dwell_ms":100000,"idle_time_ms":50000,"click_count":5,"scroll_count":2,"form_submit_count":0,"add_to_cart_count":1,"remove_from_cart_count":0,"search_count":1,"filter_count":0,"sort_count":0,"wishlist_add_count":1,"share_count":0,"review_view_count":0,"coupon_applied":0,"discount_amount":0,"shipping_cost":0,"return_visit":0,"visit_count":1,"days_since_last_visit":0,"referrer_type":1,"utm_source":1,"browser_type":1,"os_type":0,"screen_width":375,"screen_height":667,"viewport_width":375,"connection_type":0,"timezone_offset":480}'::jsonb);

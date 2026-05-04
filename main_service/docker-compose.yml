@@ -1,0 +1,137 @@
+services:
+  django:
+    build: .
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             gunicorn main_service.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 60"
+    environment:
+      DJANGO_DEBUG: "false"
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-change-me}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
+      DB_HOST: postgres
+      DB_NAME: ${DB_NAME:-main_service}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      REDIS_URL: redis://redis:6379
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      DUCKDB_PATH: /data/duckdb/analytics.duckdb
+      MINIO_ENDPOINT: host.docker.internal:9000
+      MINIO_BUCKET: ${MINIO_BUCKET:-analytics}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+      KAFKA_BOOTSTRAP_SERVERS: host.docker.internal:9092
+      KAFKA_CONSUMER_GROUP: ${KAFKA_CONSUMER_GROUP:-main-service-local}
+    ports:
+      - "8000:8000"
+    volumes:
+      - duckdb_data:/data/duckdb
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  celery_worker:
+    build: .
+    command: celery -A main_service worker --loglevel=info --concurrency=2
+    environment:
+      DJANGO_DEBUG: "false"
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-change-me}
+      DB_HOST: postgres
+      DB_NAME: ${DB_NAME:-main_service}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      REDIS_URL: redis://redis:6379
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      DUCKDB_PATH: /data/duckdb/analytics.duckdb
+      MINIO_ENDPOINT: host.docker.internal:9000
+      MINIO_BUCKET: ${MINIO_BUCKET:-analytics}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+    volumes:
+      - duckdb_data:/data/duckdb
+    depends_on:
+      django:
+        condition: service_started
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  celery_beat:
+    build: .
+    command: celery -A main_service beat --loglevel=info
+    environment:
+      DJANGO_DEBUG: "false"
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-change-me}
+      DB_HOST: postgres
+      DB_NAME: ${DB_NAME:-main_service}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      REDIS_URL: redis://redis:6379
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      DUCKDB_PATH: /data/duckdb/analytics.duckdb
+    volumes:
+      - duckdb_data:/data/duckdb
+    depends_on:
+      celery_worker:
+        condition: service_started
+    restart: unless-stopped
+
+  kafka_consumer:
+    build: .
+    command: python manage.py consume_prediction_done
+    environment:
+      DJANGO_DEBUG: "false"
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-change-me}
+      DB_HOST: postgres
+      DB_NAME: ${DB_NAME:-main_service}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      REDIS_URL: redis://redis:6379
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      KAFKA_BOOTSTRAP_SERVERS: host.docker.internal:9092
+      KAFKA_CONSUMER_GROUP: ${KAFKA_CONSUMER_GROUP:-main-service-local}
+      DUCKDB_PATH: /data/duckdb/analytics.duckdb
+    volumes:
+      - duckdb_data:/data/duckdb
+    depends_on:
+      celery_worker:
+        condition: service_started
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-main_service}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  pg_data:
+  duckdb_data:

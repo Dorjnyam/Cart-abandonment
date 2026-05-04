@@ -1,0 +1,9 @@
+{
+  "label": "Системийн үйлчилгээнүүд",
+  "position": 4,
+  "link": {
+    "type": "generated-index",
+    "title": "Системийн үйлчилгээнүүд",
+    "description": "CartAnalytics системийн 5 backend үйлчилгээ болон 2 web app-ын техникийн баримт бичиг."
+  }
+}

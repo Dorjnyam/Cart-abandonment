@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Feature Service Viewer</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #0f172a;
+        color: #e2e8f0;
+      }
+      .container {
+        max-width: 980px;
+        margin: 24px auto;
+        padding: 0 16px 24px;
+      }
+      .card {
+        background: #111827;
+        border: 1px solid #1f2937;
+        border-radius: 8px;
+        padding: 14px 16px;
+        margin-bottom: 14px;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .label {
+        color: #94a3b8;
+        font-size: 13px;
+      }
+      .value {
+        font-size: 18px;
+        font-weight: 700;
+        margin-top: 6px;
+      }
+      .ok {
+        color: #22c55e;
+      }
+      .bad {
+        color: #ef4444;
+      }
+      .warn {
+        color: #f59e0b;
+      }
+      button {
+        background: #2563eb;
+        color: #fff;
+        border: 0;
+        border-radius: 6px;
+        padding: 8px 12px;
+        cursor: pointer;
+      }
+      pre {
+        white-space: pre-wrap;
+        word-break: break-word;
+        background: #020617;
+        border: 1px solid #1e293b;
+        border-radius: 6px;
+        padding: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Feature Service Managing Viewer</h1>
+      <p>Use this page to verify health, runtime connection state, and pipeline processing stats.</p>
+
+      <div class="card">
+        <button id="refreshBtn">Refresh now</button>
+        <span id="lastUpdated" style="margin-left: 8px; color: #94a3b8"></span>
+      </div>
+
+      <div class="row">
+        <div class="card">
+          <div class="label">Service</div>
+          <div class="value" id="serviceName">-</div>
+        </div>
+        <div class="card">
+          <div class="label">Health</div>
+          <div class="value" id="healthStatus">-</div>
+        </div>
+        <div class="card">
+          <div class="label">Consumer Task</div>
+          <div class="value" id="consumerState">-</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="card">
+          <div class="label">Processed</div>
+          <div class="value" id="processed">0</div>
+        </div>
+        <div class="card">
+          <div class="label">Published</div>
+          <div class="value" id="published">0</div>
+        </div>
+        <div class="card">
+          <div class="label">Failed</div>
+          <div class="value" id="failed">0</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="label">Connection Checks</div>
+        <pre id="connectionBlock">{}</pre>
+      </div>
+
+      <div class="card">
+        <div class="label">Environment Check</div>
+        <pre id="envBlock">{}</pre>
+      </div>
+
+      <div class="card">
+        <div class="label">Runtime State</div>
+        <pre id="runtimeBlock">{}</pre>
+      </div>
+
+      <div class="card">
+        <div class="label">Pipeline Config</div>
+        <pre id="configBlock">{}</pre>
+      </div>
+    </div>
+
+    <script>
+      async function loadStatus() {
+        let health = { status: "down" };
+        let status = {};
+        try {
+          const [healthRes, statusRes] = await Promise.all([
+            fetch("/health"),
+            fetch("/viewer/status"),
+          ]);
+          health = await healthRes.json();
+          status = await statusRes.json();
+        } catch (error) {
+          document.getElementById("healthStatus").textContent = "down";
+          document.getElementById("healthStatus").className = "value bad";
+          document.getElementById("lastUpdated").textContent =
+            "Last updated: " + new Date().toLocaleTimeString() + " (fetch failed)";
+          return;
+        }
+
+        document.getElementById("serviceName").textContent = status.service || "-";
+        const healthEl = document.getElementById("healthStatus");
+        healthEl.textContent = health.status || "unknown";
+        healthEl.className = "value " + (health.status === "ok" ? "ok" : "bad");
+
+        const consumerEl = document.getElementById("consumerState");
+        if (status.consumer_task_running) {
+          consumerEl.textContent = "running";
+          consumerEl.className = "value ok";
+        } else if (status.consumer_task_done || status.consumer_task_cancelled) {
+          consumerEl.textContent = "stopped";
+          consumerEl.className = "value bad";
+        } else {
+          consumerEl.textContent = "unknown";
+          consumerEl.className = "value warn";
+        }
+
+        document.getElementById("processed").textContent = status.stats?.processed ?? 0;
+        document.getElementById("published").textContent = status.stats?.published ?? 0;
+        document.getElementById("failed").textContent = status.stats?.failed ?? 0;
+        document.getElementById("configBlock").textContent = JSON.stringify(
+          {
+            kafka_bootstrap: status.kafka_bootstrap,
+            feature_version: status.feature_version,
+            feature_variant: status.feature_variant,
+          },
+          null,
+          2
+        );
+        document.getElementById("connectionBlock").textContent = JSON.stringify(
+          status.connections || {},
+          null,
+          2
+        );
+        document.getElementById("envBlock").textContent = JSON.stringify(
+          status.required_env_status || {},
+          null,
+          2
+        );
+        document.getElementById("runtimeBlock").textContent = JSON.stringify(
+          status.runtime || {},
+          null,
+          2
+        );
+        document.getElementById("lastUpdated").textContent =
+          "Last updated: " + new Date().toLocaleTimeString();
+      }
+
+      document.getElementById("refreshBtn").addEventListener("click", loadStatus);
+      loadStatus();
+      setInterval(loadStatus, 5000);
+    </script>
+  </body>
+</html>

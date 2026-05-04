@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Observer Service</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; color: #333; }
+
+  .header {
+    background: #1a252f; color: white; padding: 14px 24px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .header h1 { font-size: 16px; }
+  .header .sub { color: #7f8c8d; font-size: 12px; margin-left: 12px; }
+  .header .live { color: #2ecc71; font-size: 12px; }
+
+  .container { max-width: 1500px; margin: 0 auto; padding: 16px; }
+
+  .stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 16px; }
+  .stat-card {
+    background: white; border-radius: 8px; padding: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .stat-card .label { font-size: 11px; color: #888; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-card .value { font-size: 24px; font-weight: 700; color: #1a252f; }
+  .stat-card .sub   { font-size: 11px; color: #aaa; margin-top: 2px; }
+
+  .tabs { display: flex; gap: 4px; margin-bottom: 14px; flex-wrap: wrap; }
+  .tab {
+    padding: 7px 16px; border-radius: 6px; cursor: pointer;
+    background: white; border: 1px solid #ddd; font-size: 13px;
+    transition: all 0.15s;
+  }
+  .tab:hover  { background: #f5f5f5; }
+  .tab.active { background: #1a252f; color: white; border-color: #1a252f; }
+
+  .panel { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { background: #f8f9fa; padding: 9px 12px; text-align: left; font-weight: 600;
+       color: #555; border-bottom: 2px solid #eee; white-space: nowrap; }
+  td { padding: 8px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: top; max-width: 200px; }
+  tr:hover td { background: #fafbfc; }
+
+  .badge {
+    display: inline-block; padding: 2px 7px; border-radius: 10px;
+    font-size: 11px; font-weight: 600; white-space: nowrap;
+  }
+  .badge-page_view      { background: #e3f2fd; color: #1565c0; }
+  .badge-cart_add       { background: #e8f5e9; color: #2e7d32; }
+  .badge-cart_remove    { background: #fce4ec; color: #b71c1c; }
+  .badge-session_end    { background: #ede7f6; color: #4527a0; }
+  .badge-heartbeat      { background: #fff8e1; color: #e65100; }
+  .badge-checkout_start { background: #e0f2f1; color: #004d40; }
+  .badge-tab_hidden     { background: #fff3e0; color: #bf360c; }
+  .badge-tab_visible    { background: #e8f5e9; color: #1b5e20; }
+  .badge-copy           { background: #fce4ec; color: #880e4f; }
+  .badge-paste          { background: #e8eaf6; color: #283593; }
+  .badge-idle_start     { background: #f5f5f5; color: #757575; }
+  .badge-idle_end       { background: #f1f8e9; color: #33691e; }
+  .badge-search         { background: #e8eaf6; color: #283593; }
+  .badge-rage_click     { background: #ffebee; color: #c62828; }
+  .badge-js_error       { background: #263238; color: #eceff1; }
+  .badge-outbound_click { background: #e1f5fe; color: #0277bd; }
+  .badge-product_impression { background: #f3e5f5; color: #6a1b9a; }
+  .badge-popup_open       { background: #fff9c4; color: #f57f17; }
+  .badge-purchase         { background: #c8e6c9; color: #1b5e20; }
+
+  .payload-toggle { cursor: pointer; color: #1976d2; font-size: 11px; text-decoration: underline; }
+  .payload-content {
+    display: none; margin-top: 6px; background: #1e1e1e;
+    color: #d4d4d4; padding: 10px; border-radius: 4px;
+    font-family: 'Consolas', monospace; font-size: 11px;
+    max-height: 400px; overflow-y: auto; white-space: pre-wrap;
+    line-height: 1.5;
+  }
+
+  .controls { display: flex; gap: 8px; padding: 12px 16px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid #eee; }
+  .controls input, .controls select {
+    padding: 6px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 12px;
+  }
+  .btn {
+    padding: 6px 14px; border-radius: 6px; border: none;
+    cursor: pointer; font-size: 12px; font-weight: 600; white-space: nowrap;
+  }
+  .btn-dark    { background: #1a252f; color: white; }
+  .btn-danger  { background: #e74c3c; color: white; }
+  .btn-green   { background: #27ae60; color: white; }
+  .btn-blue    { background: #2980b9; color: white; }
+
+  .refresh-info { font-size: 11px; color: #bbb; margin-left: auto; }
+  .empty { text-align: center; padding: 40px; color: #bbb; font-size: 13px; }
+
+  /* Field analysis */
+  .field-bar { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 5px; padding: 3px 0; }
+  .field-name { width: 220px; font-size: 12px; font-family: 'Consolas', monospace; color: #333; }
+  .field-track { flex: 1; background: #f0f0f0; height: 14px; border-radius: 3px; overflow: hidden; }
+  .field-fill  { height: 100%; background: #3498db; border-radius: 3px; transition: width 0.3s; }
+  .field-pct   { width: 45px; font-size: 11px; color: #888; text-align: right; font-family: monospace; }
+  .field-count { width: 70px; font-size: 11px; color: #aaa; font-family: monospace; }
+
+  /* SQL editor */
+  .sql-editor {
+    width: 100%; min-height: 100px; padding: 12px;
+    font-family: 'Consolas', monospace; font-size: 13px;
+    border: 1px solid #ddd; border-radius: 6px; resize: vertical;
+    background: #1e1e1e; color: #d4d4d4; line-height: 1.6;
+  }
+  .sql-result {
+    background: #1e1e1e; color: #d4d4d4; padding: 12px;
+    font-family: 'Consolas', monospace; font-size: 12px;
+    border-radius: 6px; max-height: 500px; overflow: auto;
+    white-space: pre; line-height: 1.5; margin-top: 12px;
+  }
+
+  /* Event type chart */
+  .type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 16px; }
+  .type-card { background: #f8f9fa; border-radius: 6px; padding: 10px 14px; }
+  .type-card .type-name { font-size: 12px; font-family: monospace; color: #333; }
+  .type-card .type-count { font-size: 20px; font-weight: bold; color: #1a252f; }
+
+  /* Tier inspect */
+  .tier-inspect { padding: 16px; }
+  .tier-inspect-header { padding: 12px 16px; border-bottom: 1px solid #eee; background: #f8f9fa; font-size: 12px; }
+  .tier-tables { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .tier-col h4 { font-size: 13px; margin-bottom: 8px; padding: 6px 10px; border-radius: 6px; color: white; }
+  .tier-col h4.t3 { background: #2980b9; }
+  .tier-col h4.t2 { background: #8e44ad; }
+  .tier-col h4.t1 { background: #c0392b; }
+  .tier-field-row { display: flex; flex-wrap: wrap; align-items: center; font-size: 12px; padding: 3px 4px; border-bottom: 1px solid #f5f5f5; }
+  .tier-field-row:hover { background: #fafbfc; }
+  .tier-field-name { font-family: 'Consolas', monospace; flex: 1; font-size: 11px; }
+  .tier-field-val { font-size: 11px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-left: 6px; color: #555; }
+  .tier-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; flex-shrink: 0; }
+  .tier-dot-ok { background: #27ae60; }
+  .tier-dot-miss { background: #e0e0e0; }
+  .tier-summary { font-size: 12px; color: #666; margin-top: 6px; }
+  .tier-sector-hdr {
+    font-size: 11px; font-weight: 600; color: #555; margin: 10px 0 4px;
+    padding: 4px 8px; background: #eef2f5; border-radius: 4px;
+  }
+  .tier-field-sub {
+    width: 100%; font-size: 10px; color: #888; padding-left: 18px; margin-bottom: 6px; line-height: 1.35;
+  }
+  .field-meta-tags { font-size: 10px; color: #666; margin-top: 2px; }
+
+  .key-panel { padding: 16px 18px; font-size: 13px; max-width: 900px; }
+  .key-panel h3 { font-size: 14px; margin: 18px 0 8px; color: #1a252f; }
+  .key-panel p { color: #666; font-size: 12px; line-height: 1.5; margin-bottom: 10px; }
+  .key-panel code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+  .key-output {
+    font-family: 'Consolas', monospace; font-size: 12px; padding: 12px;
+    background: #f8f9fa; border-radius: 6px; border: 1px solid #e0e0e0;
+    word-break: break-all; white-space: pre-wrap; line-height: 1.5;
+  }
+  .key-status-ok { color: #27ae60; font-weight: 600; font-size: 13px; margin-top: 8px; }
+  .key-status-bad { color: #e74c3c; font-weight: 600; font-size: 13px; margin-top: 8px; }
+  .key-row-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="display:flex;align-items:center">
+    <h1>🔭 Observer Experiment</h1>
+    <span class="sub">PostgreSQL хувилбар</span>
+  </div>
+  <span class="live" id="live-status">● Connecting...</span>
+</div>
+
+<div class="container">
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat-card">
+      <div class="label">Нийт event</div>
+      <div class="value" id="s-total">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Unique session</div>
+      <div class="value" id="s-session">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Unique visitor</div>
+      <div class="value" id="s-visitor">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Event төрөл</div>
+      <div class="value" id="s-types">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Сүүлд шинэчлэгдсэн</div>
+      <div class="value" style="font-size:14px" id="s-updated">—</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('events')">📋 Events</div>
+    <div class="tab" onclick="showTab('fields')">🔍 Fields</div>
+    <div class="tab" onclick="showTab('sessions')">👤 Sessions</div>
+    <div class="tab" onclick="showTab('visitor')">🧑 Visitor</div>
+    <div class="tab" onclick="showTab('types')">📊 Event Types</div>
+    <div class="tab" onclick="showTab('sql')">🗄 SQL Query</div>
+    <div class="tab" onclick="showTab('apikey')">🔑 API key</div>
+    <div class="tab" onclick="showTab('tierinspect')">📐 Tier Inspect</div>
+  </div>
+
+  <!-- Events -->
+  <div id="tab-events" class="panel">
+    <div class="controls">
+      <select id="filter-type" onchange="loadEvents()">
+        <option value="">Бүх event</option>
+        <option value="page_view">page_view</option>
+        <option value="cart_add">cart_add</option>
+        <option value="cart_remove">cart_remove</option>
+        <option value="session_end">session_end</option>
+        <option value="heartbeat">heartbeat</option>
+        <option value="tab_hidden">tab_hidden</option>
+        <option value="tab_visible">tab_visible</option>
+        <option value="copy">copy</option>
+        <option value="paste">paste</option>
+        <option value="search">search</option>
+        <option value="idle_start">idle_start</option>
+        <option value="idle_end">idle_end</option>
+        <option value="rage_click">rage_click</option>
+        <option value="js_error">js_error</option>
+        <option value="outbound_click">outbound_click</option>
+        <option value="product_impression">product_impression</option>
+        <option value="popup_open">popup_open</option>
+        <option value="purchase">purchase</option>
+      </select>
+      <input type="number" id="limit" value="50" min="10" max="500" style="width:70px" placeholder="Limit">
+      <button class="btn btn-dark" onclick="loadEvents()">↻ Шинэчлэх</button>
+      <button class="btn btn-danger" onclick="clearEvents()">🗑 Цэвэрлэх</button>
+      <span class="refresh-info" id="last-update"></span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>Цаг</th><th>Event</th>
+          <th>Visitor</th><th>Session</th><th>URL</th>
+          <th>Device</th><th>Visit#</th><th>Scroll</th>
+          <th>Time(s)</th><th>Clicks</th><th>Tab↔</th><th>Payload</th>
+        </tr>
+      </thead>
+      <tbody id="events-body">
+        <tr><td colspan="13" class="empty">Ачааллаж байна...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Fields -->
+  <div id="tab-fields" class="panel" style="display:none">
+    <div class="controls">
+      <button class="btn btn-dark" onclick="loadFields()">↻ Шинэчлэх</button>
+      <span class="refresh-info">PostgreSQL JSONB jsonb_object_keys-ээр тоолсон</span>
+    </div>
+    <div style="padding:16px" id="fields-content">
+      <div class="empty">Ачааллаж байна...</div>
+    </div>
+  </div>
+
+  <!-- Sessions -->
+  <div id="tab-sessions" class="panel" style="display:none">
+    <div class="controls">
+      <input type="text" id="session-input" placeholder="Session ID..." style="width:320px">
+      <button class="btn btn-blue" onclick="loadSession()">Харах</button>
+      <button class="btn btn-green" onclick="loadLatestSession()">Сүүлийн session</button>
+    </div>
+    <div id="session-detail">
+      <div class="empty">Session ID оруулах эсвэл "Сүүлийн session" дарах</div>
+    </div>
+  </div>
+
+  <!-- Visitor -->
+  <div id="tab-visitor" class="panel" style="display:none">
+    <div class="controls">
+      <input type="text" id="visitor-input" placeholder="Visitor ID..." style="width:320px">
+      <button class="btn btn-blue" onclick="loadVisitor()">Харах</button>
+      <button class="btn btn-green" onclick="loadLatestVisitor()">Сүүлийн visitor</button>
+    </div>
+    <div id="visitor-detail">
+      <div class="empty">Visitor ID оруулах</div>
+    </div>
+  </div>
+
+  <!-- Event Types -->
+  <div id="tab-types" class="panel" style="display:none">
+    <div class="controls">
+      <button class="btn btn-dark" onclick="loadTypes()">↻ Шинэчлэх</button>
+    </div>
+    <div class="type-grid" id="types-content">
+      <div class="empty" style="grid-column:1/-1">Ачааллаж байна...</div>
+    </div>
+  </div>
+
+  <!-- SQL -->
+  <div id="tab-sql" class="panel" style="display:none">
+    <div class="controls">
+      <span style="font-size:12px;color:#888">SELECT query л ажиллана (experiment only)</span>
+    </div>
+    <div style="padding:16px">
+      <textarea class="sql-editor" id="sql-input" rows="5">SELECT
+    event_type,
+    COUNT(*) as count,
+    ROUND(AVG((payload->>'max_scroll_pct')::numeric), 1) as avg_scroll,
+    ROUND(AVG((payload->>'time_on_page_sec')::numeric), 1) as avg_time_sec
+FROM raw_events
+WHERE payload->>'max_scroll_pct' IS NOT NULL
+GROUP BY event_type
+ORDER BY count DESC;</textarea>
+      <div style="margin-top:8px;display:flex;gap:8px">
+        <button class="btn btn-dark" onclick="runQuery()">▶ Ажиллуулах</button>
+        <button class="btn btn-blue" onclick="loadSampleQuery('visitor')">Visitor analysis</button>
+        <button class="btn btn-blue" onclick="loadSampleQuery('scroll')">Scroll depth</button>
+        <button class="btn btn-blue" onclick="loadSampleQuery('cart')">Cart events</button>
+        <button class="btn btn-blue" onclick="loadSampleQuery('hourly')">Цагийн хуваарь</button>
+      </div>
+      <div id="sql-result"></div>
+    </div>
+  </div>
+
+  <!-- Tier Inspect -->
+  <div id="tab-tierinspect" class="panel" style="display:none">
+    <div class="tier-inspect-header" id="tier-inspect-header">
+      Event сонгоогүй байна. Events tab дээрх аль нэг event-ийн ID дээр дарна уу.
+    </div>
+    <div class="tier-inspect" id="tier-inspect-body">
+      <div class="empty">Events tab-аас event сонгож 3 tier-ийн талбаруудыг шалгана.</div>
+    </div>
+  </div>
+
+  <!-- API key: generate + validate (calls /api/keys/*) -->
+  <div id="tab-apikey" class="panel" style="display:none">
+    <div class="key-panel">
+      <div id="key-allowlist-banner" class="key-output" style="margin-bottom:14px;border:1px solid #ddd;background:#fafafa">
+        Allowlist төлөвийг ачааллаж байна…
+      </div>
+      <p>
+        Сервер өөрөө түлхүүр үүсгэдэггүй. <strong>OBSERVER_API_KEYS</strong> заавал биш: заагаагүй бол зөвхөн
+        <code>tk_basic_</code> / <code>tk_smart_</code> / <code>tk_full_</code> угтрыг шалгадаг (суффикс дурын).
+        Allowlist асаахад бүтэн түлхүүр <strong>яг тааруулна</strong> — ард нь тэмдэгт нэмбэл татгалзана.
+      </p>
+
+      <h3>Шинэ түлхүүр үүсгэх</h3>
+      <div class="controls" style="border:none;padding-left:0;padding-top:0">
+        <select id="key-tier-gen">
+          <option value="T3">T3 — tk_basic_* (basic)</option>
+          <option value="T2">T2 — tk_smart_* (smart)</option>
+          <option value="T1">T1 — tk_full_* (full)</option>
+        </select>
+        <button type="button" class="btn btn-dark" onclick="viewerGenerateKey()">Үүсгэх</button>
+      </div>
+      <div id="key-gen-wrap" style="display:none;margin-top:12px">
+        <div class="key-output" id="key-gen-text"></div>
+        <div class="key-row-btns">
+          <button type="button" class="btn btn-green" onclick="copyText(lastGeneratedKey)">Copy key</button>
+          <button type="button" class="btn btn-blue" onclick="copyText(lastScriptTag)">Copy &lt;script&gt; tag</button>
+        </div>
+      </div>
+      <div id="key-gen-error" class="key-status-bad" style="display:none;margin-top:8px"></div>
+
+      <h3>Түлхүүр шалгах</h3>
+      <div class="controls" style="border:none;padding-left:0;padding-top:0">
+        <input type="text" id="key-validate-input" placeholder="tk_basic_... / tk_smart_... / tk_full_..."
+               style="flex:1;min-width:280px;font-family:Consolas,monospace;font-size:12px">
+        <button type="button" class="btn btn-dark" onclick="viewerValidateKey()">Шалгах</button>
+      </div>
+      <div id="key-validate-result" style="min-height:22px"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const TAB_NAMES = ['events','fields','sessions','visitor','types','sql','apikey','tierinspect'];
+let currentTab = 'events';
+let lastGeneratedKey = '';
+let lastScriptTag = '';
+let _lastEventsCache = [];
+let _fieldCatalog = null;
+let _fieldCatalogMap = null;
+
+/** Fallback if ``GET /api/field-catalog`` fails (must match server allowlists). */
+const TIER_FIELDS_FALLBACK = {
+  T3: [
+    'visitor_id','session_id','visit_count','days_since_first','cart_abandoned_count',
+    'url','path','referrer','page_load_ms','device_type','viewport_width','language',
+    'timezone','connection_type','time_on_page_sec','max_scroll_pct','scroll_up_count',
+    'click_count','active_time_ms','tab_hidden_count','tab_hidden_ms','copy_count',
+    'form_fields_count','form_fields_touched','bounce','session_duration_sec',
+    'is_logged_in','customer_type','order_count'
+  ],
+  T2: [
+    'action_detected','button_text','rage_click','outbound_click','detected_page_type',
+    'product_slug','checkout_step_detected','search_query_from_url','is_order_success',
+    'product_id','product_price','product_category','product_availability','selected_size',
+    'selected_quantity','search_query','filter_name','filter_value','sort_value',
+    'coupon_entered','js_error','page_view_count','back_navigation'
+  ],
+  T1: [
+    'cart_value','cart_item_count','checkout_step','payment_method','shipping_method',
+    'order_total','discount_code','is_sale','product_variant','product_stock'
+  ]
+};
+
+async function ensureFieldCatalog() {
+  if (_fieldCatalog) return _fieldCatalog;
+  try {
+    const r = await fetch('/api/field-catalog');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    _fieldCatalog = await r.json();
+    _fieldCatalogMap = {};
+    (_fieldCatalog.fields || []).forEach(function (f) {
+      _fieldCatalogMap[f.name] = f;
+    });
+  } catch (e) {
+    _fieldCatalog = null;
+    _fieldCatalogMap = null;
+  }
+  return _fieldCatalog;
+}
+
+function tierColumnKeys(which) {
+  if (_fieldCatalog && _fieldCatalog.fields) {
+    return _fieldCatalog.fields.filter(function (f) { return f.tier_min === which; })
+      .map(function (f) { return f.name; }).sort();
+  }
+  if (which === 'T3') return TIER_FIELDS_FALLBACK.T3.slice();
+  if (which === 'T2') return TIER_FIELDS_FALLBACK.T2.slice();
+  return TIER_FIELDS_FALLBACK.T1.slice();
+}
+
+function sectorLabelMn(sectorId) {
+  if (!_fieldCatalog || !_fieldCatalog.sectors) return sectorId;
+  for (var i = 0; i < _fieldCatalog.sectors.length; i++) {
+    if (_fieldCatalog.sectors[i].id === sectorId) return _fieldCatalog.sectors[i].label_mn;
+  }
+  return sectorId;
+}
+
+function escAttr(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+const SAMPLE_QUERIES = {
+  visitor: `SELECT
+    visitor_id,
+    COUNT(DISTINCT session_id) as sessions,
+    MAX((payload->>'visit_count')::int) as max_visit_count,
+    MIN(created_at) as first_seen,
+    MAX(created_at) as last_seen,
+    MAX(payload->>'device_type') as device
+FROM raw_events
+GROUP BY visitor_id
+ORDER BY sessions DESC
+LIMIT 20;`,
+  scroll: `SELECT
+    ROUND((payload->>'max_scroll_pct')::numeric / 10, 0) * 10 as scroll_bucket,
+    COUNT(*) as sessions
+FROM raw_events
+WHERE event_type = 'session_end'
+  AND payload->>'max_scroll_pct' IS NOT NULL
+GROUP BY scroll_bucket
+ORDER BY scroll_bucket;`,
+  cart: `SELECT
+    event_type,
+    COUNT(*) as count,
+    AVG((payload->>'last_cart_value')::float) as avg_cart_value,
+    MAX(payload->>'product_category') as sample_category
+FROM raw_events
+WHERE event_type IN ('cart_add','cart_remove','checkout_start')
+GROUP BY event_type;`,
+  hourly: `SELECT
+    DATE_TRUNC('hour', created_at) as hour,
+    COUNT(*) as events,
+    COUNT(DISTINCT session_id) as sessions
+FROM raw_events
+WHERE created_at > NOW() - INTERVAL '24 hours'
+GROUP BY hour
+ORDER BY hour;`
+};
+
+function showTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', TAB_NAMES[i] === tab);
+  });
+  TAB_NAMES.forEach(name => {
+    const el = document.getElementById('tab-' + name);
+    if (el) el.style.display = name === tab ? '' : 'none';
+  });
+  if (tab === 'fields') loadFields();
+  if (tab === 'types')  loadTypes();
+  if (tab === 'apikey') loadKeyAllowlistStatus();
+}
+
+async function loadKeyAllowlistStatus() {
+  const el = document.getElementById('key-allowlist-banner');
+  if (!el) return;
+  try {
+    const r = await fetch('/api/keys/status');
+    const d = await r.json();
+    if (d.allowlist_enabled) {
+      el.style.background = '#e8f5e9';
+      el.style.border = '1px solid #a5d6a7';
+      el.innerHTML =
+        '<strong>Allowlist ON.</strong> Only keys listed in <code>OBSERVER_API_KEYS</code> work ' +
+        '(changing one character will fail). Registered: <strong>' + d.allowed_keys_count + '</strong>.';
+    } else {
+      el.style.background = '#fff3e0';
+      el.style.border = '1px solid #ffcc80';
+      el.innerHTML =
+        '<strong>Allowlist OFF (default).</strong> Any suffix after a valid prefix is accepted — ' +
+        'editing the key may still work. For strict checks, set <code>OBSERVER_API_KEYS=key1,key2</code> in .env and restart.';
+    }
+  } catch (e) {
+    el.textContent = 'Could not load /api/keys/status';
+  }
+}
+
+function copyText(text) {
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    alert('Хуулагдлаа');
+  }).catch(() => {
+    prompt('Copy:', text);
+  });
+}
+
+async function viewerGenerateKey() {
+  const tier = document.getElementById('key-tier-gen').value;
+  document.getElementById('key-gen-error').style.display = 'none';
+  document.getElementById('key-gen-wrap').style.display = 'none';
+  try {
+    const r = await fetch('/api/keys/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tier })
+    });
+    const d = await r.json();
+    if (!r.ok) {
+      const msg = d.detail || d.error || JSON.stringify(d);
+      document.getElementById('key-gen-error').textContent = msg;
+      document.getElementById('key-gen-error').style.display = 'block';
+      return;
+    }
+    lastGeneratedKey = d.key || '';
+    const origin = window.location.origin;
+    lastScriptTag = '<script src="' + origin + '/static/snippet/track.js?key=' + encodeURIComponent(lastGeneratedKey) + '"><\/script>';
+    var noteLine = d.note ? '\n\nNote: ' + d.note : '';
+    document.getElementById('key-gen-text').textContent =
+      'Key:\n' + lastGeneratedKey + '\n\nTier: ' + (d.tier || '') + noteLine + '\n\nScript:\n' + lastScriptTag;
+    document.getElementById('key-gen-wrap').style.display = 'block';
+  } catch (e) {
+    document.getElementById('key-gen-error').textContent = 'Сүлжээний алдаа: ' + e.message;
+    document.getElementById('key-gen-error').style.display = 'block';
+  }
+}
+
+async function viewerValidateKey() {
+  const key = document.getElementById('key-validate-input').value.trim();
+  const out = document.getElementById('key-validate-result');
+  out.textContent = 'Шалгаж байна…';
+  out.className = '';
+  try {
+    const r = await fetch('/api/keys/validate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key })
+    });
+    const d = await r.json();
+    if (d.valid) {
+      out.className = 'key-status-ok';
+      out.textContent = '✓ Зөв — ' + (d.message || '') + ' (tier: ' + d.tier + ')';
+    } else {
+      out.className = 'key-status-bad';
+      out.textContent = '✗ Буруу — ' + (d.message || 'Unknown error');
+    }
+  } catch (e) {
+    out.className = 'key-status-bad';
+    out.textContent = '✗ Сүлжээний алдаа: ' + e.message;
+  }
+}
+
+// Tier Inspect
+async function inspectEventTier(idx) {
+  const ev = _lastEventsCache[idx];
+  if (!ev) return;
+  await ensureFieldCatalog();
+  renderTierInspect(ev);
+  showTab('tierinspect');
+}
+
+function renderTierInspect(ev) {
+  const p = (typeof ev.payload === 'object' && ev.payload) ? ev.payload : {};
+  const tier = ev.tier || p.tier || '—';
+  const hdr = document.getElementById('tier-inspect-header');
+  hdr.innerHTML =
+    '<div><strong>Event #' + ev.id + '</strong>' +
+    ' &nbsp;|&nbsp; <span class="badge badge-' + (ev.event_type||'') + '">' + (ev.event_type||'?') + '</span>' +
+    ' &nbsp;|&nbsp; Tier: <strong>' + tier + '</strong>' +
+    ' &nbsp;|&nbsp; ' + (ev.created_at||'').slice(0,19).replace('T',' ') +
+    ' &nbsp;|&nbsp; Payload keys: <strong>' + Object.keys(p).length + '</strong></div>' +
+    '<div style="margin-top:8px;font-size:11px;color:#555;line-height:1.45">' +
+    '<strong>CORE багана</strong> (tier-ээс үл хамааран): ' +
+    '<code>visitor_id</code>, <code>session_id</code>, <code>event_type</code>, <code>url</code>, ' +
+    '<code>referrer</code>, <code>timestamp</code>, <code>ip</code>, <code>user_agent</code>. ' +
+    'Заримыг доор payload-той нэг мөрөнд харуулна — лавлахад багана үнэн эх үүсвэр.</div>';
+
+  const allPayload = Object.assign({}, p, {
+    visitor_id: ev.visitor_id, session_id: ev.session_id,
+    url: ev.url, event_type: ev.event_type
+  });
+
+  function renderCol(title, cssClass, tierWhich) {
+    const fields = tierColumnKeys(tierWhich);
+    const present = fields.filter(function (f) { return allPayload[f] !== undefined && allPayload[f] !== null; });
+    const pct = fields.length ? Math.round(present.length / fields.length * 100) : 0;
+    let html = '<div class="tier-col"><h4 class="' + cssClass + '">' + title +
+               ' (' + present.length + '/' + fields.length + ' — ' + pct + '%)</h4>';
+    var lastSec = null;
+    fields.forEach(function (f) {
+      const meta = _fieldCatalogMap ? _fieldCatalogMap[f] : null;
+      if (meta && meta.sector_id !== lastSec) {
+        lastSec = meta.sector_id;
+        html += '<div class="tier-sector-hdr">' + escAttr(sectorLabelMn(meta.sector_id)) + '</div>';
+      }
+      const has = allPayload[f] !== undefined && allPayload[f] !== null;
+      const dotCls = has ? 'tier-dot-ok' : 'tier-dot-miss';
+      let valStr = '';
+      if (has) {
+        var v = allPayload[f];
+        valStr = typeof v === 'object' ? JSON.stringify(v) : String(v);
+        if (valStr.length > 40) valStr = valStr.slice(0, 37) + '…';
+      }
+      var sub = '';
+      if (meta) {
+        sub = '<div class="tier-field-sub" title="' + escAttr(meta.notes_mn) + '">' +
+              escAttr(meta.label_mn) + ' · <span style="color:#999">' + escAttr(meta.source) + '</span></div>';
+      }
+      html += '<div class="tier-field-row">' +
+              '<span class="tier-dot ' + dotCls + '"></span>' +
+              '<span class="tier-field-name" title="' + (meta ? escAttr(meta.notes_mn) : '') + '">' + f + '</span>' +
+              (has ? '<span class="tier-field-val" title="' + String(allPayload[f]).replace(/"/g,'&quot;') + '">' + valStr + '</span>' : '<span class="tier-field-val" style="color:#ccc">—</span>') +
+              sub +
+              '</div>';
+    });
+    html += '</div>';
+    return html;
+  }
+
+  document.getElementById('tier-inspect-body').innerHTML =
+    '<div class="tier-tables">' +
+    renderCol('Tier 3 — Basic (' + tierColumnKeys('T3').length + ' талбар)', 't3', 'T3') +
+    renderCol('Tier 2 — Smart +' + tierColumnKeys('T2').length + ' талбар', 't2', 'T2') +
+    renderCol('Tier 1 — Full +' + tierColumnKeys('T1').length + ' талбар', 't1', 'T1') +
+    '</div>';
+}
+
+// Stats
+async function loadStats() {
+  try {
+    const r = await fetch('/stats');
+    const d = await r.json();
+    document.getElementById('s-total').textContent   = (d.total_events || 0).toLocaleString();
+    document.getElementById('s-session').textContent = (d.unique_sessions || 0).toLocaleString();
+    document.getElementById('s-visitor').textContent = (d.unique_visitors || 0).toLocaleString();
+    document.getElementById('s-types').textContent   = Object.keys(d.event_types || {}).length;
+    document.getElementById('s-updated').textContent = new Date().toLocaleTimeString();
+    document.getElementById('live-status').textContent = '● Live';
+    document.getElementById('live-status').style.color = '#2ecc71';
+  } catch (e) {
+    document.getElementById('live-status').textContent = '● Холбогдохгүй байна';
+    document.getElementById('live-status').style.color = '#e74c3c';
+  }
+}
+
+// Events
+async function loadEvents() {
+  const type  = document.getElementById('filter-type').value;
+  const limit = document.getElementById('limit').value || 50;
+  let url = `/events?limit=${limit}`;
+  if (type) url += `&event_type=${type}`;
+
+  const r = await fetch(url);
+  const d = await r.json();
+  const rows = d.events || [];
+
+  const body = document.getElementById('events-body');
+  if (!rows.length) {
+    body.innerHTML = '<tr><td colspan="13" class="empty">Event байхгүй. Snippet-ийг суулгана уу.</td></tr>';
+    return;
+  }
+
+  _lastEventsCache = rows;
+  body.innerHTML = rows.map((e, i) => {
+    const p = (typeof e.payload === 'object' && e.payload) ? e.payload : {};
+    const bc = 'badge-' + (e.event_type || '');
+    const time = (e.created_at || '').slice(11, 19);
+    const vShort = (e.visitor_id || '').slice(-8);
+    const sShort = (e.session_id || '').slice(-8);
+    const pid = 'p' + i;
+
+    return `<tr>
+      <td style="color:#1976d2;font-size:11px;cursor:pointer;text-decoration:underline"
+          onclick="inspectEventTier(${i})" title="Tier inspect">${e.id}</td>
+      <td style="font-family:monospace;color:#888;font-size:11px">${time}</td>
+      <td><span class="badge ${bc}">${e.event_type||'?'}</span></td>
+      <td style="font-family:monospace;font-size:10px;color:#888"
+          title="${e.visitor_id}"
+          onclick="document.getElementById('visitor-input').value='${e.visitor_id}';showTab('visitor');loadVisitor()"
+          style="cursor:pointer">...${vShort}</td>
+      <td style="font-family:monospace;font-size:10px;color:#888"
+          onclick="document.getElementById('session-input').value='${e.session_id}';showTab('sessions');loadSession()"
+          style="cursor:pointer">...${sShort}</td>
+      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px"
+          title="${e.url||p.url||''}">${((e.url||p.url)||'').replace(/^https?:\/\/[^/]+/,'')}</td>
+      <td style="font-size:11px">${p.device_type||'—'}</td>
+      <td style="font-size:11px">${p.visit_count!=null?'#'+p.visit_count:'—'}</td>
+      <td style="font-size:11px">${p.max_scroll_pct!=null?p.max_scroll_pct+'%':'—'}</td>
+      <td style="font-size:11px">${p.time_on_page_sec!=null?p.time_on_page_sec+'s':'—'}</td>
+      <td style="font-size:11px">${p.click_count!=null?p.click_count:'—'}</td>
+      <td style="font-size:11px">${p.tab_hidden_count!=null?p.tab_hidden_count:'—'}</td>
+      <td>
+        <span class="payload-toggle" onclick="toggle('${pid}')">
+          ${Object.keys(p).length} field
+        </span>
+        <div class="payload-content" id="${pid}">${JSON.stringify(p,null,2)}</div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('last-update').textContent = 'Updated: ' + new Date().toLocaleTimeString();
+}
+
+function toggle(id) {
+  const el = document.getElementById(id);
+  el.style.display = el.style.display === 'block' ? 'none' : 'block';
+}
+
+// Fields
+async function loadFields() {
+  await ensureFieldCatalog();
+  const r = await fetch('/fields');
+  const d = await r.json();
+  const fields = d.fields || [];
+
+  document.getElementById('fields-content').innerHTML = `
+    <div style="margin-bottom:14px;color:#666;font-size:12px">
+      <strong>${d.total_events_analyzed}</strong> event шинжилж
+      <strong>${d.unique_fields_found}</strong> өвөрмөц field олдлоо
+      (PostgreSQL JSONB jsonb_object_keys).
+      Шошго: <code>GET /api/field-catalog</code> (tier + судалгааны бүлэг + MN тайлбар).
+    </div>
+    ${fields.map(f => {
+      const m = _fieldCatalogMap && _fieldCatalogMap[f.field];
+      const tags = m
+        ? `<div class="field-meta-tags" title="${escAttr(m.notes_mn)}">[${m.tier_min}] ${escAttr(sectorLabelMn(m.sector_id))} — ${escAttr(m.label_mn)}</div>`
+        : `<div class="field-meta-tags" style="color:#c62828">каталогт байхгүй (legacy эсвэл хуучин payload)</div>`;
+      return `
+      <div class="field-bar" style="flex-wrap:wrap">
+        <div style="min-width:200px;flex:1">
+          <div class="field-name">${f.field}</div>
+          ${tags}
+        </div>
+        <div class="field-track" style="min-width:120px;flex:2">
+          <div class="field-fill" style="width:${Math.min(f.pct,100)}%"></div>
+        </div>
+        <div class="field-pct">${f.pct}%</div>
+        <div class="field-count">${f.count} evt</div>
+      </div>`;
+    }).join('')}
+  `;
+}
+
+// Sessions
+async function loadSession() {
+  const sid = document.getElementById('session-input').value.trim();
+  if (!sid) return;
+  const r = await fetch(`/session/${encodeURIComponent(sid)}`);
+  const d = await r.json();
+  renderSession(d);
+}
+
+async function loadLatestSession() {
+  const r = await fetch('/events?limit=1');
+  const d = await r.json();
+  if (d.events && d.events[0]) {
+    const sid = d.events[0].session_id;
+    document.getElementById('session-input').value = sid;
+    const r2 = await fetch(`/session/${encodeURIComponent(sid)}`);
+    renderSession(await r2.json());
+  }
+}
+
+function renderSession(d) {
+  if (d.error) {
+    document.getElementById('session-detail').innerHTML = `<div class="empty">${d.error}</div>`;
+    return;
+  }
+  const evs = d.events || [];
+  document.getElementById('session-detail').innerHTML = `
+    <div style="padding:12px 16px;border-bottom:1px solid #eee;background:#f8f9fa;font-size:12px">
+      <strong>${d.session_id}</strong>
+      <span style="margin-left:12px;color:#888">
+        ${d.event_count} event |
+        ${d.duration_sec != null ? d.duration_sec+'с' : '?'} |
+        Visit #${d.visit_count||'?'} |
+        ${d.device||'?'} |
+        Scroll: ${d.max_scroll_pct||0}% |
+        Clicks: ${d.click_count||0} |
+        Tab switches: ${d.tab_switches||0} |
+        Cart adds: ${d.cart_adds||0}
+      </span>
+    </div>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Event</th><th>Цаг</th><th>Time(s)</th><th>Scroll%</th><th>Details</th></tr>
+      </thead>
+      <tbody>
+        ${evs.map((e,i) => {
+          const p = (typeof e.payload === 'object' && e.payload) ? e.payload : {};
+          const bc = 'badge-' + e.event_type;
+          return `<tr>
+            <td>${i+1}</td>
+            <td><span class="badge ${bc}">${e.event_type}</span></td>
+            <td style="font-family:monospace;font-size:11px">${(e.created_at||'').slice(11,19)}</td>
+            <td>${p.time_on_page_sec!=null?p.time_on_page_sec+'s':'—'}</td>
+            <td>${p.max_scroll_pct!=null?p.max_scroll_pct+'%':'—'}</td>
+            <td style="font-size:11px;color:#666">
+              ${p.product_id?'🛒 '+p.product_id:''}
+              ${p.search_query?'🔍 "'+p.search_query+'"':''}
+              ${p.cart_value?'💰 '+Number(p.cart_value).toLocaleString()+'₮':''}
+              ${p.copied_text_length?'📋 copy '+p.copied_text_length+'chr':''}
+              ${p.bounce?'⚡ bounce':''}
+              ${p.session_duration_sec?'⏱ '+p.session_duration_sec+'s total':''}
+            </td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+// Visitor
+async function loadVisitor() {
+  const vid = document.getElementById('visitor-input').value.trim();
+  if (!vid) return;
+  const r = await fetch(`/visitor/${encodeURIComponent(vid)}`);
+  const d = await r.json();
+  renderVisitor(d);
+}
+
+async function loadLatestVisitor() {
+  const r = await fetch('/events?limit=1');
+  const d = await r.json();
+  if (d.events && d.events[0]) {
+    const vid = d.events[0].visitor_id;
+    document.getElementById('visitor-input').value = vid;
+    const r2 = await fetch(`/visitor/${encodeURIComponent(vid)}`);
+    renderVisitor(await r2.json());
+  }
+}
+
+function renderVisitor(d) {
+  const container = document.getElementById('visitor-detail');
+  if (!d.sessions || !d.sessions.length) {
+    container.innerHTML = '<div class="empty">Visitor олдсонгүй</div>';
+    return;
+  }
+  container.innerHTML = `
+    <div style="padding:12px 16px;border-bottom:1px solid #eee;background:#f8f9fa;font-size:12px">
+      <strong>${d.visitor_id}</strong>
+      <span style="margin-left:12px;color:#888">${d.session_count} session</span>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Session</th><th>Эхэлсэн</th><th>Event тоо</th><th>Device</th><th>Visit#</th><th>Scroll</th><th>Clicks</th><th>Event төрлүүд</th></tr>
+      </thead>
+      <tbody>
+        ${d.sessions.map(s => `
+          <tr>
+            <td style="font-family:monospace;font-size:10px;cursor:pointer;color:#1976d2"
+                onclick="document.getElementById('session-input').value='${s.session_id}';showTab('sessions');loadSession()">
+              ...${s.session_id.slice(-10)}
+            </td>
+            <td style="font-size:11px">${(s.start||'').slice(11,19)}</td>
+            <td>${s.event_count}</td>
+            <td>${s.device||'—'}</td>
+            <td>${s.visit_number!=null?'#'+s.visit_number:'—'}</td>
+            <td>${s.max_scroll!=null?s.max_scroll+'%':'—'}</td>
+            <td>${s.clicks!=null?s.clicks:'—'}</td>
+            <td style="font-size:10px;color:#888">${(s.event_types||[]).join(', ')}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+// Event Types
+async function loadTypes() {
+  const r = await fetch('/stats');
+  const d = await r.json();
+  const types = d.event_types || {};
+  const total = d.total_events || 1;
+
+  document.getElementById('types-content').innerHTML =
+    Object.entries(types).sort((a,b) => b[1]-a[1]).map(([type, count]) => `
+      <div class="type-card">
+        <div class="type-name">${type}</div>
+        <div class="type-count">${count.toLocaleString()}</div>
+        <div style="font-size:11px;color:#aaa">${Math.round(count/total*100)}% нийт</div>
+        <div style="margin-top:6px;background:#e0e0e0;height:6px;border-radius:3px;overflow:hidden">
+          <div style="width:${Math.round(count/total*100)}%;height:100%;background:#3498db;border-radius:3px"></div>
+        </div>
+      </div>
+    `).join('');
+}
+
+// SQL
+function loadSampleQuery(name) {
+  document.getElementById('sql-input').value = SAMPLE_QUERIES[name] || '';
+}
+
+async function runQuery() {
+  const sql = document.getElementById('sql-input').value.trim();
+  if (!sql) return;
+  document.getElementById('sql-result').innerHTML = '<div style="color:#888;padding:8px">Ажиллаж байна...</div>';
+  try {
+    const r = await fetch('/query', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sql })
+    });
+    const d = await r.json();
+    if (d.error) {
+      document.getElementById('sql-result').innerHTML =
+        `<div class="sql-result" style="color:#e74c3c">${d.error}</div>`;
+    } else {
+      document.getElementById('sql-result').innerHTML =
+        `<div class="sql-result">${JSON.stringify(d.rows, null, 2)}</div>
+         <div style="font-size:11px;color:#888;margin-top:6px">${d.count} мөр буцаалаа</div>`;
+    }
+  } catch (e) {
+    document.getElementById('sql-result').innerHTML =
+      `<div class="sql-result" style="color:#e74c3c">Network error: ${e.message}</div>`;
+  }
+}
+
+async function clearEvents() {
+  if (!confirm('Бүх event устгах уу?')) return;
+  await fetch('/clear', { method: 'DELETE' });
+  await refresh();
+}
+
+async function refresh() {
+  void ensureFieldCatalog();
+  await loadStats();
+  if (currentTab === 'events') await loadEvents();
+  if (currentTab === 'types')  await loadTypes();
+}
+
+// Auto refresh 5 секунд
+refresh();
+setInterval(refresh, 5000);
+</script>
+</body>
+</html>

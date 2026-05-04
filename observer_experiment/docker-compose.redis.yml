@@ -1,0 +1,17 @@
+# Optional Redis for Observer fan-out. Start Docker Desktop, then:
+#   docker compose -f docker-compose.redis.yml up -d
+#
+# .env:
+#   REDIS_URL=redis://localhost:6379/0
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - observer_redis_data:/data
+
+volumes:
+  observer_redis_data:

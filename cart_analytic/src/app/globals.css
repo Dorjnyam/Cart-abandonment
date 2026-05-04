@@ -1,0 +1,239 @@
+@import "tailwindcss";
+
+/* ── Design tokens — Light (default / :root) ─────────────────────── */
+:root {
+  --font-body: "Segoe UI", Arial, sans-serif;
+  --font-display: Georgia, "Times New Roman", serif;
+
+  /* Backgrounds */
+  --canvas-rgb:                    244 246 250;
+  --background-rgb:                244 246 250;
+  --surface-rgb:                   238 241 247;
+  --surface-bright-rgb:            255 255 255;
+  --surface-dim-rgb:               228 234 244;
+  --surface-variant-rgb:           225 233 245;
+  --surface-alt-rgb:               240 244 251;
+
+  /* Surface containers */
+  --surface-container-lowest-rgb:  255 255 255;
+  --surface-container-low-rgb:     240 244 251;
+  --surface-container-rgb:         235 240 249;
+  --surface-container-high-rgb:    229 236 247;
+  --surface-container-highest-rgb: 222 230 244;
+
+  /* Text */
+  --on-surface-rgb:                15 23 42;
+  --on-background-rgb:             15 23 42;
+  --on-surface-variant-rgb:        94 108 133;
+  --inverse-surface-rgb:           15 23 42;
+  --inverse-on-surface-rgb:        148 163 184;
+  --inverse-primary-rgb:           255 255 255;
+
+  /* Borders */
+  --outline-rgb:                   0 0 0;
+  --outline-variant-rgb:           0 0 0;
+
+  /* Primary — electric blue */
+  --primary-rgb:                   37 99 235;
+  --on-primary-rgb:                255 255 255;
+  --primary-dim-rgb:               29 78 216;
+  --primary-fixed-rgb:             219 234 254;
+  --primary-fixed-dim-rgb:         191 219 254;
+  --primary-container-rgb:         219 234 254;
+  --on-primary-container-rgb:      30 58 138;
+  --on-primary-fixed-rgb:          15 23 42;
+  --on-primary-fixed-variant-rgb:  51 65 85;
+
+  /* Secondary — blue accent */
+  --secondary-rgb:                 37 99 235;
+  --on-secondary-rgb:              255 255 255;
+  --secondary-dim-rgb:             29 78 216;
+  --secondary-container-rgb:       219 234 254;
+  --on-secondary-container-rgb:    30 64 175;
+  --on-secondary-fixed-rgb:        30 58 138;
+  --on-secondary-fixed-variant-rgb:30 64 175;
+  --secondary-fixed-dim-rgb:       191 219 254;
+
+  /* Tertiary — cyan */
+  --tertiary-rgb:                  6 182 212;
+  --on-tertiary-rgb:               255 255 255;
+  --tertiary-dim-rgb:              8 145 178;
+  --tertiary-container-rgb:        207 250 254;
+  --on-tertiary-container-rgb:     21 94 117;
+  --tertiary-fixed-rgb:            165 243 252;
+  --tertiary-fixed-dim-rgb:        103 232 249;
+  --on-tertiary-fixed-rgb:         8 47 73;
+  --on-tertiary-fixed-variant-rgb: 14 116 144;
+
+  /* Error — red */
+  --error-rgb:                     239 68 68;
+  --on-error-rgb:                  255 255 255;
+  --error-dim-rgb:                 220 38 38;
+  --error-container-rgb:           254 226 226;
+  --on-error-container-rgb:        127 29 29;
+
+  /* Insight */
+  --insight-bg-rgb:                219 234 254;
+  --on-insight-rgb:                30 58 138;
+
+  /* Risk severity */
+  --color-risk-high:               #ef4444;
+  --color-risk-medium:             #f59e0b;
+  --color-risk-low:                #10b981;
+
+  /* Model variant */
+  --color-variant-baseline:        #6b7280;
+  --color-variant-extended:        #2563eb;
+  --color-variant-full:            #7c3aed;
+
+  /* Sidebar (always dark) */
+  --sidebar-navy:                  #0f2044;
+}
+
+/* ── Dark mode ──────────────────────────────────────────────────────── */
+.dark {
+  /* Backgrounds — deep navy/dark-blue palette */
+  --canvas-rgb:                    7 12 20;
+  --background-rgb:                7 12 20;
+  --surface-rgb:                   13 21 32;
+  --surface-bright-rgb:            27 41 63;
+  --surface-dim-rgb:               7 12 20;
+  --surface-variant-rgb:           30 45 68;
+  --surface-alt-rgb:               21 33 51;
+
+  /* Surface containers */
+  --surface-container-lowest-rgb:  17 29 46;
+  --surface-container-low-rgb:     21 33 51;
+  --surface-container-rgb:         25 38 58;
+  --surface-container-high-rgb:    30 46 69;
+  --surface-container-highest-rgb: 36 55 82;
+
+  /* Text */
+  --on-surface-rgb:                232 240 254;
+  --on-background-rgb:             232 240 254;
+  --on-surface-variant-rgb:        128 144 171;
+  --inverse-surface-rgb:           232 240 254;
+  --inverse-primary-rgb:           7 12 20;
+  --inverse-on-surface-rgb:        30 41 59;
+
+  /* Borders — use with /7 to /14 opacity for correct effect */
+  --outline-rgb:                   255 255 255;
+  --outline-variant-rgb:           255 255 255;
+
+  /* Primary — electric blue (same in both modes) */
+  --primary-rgb:                   37 99 235;
+  --on-primary-rgb:                255 255 255;
+  --primary-dim-rgb:               37 99 235;
+  --primary-fixed-rgb:             17 29 46;
+  --primary-fixed-dim-rgb:         29 78 216;
+  --primary-container-rgb:         17 29 46;
+  --on-primary-container-rgb:      191 219 254;
+  --on-primary-fixed-rgb:          232 240 254;
+  --on-primary-fixed-variant-rgb:  147 197 253;
+
+  /* Secondary */
+  --secondary-rgb:                 59 130 246;
+  --on-secondary-rgb:              255 255 255;
+  --secondary-dim-rgb:             59 130 246;
+  --secondary-container-rgb:       17 29 46;
+  --on-secondary-container-rgb:    191 219 254;
+  --on-secondary-fixed-rgb:        191 219 254;
+  --on-secondary-fixed-variant-rgb:147 197 253;
+  --secondary-fixed-dim-rgb:       30 58 138;
+
+  /* Tertiary — cyan */
+  --tertiary-rgb:                  6 182 212;
+  --on-tertiary-rgb:               7 12 20;
+  --tertiary-dim-rgb:              6 182 212;
+  --tertiary-container-rgb:        14 65 85;
+  --on-tertiary-container-rgb:     167 243 252;
+  --tertiary-fixed-rgb:            103 232 249;
+  --tertiary-fixed-dim-rgb:        6 182 212;
+  --on-tertiary-fixed-rgb:         8 47 73;
+  --on-tertiary-fixed-variant-rgb: 165 243 252;
+
+  /* Error */
+  --error-rgb:                     239 68 68;
+  --on-error-rgb:                  7 12 20;
+  --error-dim-rgb:                 239 68 68;
+  --error-container-rgb:           69 17 17;
+  --on-error-container-rgb:        254 202 202;
+
+  /* Insight */
+  --insight-bg-rgb:                17 29 46;
+  --on-insight-rgb:                147 197 253;
+}
+
+/* ── Sidebar always stays dark (navy) ─── */
+html body aside {
+  --on-surface-rgb:                255 255 255;
+  --on-surface-variant-rgb:        148 163 184;
+  --on-background-rgb:             255 255 255;
+  --outline-rgb:                   255 255 255;
+  --outline-variant-rgb:           255 255 255;
+  --surface-container-lowest-rgb:  255 255 255;
+}
+
+/* ── Base styles ────────────────────────────────────────────────────── */
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+
+body {
+  background: rgb(var(--background-rgb));
+  color: rgb(var(--on-surface-rgb));
+  font-family: var(--font-body, "Work Sans"), "Noto Sans Mongolian", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display, "Newsreader"), "Noto Sans Mongolian", serif;
+  letter-spacing: -0.02em;
+}
+
+/* ── Scrollbar ──────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px }
+::-webkit-scrollbar-track { background: transparent }
+::-webkit-scrollbar-thumb {
+  background: rgba(128, 144, 171, 0.35);
+  border-radius: 10px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none }
+.no-scrollbar { scrollbar-width: none }
+
+/* ── Shadows ────────────────────────────────────────────────────────── */
+.editorial-shadow {
+  box-shadow:
+    0 1px 3px rgb(0 0 0 / 0.06),
+    0 8px 24px -4px rgb(0 0 0 / 0.08);
+}
+
+.dark .editorial-shadow {
+  box-shadow:
+    0 1px 3px rgb(0 0 0 / 0.4),
+    0 8px 24px -4px rgb(0 0 0 / 0.55);
+}
+
+/* ── Material icons (if used) ───────────────────────────────────────── */
+.material-symbols-outlined {
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+}
+
+/* ── Tailwind shadow tokens override ───────────────────────────────── */
+.dark .shadow-card {
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.3),
+    0 12px 30px -10px rgb(0 0 0 / 0.55);
+}

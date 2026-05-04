@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0a0a0a;
+  --surface: #0e0e0e;
+  --surface-low: #131313;
+  --surface-high: #262626;
+  --foreground: #ffffff;
+  --muted: #adaaaa;
+  --primary: #c8f135;
+  --primary-text: #1b2200;
+  --danger: #ff7351;
+  --warning: #ffd16f;
+  --accent: #a08eff;
+}
+
+body {
+  background: var(--surface);
+  color: var(--foreground);
+  margin: 0;
+  font-family: var(--font-sans), Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+}
+
+h1, h2, h3, h4, .font-brand,
+.font-headline {
+  font-family: var(--font-brand), Inter, sans-serif;
+}
+
+.font-mono {
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.app-shell {
+  background: var(--surface);
+  color: var(--foreground);
+}
+
+.surface-low {
+  background: var(--surface-low);
+}
+
+.surface-high {
+  background: var(--surface-high);
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: var(--primary-text);
+  border-radius: 8px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.btn-primary:hover {
+  box-shadow: 0 0 20px rgba(200, 241, 53, 0.2);
+}
+
+.btn-primary:active {
+  transform: scale(0.97);
+}
+
+.btn-secondary {
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: var(--foreground);
+  border-radius: 8px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: transform 0.15s ease, border-color 0.2s ease;
+}
+
+.btn-secondary:hover {
+  border-color: var(--primary);
+}
+
+.btn-secondary:active {
+  transform: scale(0.97);
+}
+
+.kick-card {
+  background: #141414;
+  border-radius: 8px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.kick-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 0 20px rgba(200, 241, 53, 0.15);
+}
+
+.glass-nav {
+  background: rgba(20, 20, 20, 0.6);
+  backdrop-filter: blur(20px);
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.badge-new { background: var(--primary); color: #1b2200; }
+.badge-hot { background: #ffb347; color: #241500; }
+.badge-sale { background: var(--danger); color: #fff; }
+.badge-exclusive { background: var(--accent); color: #fff; }
+
+.route-fade {
+  animation: routeIn 0.22s ease;
+}
+
+@keyframes routeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+

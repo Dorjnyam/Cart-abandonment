@@ -1,0 +1,65 @@
+# Local editor and assistant state
+.claude/
+.vscode/
+.idea/
+Microsoft/
+.git-nested-backup/
+
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+!.env.local.example
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+.conda/
+
+# Node / Next / Docusaurus
+node_modules/
+.next/
+.docusaurus/
+build/
+dist/
+out/
+.turbo/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Databases and generated data
+*.sqlite
+*.sqlite3
+*.db
+*.duckdb
+*.parquet
+*.csv
+*.tsv
+*.log
+
+# Model and binary artifacts
+*.pkl
+*.pt
+*.pth
+*.onnx
+*.joblib
+
+# Docker/runtime volumes
+pg_data/
+redis_data/
+minio_data/
+duckdb_data/
+
+# OS files
+.DS_Store
+Thumbs.db

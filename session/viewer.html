@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Session Service Viewer</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --line: #1f2937;
+      --ok: #10b981;
+      --warn: #f59e0b;
+      --err: #ef4444;
+      --accent: #3b82f6;
+      /* Uniform height for every event card (change one value to resize all) */
+      --event-card-height: 260px;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, Segoe UI, Arial, sans-serif; padding: 16px; font-size: 14px; }
+    .wrap { max-width: 960px; margin: 0 auto; }
+    h1 { margin: 0 0 4px; font-size: 22px; }
+    .sub { color: var(--muted); margin: 0 0 16px; font-size: 13px; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 14px; }
+    .toolbar input { background: #0b1220; border: 1px solid #334155; color: var(--text); border-radius: 6px; padding: 8px 10px; min-width: 200px; }
+    .toolbar button { border: none; border-radius: 6px; background: var(--accent); color: #fff; padding: 8px 14px; cursor: pointer; font-weight: 600; }
+    .toolbar button.secondary { background: #374151; }
+    .toolbar button.danger { background: #7f1d1d; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; }
+    .card h2 { margin: 0 0 12px; font-size: 15px; color: #f8fafc; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+    .poll-banner { font-size: 12px; padding: 8px 10px; border-radius: 6px; background: #0b1220; border: 1px solid var(--line); color: var(--muted); margin-top: 8px; }
+    .poll-banner.live { border-color: var(--ok); color: var(--ok); }
+    /* Connections — one block per dependency */
+    ol.steps { margin: 0; padding: 0; list-style: none; counter-reset: step; }
+    ol.steps > li { counter-increment: step; border: 1px solid var(--line); border-radius: 8px; padding: 12px 12px 12px 44px; margin-bottom: 10px; background: #0b1220; position: relative; }
+    ol.steps > li::before {
+      content: counter(step);
+      position: absolute; left: 12px; top: 12px;
+      width: 26px; height: 26px; border-radius: 50%;
+      background: #1e293b; color: var(--muted); font-size: 12px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+    }
+    ol.steps > li.ok::before { background: rgba(16, 185, 129, 0.2); color: var(--ok); }
+    ol.steps > li.err::before { background: rgba(239, 68, 68, 0.2); color: var(--err); }
+    .step-name { font-weight: 700; margin-bottom: 4px; }
+    .step-detail { font-size: 12px; color: var(--muted); word-break: break-word; line-height: 1.45; }
+    /* Pipeline row */
+    .pipe-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+    .pipe-row:last-child { border-bottom: none; }
+    .pill { font-size: 11px; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--line); }
+    .pill.hit { border-color: var(--ok); color: var(--ok); }
+    .pill.miss { color: var(--muted); }
+    .pill.bad { border-color: var(--err); color: var(--err); }
+    /* Stats — one row each */
+    table.stats { width: 100%; border-collapse: collapse; font-size: 13px; }
+    table.stats td { padding: 6px 8px; border-bottom: 1px solid var(--line); }
+    table.stats td:first-child { color: var(--muted); width: 55%; }
+    table.stats tr:last-child td { border-bottom: none; }
+    /* Event log section: tall scroll region so cards are not squashed */
+    .card--event-log {
+      display: flex;
+      flex-direction: column;
+      min-height: min(88vh, 920px);
+    }
+    .card--event-log #eventFeed {
+      flex: 1 1 auto;
+      min-height: min(72vh, 760px);
+      max-height: calc(100vh - 220px);
+      max-height: calc(100dvh - 220px);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 4px 2px 8px 0;
+    }
+    /* Every event card: same total height; JSON scrolls inside the body */
+    .event-card {
+      flex: 0 0 auto;
+      height: var(--event-card-height, 260px);
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #0b1220;
+      overflow: hidden;
+    }
+    .event-card.err { border-left: 4px solid var(--err); }
+    .event-card.ok { border-left: 4px solid var(--ok); }
+    .event-card.neu { border-left: 4px solid #64748b; }
+    .event-head {
+      flex: 0 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: baseline;
+      padding: 10px 12px;
+      background: #111c2e;
+      border-bottom: 1px solid var(--line);
+      font-size: 12px;
+    }
+    .event-head .seq { font-weight: 800; color: var(--accent); }
+    .event-head .stage { font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
+    .event-head .time { color: var(--muted); flex: 1; }
+    .event-body {
+      flex: 1 1 auto;
+      min-height: 0;
+      margin: 0;
+      padding: 10px 12px;
+      font-family: Consolas, "Cascadia Mono", monospace;
+      font-size: 11px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: #cbd5e1;
+      overflow-y: auto;
+      overflow-x: auto;
+    }
+    details.raw-dump { margin-top: 10px; }
+    details.raw-dump summary { cursor: pointer; color: var(--accent); font-size: 12px; user-select: none; }
+    details.raw-dump pre { margin: 8px 0 0; padding: 10px; background: #0b1220; border: 1px solid var(--line); border-radius: 6px; font-size: 11px; overflow: auto; max-height: 400px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Session Service — detailed viewer</h1>
+    <p class="sub">Each connection and each telemetry event is shown separately with full JSON. Open from the API: <code>/viewer</code></p>
+
+    <div class="toolbar">
+      <input id="baseUrl" type="url" value="http://localhost:8002" placeholder="Base URL" />
+      <input id="intervalMs" type="number" value="2000" min="1000" step="500" style="width:100px" title="Poll interval ms" />
+      <button type="button" id="refreshBtn">Refresh now</button>
+      <button type="button" id="togglePollBtn" class="secondary">Start live</button>
+      <button type="button" id="clearFeedBtn" class="danger">Clear event list</button>
+    </div>
+    <div id="pollBanner" class="poll-banner">Live polling is off.</div>
+
+    <div class="card">
+      <h2>1. Connections (checked one by one)</h2>
+      <ol id="connectionSteps" class="steps"><li class="neu">Loading…</li></ol>
+      <details class="raw-dump">
+        <summary>Show full <code>/viewer/status</code> JSON (last fetch)</summary>
+        <pre id="rawStatusDump">{}</pre>
+      </details>
+    </div>
+
+    <div class="card">
+      <h2>2. Pipeline step counts</h2>
+      <div class="pipe-row"><span>ingress (Kafka raw_received + HTTP http_received)</span><span id="p1" class="pill miss">0</span></div>
+      <div class="pipe-row"><span>duplicates skipped (event_id dedupe)</span><span id="p6" class="pill miss">0</span></div>
+      <div class="pipe-row"><span>accumulated to Redis</span><span id="p2" class="pill miss">0</span></div>
+      <div class="pipe-row"><span>timers scheduled</span><span id="p3" class="pill miss">0</span></div>
+      <div class="pipe-row"><span>session_enriched (emit + monitor)</span><span id="p4" class="pill miss">0</span></div>
+      <div class="pipe-row"><span>enriched emit failures (Kafka)</span><span id="p7" class="pill miss">0</span></div>
+      <div class="pipe-row"><span>final flush + Postgres write</span><span id="p5" class="pill miss">0</span></div>
+    </div>
+
+    <div class="card">
+      <h2>3. Telemetry counters (every metric, one row)</h2>
+      <table class="stats" id="statsTable"><tbody><tr><td colspan="2" class="muted">No data yet</td></tr></tbody></table>
+    </div>
+
+    <div class="card card--event-log">
+      <h2>4. Event log (one card per event, newest at bottom)</h2>
+      <p class="sub" style="margin-top:-6px">Each card is the same height; scroll inside the card for long JSON. Scroll this list for older events.</p>
+      <div id="eventFeed"></div>
+    </div>
+  </div>
+
+  <script>
+    const baseUrlEl = document.getElementById("baseUrl");
+    const intervalEl = document.getElementById("intervalMs");
+    const pollBanner = document.getElementById("pollBanner");
+    const connectionSteps = document.getElementById("connectionSteps");
+    const rawStatusDump = document.getElementById("rawStatusDump");
+    const statsTable = document.getElementById("statsTable").querySelector("tbody");
+    const eventFeed = document.getElementById("eventFeed");
+    let timer = null;
+    let lastSeq = 0;
+    const MAX_CARDS = 400;
+
+    const ORDER = ["api", "redis", "celery_broker", "kafka", "postgres"];
+
+    function stageClass(stage) {
+      if (stage.includes("invalid") || stage.includes("error") || stage.includes("fail")) return "err";
+      if (stage.includes("flushed") || stage.includes("emitted") || stage.includes("written") || stage === "accumulated") return "ok";
+      return "neu";
+    }
+
+    function fmtTime(ts) {
+      const d = new Date(ts * 1000);
+      return d.toLocaleString(undefined, { hour12: true }) + " · " + d.toISOString();
+    }
+
+    function pretty(obj) {
+      try {
+        return JSON.stringify(obj, null, 2);
+      } catch {
+        return String(obj);
+      }
+    }
+
+    async function fetchJson(path) {
+      const base = baseUrlEl.value.trim().replace(/\/+$/, "");
+      const res = await fetch(`${base}${path}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    }
+
+    function renderConnections(statusPayload) {
+      const c = statusPayload.connections || {};
+      const frag = document.createDocumentFragment();
+      ORDER.forEach((key, idx) => {
+        const obj = c[key] || { ok: false, detail: "(missing in response)" };
+        const li = document.createElement("li");
+        li.className = obj.ok ? "ok" : "err";
+        const name = document.createElement("div");
+        name.className = "step-name";
+        name.textContent = `${idx + 1}. ${key}`;
+        const det = document.createElement("div");
+        det.className = "step-detail";
+        det.textContent = (obj.ok ? "OK — " : "DOWN — ") + (obj.detail || "");
+        li.appendChild(name);
+        li.appendChild(det);
+        frag.appendChild(li);
+      });
+      connectionSteps.innerHTML = "";
+      connectionSteps.appendChild(frag);
+      rawStatusDump.textContent = pretty(statusPayload);
+    }
+
+    function renderStats(stats) {
+      const entries = Object.entries(stats || {}).sort((a, b) => a[0].localeCompare(b[0]));
+      statsTable.innerHTML = "";
+      if (!entries.length) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = "<td colspan=\"2\">No counters yet</td>";
+        statsTable.appendChild(tr);
+        return;
+      }
+      entries.forEach(([k, v]) => {
+        const tr = document.createElement("tr");
+        const td1 = document.createElement("td");
+        td1.textContent = k;
+        const td2 = document.createElement("td");
+        td2.textContent = String(v);
+        tr.appendChild(td1);
+        tr.appendChild(td2);
+        statsTable.appendChild(tr);
+      });
+
+      const s = stats || {};
+      function setPill(id, ok, text) {
+        const el = document.getElementById(id);
+        el.textContent = text;
+        el.className = "pill " + (ok ? "hit" : "miss");
+      }
+      const ingress = (s.raw_received || 0) + (s.http_received || 0);
+      setPill("p1", ingress > 0, `${s.raw_received || 0} + ${s.http_received || 0}`);
+      setPill("p6", (s.duplicate_skipped || 0) > 0, String(s.duplicate_skipped || 0));
+      setPill("p2", (s.accumulated || 0) > 0, String(s.accumulated || 0));
+      setPill("p3", (s.timers_scheduled || 0) > 0, String(s.timers_scheduled || 0));
+      const e4 = (s.enriched_emitted || 0) + (s.monitor_enriched_seen || 0);
+      setPill("p4", e4 > 0, `${s.enriched_emitted || 0} + ${s.monitor_enriched_seen || 0} (mon)`);
+      const emitFail = s.enriched_emit_failed || 0;
+      const p7 = document.getElementById("p7");
+      p7.textContent = String(emitFail);
+      p7.className = "pill " + (emitFail > 0 ? "bad" : "miss");
+      setPill("p5", (s.final_flushed || 0) > 0 && (s.pg_written || 0) > 0, `flush ${s.final_flushed || 0} / pg ${s.pg_written || 0}`);
+    }
+
+    function appendEventCards(events) {
+      events.forEach((e) => {
+        const card = document.createElement("article");
+        card.className = "event-card " + stageClass(e.stage || "");
+
+        const head = document.createElement("div");
+        head.className = "event-head";
+        const seq = document.createElement("span");
+        seq.className = "seq";
+        seq.textContent = "#" + e.seq;
+        const stage = document.createElement("span");
+        stage.className = "stage";
+        stage.textContent = e.stage || "?";
+        const time = document.createElement("span");
+        time.className = "time";
+        time.textContent = fmtTime(e.ts);
+        head.appendChild(seq);
+        head.appendChild(stage);
+        head.appendChild(time);
+
+        const pre = document.createElement("pre");
+        pre.className = "event-body";
+        pre.textContent = pretty(e.details || {});
+
+        card.appendChild(head);
+        card.appendChild(pre);
+        eventFeed.appendChild(card);
+      });
+      while (eventFeed.children.length > MAX_CARDS) {
+        eventFeed.removeChild(eventFeed.firstChild);
+      }
+    }
+
+    async function refreshAll() {
+      try {
+        const status = await fetchJson("/viewer/status");
+        renderConnections(status);
+        renderStats((status.telemetry || {}).stats || {});
+      } catch (err) {
+        connectionSteps.innerHTML = "";
+        const li = document.createElement("li");
+        li.className = "err";
+        li.textContent = "Status request failed: " + err.message;
+        connectionSteps.appendChild(li);
+      }
+
+      try {
+        const payload = await fetchJson(`/viewer/events?since=${lastSeq}`);
+        const events = payload.events || [];
+        if (events.length) {
+          lastSeq = events[events.length - 1].seq;
+          appendEventCards(events);
+        }
+      } catch (err) {
+        const card = document.createElement("article");
+        card.className = "event-card err";
+        const pre = document.createElement("pre");
+        pre.className = "event-body";
+        pre.textContent = "Failed to load /viewer/events: " + err.message;
+        card.appendChild(pre);
+        eventFeed.appendChild(card);
+      }
+    }
+
+    function toggleLive() {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+        pollBanner.textContent = "Live polling is off.";
+        pollBanner.className = "poll-banner";
+        document.getElementById("togglePollBtn").textContent = "Start live";
+        return;
+      }
+      const ms = Number(intervalEl.value);
+      if (!Number.isFinite(ms) || ms < 1000) {
+        pollBanner.textContent = "Interval must be at least 1000 ms.";
+        pollBanner.className = "poll-banner";
+        return;
+      }
+      refreshAll();
+      timer = setInterval(refreshAll, ms);
+      pollBanner.textContent = "Live polling every " + ms + " ms.";
+      pollBanner.className = "poll-banner live";
+      document.getElementById("togglePollBtn").textContent = "Stop live";
+    }
+
+    document.getElementById("refreshBtn").addEventListener("click", refreshAll);
+    document.getElementById("togglePollBtn").addEventListener("click", toggleLive);
+    document.getElementById("clearFeedBtn").addEventListener("click", () => {
+      eventFeed.innerHTML = "";
+    });
+
+    refreshAll();
+  </script>
+</body>
+</html>
