@@ -98,9 +98,17 @@ export type ApiSession = {
   prediction?: {
     abandonment_probability: number;
     prediction: "abandon" | "convert";
-    confidence: "high" | "medium" | "low";
+    confidence: number | "high" | "medium" | "low";
     model_variant: string;
+    model_version?: string | null;
   };
+  diagnosis?: {
+    id: number;
+    scores: Record<ScoreLabel, number>;
+    dominant_reason: ScoreLabel;
+    reason_label?: string;
+    recommendation?: string | null;
+  } | null;
 };
 
 /** Ablation study variant metrics matching Django response */
@@ -139,13 +147,21 @@ export type TeamMember = {
   joined_at: string;
 };
 
+export type ApiKeyEnvironment = "production" | "staging" | "development";
+
 export type ApiKey = {
   id: number;
   name: string;
   key_masked: string;
+  key_plain?: string;
+  observer_install_snippet?: string;
+  tenant_external_id?: string;
   is_active: boolean;
   tier: string;
+  environment?: ApiKeyEnvironment;
+  status?: "active" | "revoked" | "expired";
   created_at: string;
+  last_used_at?: string | null;
 };
 
 export type HistogramBin = {

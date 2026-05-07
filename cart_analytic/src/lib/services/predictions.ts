@@ -1,5 +1,4 @@
-import { apiClient } from "@/lib/api-client";
-import { ApiError } from "@/lib/api-client";
+import { apiClient, ApiError, isMockFallback } from "@/lib/api-client";
 import { API_ENDPOINTS } from "@/lib/api-config";
 
 export interface Prediction {
@@ -76,7 +75,7 @@ export async function fetchPredictions(params?: {
       `${API_ENDPOINTS.predictions}?${qs.toString()}`,
     );
   } catch (error) {
-    if (error instanceof ApiError) {
+    if (error instanceof ApiError && isMockFallback()) {
       return { count: MOCK_PREDICTIONS.length, next: null, previous: null, results: MOCK_PREDICTIONS };
     }
     throw error;
@@ -87,7 +86,7 @@ export async function fetchPredictionDetail(sessionId: string): Promise<Predicti
   try {
     return await apiClient.get<Prediction>(API_ENDPOINTS.predictionDetail(sessionId));
   } catch (error) {
-    if (error instanceof ApiError) {
+    if (error instanceof ApiError && isMockFallback()) {
       return (
         MOCK_PREDICTIONS.find((p) => p.session_id === sessionId) ?? {
           ...MOCK_PREDICTIONS[0]!,

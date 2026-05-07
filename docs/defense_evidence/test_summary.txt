@@ -1,0 +1,19 @@
+Verified test/build summary from rescue work:
+
+Previously verified full suite:
+- Main: 22 passed
+- Observer: 47 passed
+- Session: 19 passed
+- Feature: 10 passed
+- ML: 7 passed
+- Dashboard: npm run lint and npm run build passed
+- Demo ecommerce: npm run lint and npm run build passed with warnings only
+- docker compose config --quiet passed
+
+Targeted rerun after final patches:
+- docker compose config --quiet: PASS
+- cd main_service && python -m pytest -q apps/analytics/test_s1_s7.py apps/analytics/tests.py: 9 passed, 5 warnings
+- cd ml && python -m pytest -q tests: 7 passed
+
+Runtime/E2E pending:
+- Docker Desktop engine API failed after rebuild timeout; service could not be started from non-elevated shell.

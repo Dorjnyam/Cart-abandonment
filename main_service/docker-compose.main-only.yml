@@ -1,0 +1,49 @@
+services:
+  django:
+    build: .
+    user: root
+    command: >
+      sh -c "mkdir -p /data/duckdb &&
+             chown -R appuser:appuser /data/duckdb &&
+             su appuser -s /bin/sh -c 'python manage.py migrate --noinput &&
+             gunicorn main_service.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 60'"
+    environment:
+      DJANGO_DEBUG: "false"
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-change-me}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
+      DB_HOST: db
+      DB_NAME: ${MAIN_SERVICE_DB_NAME:-main_service}
+      DB_USER: ${SHARED_DB_USER:-postgres}
+      DB_PASSWORD: ${SHARED_DB_PASSWORD:-postgres}
+      DB_PORT: 5432
+      REDIS_URL: redis://redis:6379
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      DUCKDB_PATH: /data/duckdb/analytics.duckdb
+      MINIO_ENDPOINT: host.docker.internal:9000
+      MINIO_BUCKET: ${MINIO_BUCKET:-analytics}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_CONSUMER_GROUP: ${KAFKA_CONSUMER_GROUP:-main-service-local}
+    ports:
+      - "8000:8000"
+    volumes:
+      - duckdb_data:/data/duckdb
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - observer_shared
+      - supplies_shared
+    restart: unless-stopped
+
+volumes:
+  duckdb_data:
+
+networks:
+  observer_shared:
+    external: true
+    name: observer_experiment_default
+  supplies_shared:
+    external: true
+    name: supplies-service_default

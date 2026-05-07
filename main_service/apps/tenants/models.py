@@ -1,5 +1,6 @@
 import hashlib
 import secrets
+import uuid
 
 from django.conf import settings
 from django.db import models
@@ -16,6 +17,7 @@ class Tenant(models.Model):
         FULL = 'full', 'Full'
 
     name = models.CharField(max_length=200)
+    external_id = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
     domain = models.CharField(max_length=255, unique=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.ACTIVE)
     tier = models.CharField(max_length=10, choices=Tier.choices, default=Tier.BASIC)

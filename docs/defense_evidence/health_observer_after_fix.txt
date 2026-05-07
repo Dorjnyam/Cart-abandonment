@@ -1,0 +1,7 @@
+HTTP/1.1 200 OK
+date: Thu, 07 May 2026 16:11:14 GMT
+server: uvicorn
+content-length: 57
+content-type: application/json
+
+{"status":"ok","postgres":true,"kafka":true,"redis":true}

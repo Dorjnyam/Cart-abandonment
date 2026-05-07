@@ -61,13 +61,31 @@ async def emit_session_enriched(
         if k not in _SESSION_INTERNAL_KEYS
         and not k.startswith("snapshot_done_")
     }
+    event_sequence = json.loads(session_data.get("event_sequence", "[]"))
+    session_state = session_data.get("session_state") or session_data.get("state") or "NEW"
+    has_purchase_success = str(session_data.get("has_purchase_success") or session_data.get("is_completed_purchase") or "").lower() == "true"
+    has_checkout_start = str(session_data.get("has_checkout_start") or "").lower() == "true"
+    has_cart_activity = str(session_data.get("has_cart_activity") or "").lower() == "true"
+    final_event_type = str(session_data.get("final_event_type") or (event_sequence[-1] if event_sequence else ""))
+
+    raw_aggregated.setdefault("session_state", session_state)
+    raw_aggregated.setdefault("has_purchase_success", has_purchase_success)
+    raw_aggregated.setdefault("has_checkout_start", has_checkout_start)
+    raw_aggregated.setdefault("has_cart_activity", has_cart_activity)
+    raw_aggregated.setdefault("final_event_type", final_event_type)
+
     message_model = SessionEnriched(
         session_id=session_data["session_id"],
         visitor_id=session_data["visitor_id"],
         tenant_id=session_data["tenant_id"],
         started_at=session_data["started_at"],
         window_seconds=window_seconds,
-        event_sequence=json.loads(session_data.get("event_sequence", "[]")),
+        session_state=session_state,
+        has_purchase_success=has_purchase_success,
+        has_checkout_start=has_checkout_start,
+        has_cart_activity=has_cart_activity,
+        final_event_type=final_event_type,
+        event_sequence=event_sequence,
         aggregated_fields=AggregatedFields(**raw_aggregated),
     )
     message = message_model.model_dump(mode="json")

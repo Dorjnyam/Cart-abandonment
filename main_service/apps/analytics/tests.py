@@ -1,9 +1,11 @@
 from django.test import TestCase
 from unittest.mock import patch
+from uuid import UUID
 
 from decimal import Decimal
 
 import duckdb
+from django.utils import timezone
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -150,3 +152,212 @@ class AnalyticsSmokeTests(TestCase):
             PredictionResult.objects.filter(session__session_id="prediction-session-1").count(),
             1,
         )
+        self.assertEqual(Diagnosis.objects.filter(session_id="prediction-session-1", tenant=self.tenant1).count(), 1)
+        self.assertEqual(Recommendation.objects.filter(diagnosis__session_id="prediction-session-1").count(), 1)
+
+    def test_prediction_payload_with_external_tenant_uuid_creates_diagnosis(self):
+        from apps.analytics.prediction_pipeline import handle_prediction_payload
+
+        self.tenant1.external_id = UUID("00000000-0000-0000-0000-000000000001")
+        self.tenant1.save(update_fields=["external_id"])
+
+        result = handle_prediction_payload({
+            "session_id": "external-tenant-session",
+            "tenant_id": "00000000-0000-0000-0000-000000000001",
+            "visitor_id": "visitor-x",
+            "abandonment_probability": 0.83,
+            "predicted_label": 1,
+            "predicted_class": "abandoned",
+            "model_name": "xgboost",
+            "model_version": "test-model",
+            "threshold": 0.5,
+            "features": {
+                "rage_click": 6,
+                "js_error": 2,
+                "page_load_ms": 5200,
+                "cart_value": 280000,
+            },
+            "top_features": [{"feature": "rage_click", "value": 6, "importance": 0.42}],
+            "created_at": "2026-05-06T00:00:00+00:00",
+        })
+
+        self.assertEqual(result["status"], "ok")
+        diagnosis = Diagnosis.objects.get(session_id="external-tenant-session", tenant=self.tenant1)
+        self.assertEqual(diagnosis.predicted_class, "abandoned")
+        self.assertEqual(diagnosis.model_version, "test-model")
+        self.assertEqual(diagnosis.top_features[0]["feature"], "rage_click")
+
+    def test_prediction_payload_with_purchase_success_skips_abandonment_diagnosis(self):
+        from apps.analytics.prediction_pipeline import handle_prediction_payload
+
+        result = handle_prediction_payload({
+            "session_id": "converted-session",
+            "tenant_id": self.tenant1.id,
+            "visitor_id": "visitor-converted",
+            "abandonment_probability": 0.91,
+            "predicted_label": 1,
+            "predicted_class": "abandoned",
+            "model_name": "xgboost",
+            "model_version": "test-model",
+            "threshold": 0.5,
+            "session_state": "CONVERTED",
+            "has_purchase_success": True,
+            "final_event_type": "purchase_success",
+            "features": {"event_count": 6, "cart_item_count": 1},
+            "created_at": "2026-05-06T00:00:00+00:00",
+        })
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["diagnosis_id"], None)
+        self.assertEqual(result["business_outcome"], "converted")
+        self.assertTrue(result["prediction_overridden"])
+        self.assertEqual(Diagnosis.objects.filter(session_id="converted-session", tenant=self.tenant1).count(), 0)
+        self.assertEqual(Recommendation.objects.filter(diagnosis__session_id="converted-session").count(), 0)
+        prediction = PredictionResult.objects.get(session__session_id="converted-session")
+        self.assertEqual(prediction.predicted_class, "abandoned")
+        self.assertEqual(prediction.business_outcome, "converted")
+        self.assertTrue(prediction.prediction_overridden)
+
+    def test_prediction_payload_duplicate_is_idempotent(self):
+        from apps.analytics.prediction_pipeline import handle_prediction_payload
+
+        payload = {
+            "session_id": "pipeline-dup-session",
+            "tenant_id": self.tenant1.id,
+            "visitor_id": "visitor-dup",
+            "abandonment_probability": 0.82,
+            "predicted_label": 1,
+            "predicted_class": "abandoned",
+            "model_name": "xgboost",
+            "model_version": "test-model",
+            "threshold": 0.5,
+            "session_state": "ABANDONED",
+            "has_purchase_success": False,
+            "features": {"event_count": 8, "rage_click": 4, "cart_value": 200},
+            "created_at": "2026-05-06T00:00:00+00:00",
+        }
+
+        handle_prediction_payload(payload)
+        handle_prediction_payload(payload)
+
+        self.assertEqual(Session.objects.filter(session_id="pipeline-dup-session").count(), 1)
+        self.assertEqual(PredictionResult.objects.filter(session__session_id="pipeline-dup-session").count(), 1)
+        self.assertEqual(Diagnosis.objects.filter(session_id="pipeline-dup-session", tenant=self.tenant1).count(), 1)
+        self.assertEqual(Recommendation.objects.filter(diagnosis__session_id="pipeline-dup-session").count(), 1)
+
+    def test_dashboard_overview_returns_business_contract(self):
+        Session.objects.create(
+            session_id="sess-1",
+            visitor_id="vis-1",
+            tenant=self.tenant1,
+            started_at=timezone.now(),
+            ended_at=timezone.now(),
+            event_count=6,
+            page_views=2,
+            device_type="mobile",
+        )
+        PredictionResult.objects.create(
+            session=Session.objects.get(session_id="sess-1"),
+            tenant=self.tenant1,
+            prediction_score=0.84,
+            predicted_class="abandoned",
+            shap_values={"checkout_error_count": 0.4},
+            model_variant="xgboost",
+            abandonment_probability=0.84,
+            confidence=0.84,
+            model_version="xgboost-test",
+            predicted_at=timezone.now(),
+        )
+        client = APIClient()
+        auth_client(client, self.user1)
+
+        resp = client.get("/api/dashboard/overview/")
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("summary", resp.data)
+        self.assertEqual(resp.data["summary"]["total_sessions"], 1)
+        self.assertEqual(resp.data["summary"]["abandoned_sessions"], 1)
+        self.assertIn("top_reason", resp.data)
+        self.assertEqual(len(resp.data["reasons"]), 7)
+        self.assertEqual(resp.data["model"]["active_model"], "xgboost")
+
+    def test_dashboard_session_detail_returns_prediction_diagnosis_recommendation(self):
+        session = Session.objects.create(
+            session_id="sess-1",
+            visitor_id="vis-1",
+            tenant=self.tenant1,
+            started_at=timezone.now(),
+            ended_at=timezone.now(),
+            event_count=6,
+            page_views=2,
+            device_type="desktop",
+        )
+        PredictionResult.objects.create(
+            session=session,
+            tenant=self.tenant1,
+            prediction_score=0.72,
+            predicted_class="abandoned",
+            shap_values={"cart_value": 0.31},
+            model_variant="xgboost",
+            abandonment_probability=0.72,
+            confidence=0.72,
+            model_version="xgboost-test",
+            predicted_at=timezone.now(),
+        )
+        client = APIClient()
+        auth_client(client, self.user1)
+
+        resp = client.get("/api/dashboard/sessions/sess-1/")
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data["session_id"], "sess-1")
+        self.assertEqual(resp.data["prediction"]["predicted_class"], "abandoned")
+        self.assertEqual(resp.data["diagnosis"]["dominant_reason"], "S2")
+        self.assertEqual(resp.data["recommendation"]["source"], "fallback")
+        self.assertIn("top_features", resp.data)
+
+    def test_dashboard_recommendation_status_patch(self):
+        client = APIClient()
+        auth_client(client, self.user1)
+
+        resp = client.patch(
+            f"/api/dashboard/recommendations/{self.r1.id}/status/",
+            {"status": "in_progress"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data["status"], "in_progress")
+        self.r1.refresh_from_db()
+        self.assertEqual(self.r1.status, Recommendation.Status.IN_PROGRESS)
+
+        resp = client.patch(
+            f"/api/dashboard/recommendations/{self.r1.id}/status/",
+            {"status": "done"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data["status"], "done")
+        self.r1.refresh_from_db()
+        self.assertEqual(self.r1.status, Recommendation.Status.IMPLEMENTED)
+
+    @patch.dict(
+        "os.environ",
+        {
+            "DEMO_OBSERVER_API_KEY": "tk_full_demo_mvp",
+            "OBSERVER_PUBLIC_URL": "http://observer.local",
+        },
+        clear=False,
+    )
+    def test_dashboard_integration_uses_real_observer_snippet_path(self):
+        client = APIClient()
+        auth_client(client, self.user1)
+
+        resp = client.get("/api/dashboard/integration/")
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data["observer"]["demo_api_key"], "tk_full_demo_mvp")
+        self.assertIn(
+            "http://observer.local/static/snippet/track.js?key=tk_full_demo_mvp",
+            resp.data["observer"]["snippet"],
+        )
+        self.assertIn(f'data-tenant-id="{self.tenant1.external_id}"', resp.data["observer"]["snippet"])

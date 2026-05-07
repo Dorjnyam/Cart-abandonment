@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class SessionEvent(BaseModel):
@@ -30,7 +30,7 @@ class SessionEvent(BaseModel):
 class AggregatedFields(BaseModel):
     # extra="ignore": session service emits internal fields (state, last_seen_at,
     # cart_add_count, etc.) that are not part of the feature contract — silently drop them.
-    model_config = ConfigDict(extra="ignore")
+    model_config = ConfigDict(extra="allow")
 
     visitor_id: str | None = None
     session_id: str | None = None
@@ -91,13 +91,45 @@ class AggregatedFields(BaseModel):
     page_views: int = 0
     end_reason: str = ""
     abandoned: bool = False
+    session_state: str = "NEW"
+    has_purchase_success: bool = False
+    has_checkout_start: bool = False
+    has_cart_activity: bool = False
+    final_event_type: str = ""
+    product_name: str | None = None
+    category: str | None = None
+    price: float = 0.0
+    quantity: int = 0
+    cart_total: float = 0.0
+    discount: float = 0.0
+    shipping_cost: float = 0.0
+    error_type: str | None = None
+    order_id: str | None = None
 
-
-
-    @field_validator('form_fields_touched', 'back_navigation', 'checkout_step', 'cart_churn_count', mode='before')
+    @model_validator(mode="before")
     @classmethod
-    def convert_none_to_default(cls, v):
-        return v if v is not None else 0
+    def convert_nulls_to_defaults(cls, data: object) -> object:
+        if not isinstance(data, dict):
+            return data
+
+        normalized = dict(data)
+        for name, field in cls.model_fields.items():
+            value = normalized.get(name)
+            if value is None and field.default is not None:
+                normalized[name] = field.default
+                continue
+            if isinstance(value, str):
+                annotation = field.annotation
+                try:
+                    if annotation is int:
+                        normalized[name] = int(float(value))
+                    elif annotation is float:
+                        normalized[name] = float(value)
+                    elif annotation is bool and value.strip().lower() in {"true", "false"}:
+                        normalized[name] = value.strip().lower() == "true"
+                except ValueError:
+                    normalized[name] = field.default
+        return normalized
 
 
 class SessionEnriched(BaseModel):
@@ -110,6 +142,11 @@ class SessionEnriched(BaseModel):
     tenant_id: UUID
     started_at: datetime
     window_seconds: int | None = None
+    session_state: str = "NEW"
+    has_purchase_success: bool = False
+    has_checkout_start: bool = False
+    has_cart_activity: bool = False
+    final_event_type: str = ""
     # Session service sends list[str] (event_type names only); SessionEvent objects
     # are used only for richer event payloads from windowed snapshots.
     event_sequence: list[str | dict] = Field(default_factory=list)
@@ -210,3 +247,9 @@ class FeatureVector(BaseModel):
     features: FeatureSet
     computed_at: datetime
     window_seconds: int | None = None
+    session_state: str = "NEW"
+    has_purchase_success: bool = False
+    has_checkout_start: bool = False
+    has_cart_activity: bool = False
+    final_event_type: str = ""
+    event_sequence: list[str | dict] = Field(default_factory=list)

@@ -1,0 +1,11 @@
+
+| docker compose config | docker compose config --quiet | exit 0 | C:\Users\dell\Downloads\Diplom\codebase\docs\defense_evidence\after_fix_docker_compose_config.txt |
+| main pytest | python -m pytest -q | exit 0 | C:\Users\dell\Downloads\Diplom\codebase\docs\defense_evidence\after_fix_main_pytest.txt |
+| observer pytest | python -m pytest -q | exit 0 | C:\Users\dell\Downloads\Diplom\codebase\docs\defense_evidence\after_fix_observer_pytest.txt |
+| session pytest | python -m pytest -q | exit 0 | C:\Users\dell\Downloads\Diplom\codebase\docs\defense_evidence\after_fix_session_pytest.txt |
+| feature pytest | python -m pytest -q | exit 0 | C:\Users\dell\Downloads\Diplom\codebase\docs\defense_evidence\after_fix_feature_pytest.txt |
+| ml pytest | python -m pytest -q | exit 0 | C:\Users\dell\Downloads\Diplom\codebase\docs\defense_evidence\after_fix_ml_pytest.txt |
+| dashboard lint | npm run lint | exit 0 | C:\Users\dell\Downloads\Diplom\codebase\docs\defense_evidence\after_fix_dashboard_lint.txt |
+| dashboard build | npm run build | exit 0 | C:\Users\dell\Downloads\Diplom\codebase\docs\defense_evidence\after_fix_dashboard_build.txt |
+| demo lint | npm run lint | exit 0 | C:\Users\dell\Downloads\Diplom\codebase\docs\defense_evidence\after_fix_demo_lint.txt |
+| demo build | npm run build | exit 0 | C:\Users\dell\Downloads\Diplom\codebase\docs\defense_evidence\after_fix_demo_build.txt |

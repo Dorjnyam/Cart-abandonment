@@ -59,6 +59,10 @@ class RawEventPayload(BaseModel):
     search_query_from_url: str | None = None
     is_order_success: bool | None = None
     product_id: str | None = None
+    product_name: str | None = None
+    category: str | None = None
+    price: float | None = None
+    quantity: int | None = None
     product_price: float | None = None
     product_category: str | None = None
     product_availability: str | None = None
@@ -67,11 +71,16 @@ class RawEventPayload(BaseModel):
     coupon_entered: bool | None = None
     # T1 fields
     cart_value: float | None = None
+    cart_total: float | None = None
     cart_item_count: int | None = None
     checkout_step: int | None = None
     cart_churn_count: int | None = None
+    discount: float | None = None
+    shipping_cost: float | None = None
+    error_type: str | None = None
     payment_method: str | None = None
     shipping_method: str | None = None
+    order_id: str | None = None
     order_total: float | None = None
     discount_code: str | None = None
     is_sale: bool | None = None
@@ -84,8 +93,13 @@ class AggregatedFields(BaseModel):
 
     event_count: int = 0
     state: SessionState | None = None
+    session_state: SessionState | None = None
     last_seen_at: datetime | None = None
     is_completed_purchase: bool | None = None
+    has_purchase_success: bool | None = None
+    has_checkout_start: bool | None = None
+    has_cart_activity: bool | None = None
+    final_event_type: str | None = None
     cart_add_count: int | None = None
     cart_remove_count: int | None = None
     checkout_attempts: int | None = None
@@ -125,5 +139,10 @@ class SessionEnriched(BaseModel):
     tenant_id: UUID
     started_at: datetime
     window_seconds: int | None
+    session_state: SessionState = SessionState.NEW
+    has_purchase_success: bool = False
+    has_checkout_start: bool = False
+    has_cart_activity: bool = False
+    final_event_type: str = ""
     event_sequence: list[str]
     aggregated_fields: AggregatedFields

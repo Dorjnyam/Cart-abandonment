@@ -37,7 +37,7 @@ async def get_producer() -> AIOKafkaProducer:
 
 async def emit_feature_vector(fv: FeatureVector) -> None:
     producer = await get_producer()
-    data = fv.model_dump()
+    data = fv.model_dump(mode="json")
 
     # Ablation study: filter emitted fields based on FEATURE_SET env var
     if FEATURE_SET == "baseline":

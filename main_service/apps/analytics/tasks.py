@@ -21,6 +21,7 @@ from apps.analytics.duckdb_client import ensure_analytics_schema, writer_connect
 from apps.analytics.gemini_client import generate_recommendation
 from apps.analytics.models import Diagnosis, PredictionResult, ProcessedSession, Recommendation, Session
 from apps.analytics.observer_db import fetch_session_events, resolve_tenant_for_session
+from apps.analytics.prediction_pipeline import handle_prediction_payload
 from apps.analytics.scoring import compute_all_scores
 from apps.tenants.models import Tenant
 
@@ -196,61 +197,50 @@ def process_prediction(
     model_version: str | None = None,
     predicted_at: str | None = None,
     visitor_id: str | None = None,
+    predicted_label: int | None = None,
+    model_name: str = "xgboost",
+    threshold: float | None = None,
+    top_features: list | None = None,
+    features: dict | None = None,
+    created_at: str | None = None,
 ) -> Dict[str, Any]:
-    """
-    Persist PredictionResult into PostgreSQL, ensuring shap_values is a plain dict[str, float].
-    """
+    """Persist prediction and create/update S1-S7 diagnosis + recommendation."""
 
     try:
         shap_values = shap_values or {}
-        normalized_shap = {str(k): float(v) for k, v in shap_values.items()}
-
-        predicted_at_dt: datetime | None
-        if predicted_at:
-            predicted_at_dt = datetime.fromisoformat(predicted_at)
-            if predicted_at_dt.tzinfo is None:
-                predicted_at_dt = predicted_at_dt.replace(tzinfo=timezone.utc)
-        else:
-            predicted_at_dt = timezone.now()
-
-        with transaction.atomic():
-            tenant = Tenant.objects.get(id=tenant_id)
-            session, _ = Session.objects.get_or_create(
-                session_id=session_id,
-                defaults={
-                    "visitor_id": visitor_id or "unknown",
-                    "tenant": tenant,
-                    "started_at": timezone.now(),
-                },
-            )
-            PredictionResult.objects.update_or_create(
-                session=session,
-                tenant=tenant,
-                defaults={
-                    "prediction_score": prediction_score,
-                    "predicted_class": predicted_class,
-                    "shap_values": normalized_shap,
-                    "model_variant": model_variant,
-                    "abandonment_probability": abandonment_probability,
-                    "confidence": confidence,
-                    "model_version": model_version,
-                    "predicted_at": predicted_at_dt,
-                },
-            )
+        payload = {
+            "session_id": session_id,
+            "tenant_id": tenant_id,
+            "visitor_id": visitor_id,
+            "prediction_score": prediction_score,
+            "abandonment_probability": abandonment_probability if abandonment_probability is not None else prediction_score,
+            "predicted_class": predicted_class,
+            "predicted_label": predicted_label,
+            "shap_values": shap_values,
+            "model_variant": model_variant,
+            "model_name": model_name,
+            "model_version": model_version,
+            "threshold": threshold,
+            "top_features": top_features or [],
+            "features": features or {},
+            "created_at": created_at or predicted_at,
+        }
+        result = handle_prediction_payload(payload)
+        duckdb_tenant_id = result.get("tenant_id", tenant_id)
 
         aggregate_session_to_duckdb(
             session_id=session_id,
-            tenant_id=tenant_id,
+            tenant_id=duckdb_tenant_id,
             prediction_score=prediction_score,
             predicted_class=predicted_class,
-            shap_values=normalized_shap,
+            shap_values=shap_values,
             model_variant=model_variant,
             abandonment_probability=abandonment_probability,
             confidence=confidence,
             model_version=model_version,
             visitor_id=visitor_id,
         )
-        return {"status": "ok"}
+        return result
     except Tenant.DoesNotExist as exc:
         logger.error("Tenant not found for process_prediction(tenant_id=%s): %s", tenant_id, exc)
         raise

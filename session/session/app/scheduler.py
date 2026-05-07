@@ -7,7 +7,6 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import redis as redis_sync
-from kafka import KafkaProducer
 
 from app.config import KAFKA_BOOTSTRAP, REDIS_URL, SESSION_ENRICHED_TOPIC, SESSION_WINDOWS
 from app.utils import _decode_hash
@@ -145,6 +144,8 @@ def emit_window_snapshot(session_id: str, window_seconds: int) -> None:
     complexity inside a Celery worker. Each invocation owns its connections and
     closes them in finally blocks to prevent leaks.
     """
+    from kafka import KafkaProducer
+
     r = redis_sync.Redis.from_url(REDIS_URL)
     try:
         key = f"session:{session_id}"

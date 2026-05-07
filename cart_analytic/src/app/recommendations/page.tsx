@@ -1,324 +1,365 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-  AlertTriangle,
+  Check,
   CheckCircle2,
-  History,
-  Info,
-  Loader2,
+  Clock3,
+  Lightbulb,
   RefreshCw,
-  Tag,
-  TrendingUp,
+  Sparkles,
+  XCircle,
 } from "lucide-react";
 import EditorialShell from "@/components/editorial/EditorialShell";
-import { useAuth } from "@/components/editorial/AuthContext";
-import Fab from "@/components/ui/Fab";
-import FilterToolbar, { FilterSelect } from "@/components/ui/FilterToolbar";
-import KanbanCard from "@/components/ui/KanbanCard";
-import KanbanColumn from "@/components/ui/KanbanColumn";
-import type { Recommendation, RecommendationStatus } from "@/lib/services/recommendations";
-import { getRecommendations, updateRecommendationStatus } from "@/lib/services/recommendations";
+import {
+  fetchDashboardRecommendations,
+  updateDashboardRecommendationStatus,
+  type RecommendationContract,
+  type RecommendationStatus,
+  type RecommendationsResponse,
+} from "@/lib/services/dashboard-mvp";
 
-const severityConfig = {
-  urgent: { label: "S1 Яаралтай", riskTone: "high" as const, Icon: AlertTriangle },
-  optimization: { label: "Оновчлол", riskTone: "med" as const, Icon: TrendingUp },
-  info: { label: "Мэдээлэл", riskTone: "low" as const, Icon: Info },
-  deferred: { label: "Хойшлуулсан", riskTone: "low" as const, Icon: History },
-};
+type RecommendationItem = NonNullable<RecommendationContract>;
 
-function riskTagFromSeverity(sev: Recommendation["severity"]) {
-  const c = severityConfig[sev] ?? severityConfig.info;
-  if (sev === "urgent") return { tag: "Өндөр эрсдэл", tone: "high" as const };
-  if (sev === "optimization") return { tag: "Дунд эрсдэл", tone: "med" as const };
-  return { tag: c.label, tone: "low" as const };
+const STATUS_COLUMNS: Array<{
+  key: RecommendationStatus;
+  label: string;
+  Icon: typeof Lightbulb;
+  accent: string;
+}> = [
+  { key: "new", label: "New", Icon: Lightbulb, accent: "#9C6B14" },
+  { key: "in_progress", label: "In progress", Icon: Clock3, accent: "#3E6E8E" },
+  { key: "done", label: "Done", Icon: CheckCircle2, accent: "#1F4D3E" },
+  { key: "dismissed", label: "Dismissed", Icon: XCircle, accent: "#A8A29E" },
+];
+
+function priorityTone(priority: string) {
+  if (priority === "high") return { bg: "rgb(160 53 33 / 0.08)", fg: "#7E2A1A", dot: "#A03521" };
+  if (priority === "medium") return { bg: "rgb(156 107 20 / 0.10)", fg: "#7C5410", dot: "#9C6B14" };
+  return { bg: "rgb(31 77 62 / 0.08)", fg: "#1F4D3E", dot: "#1F4D3E" };
+}
+
+function MetricCell({
+  label,
+  value,
+  accent,
+  hint,
+}: {
+  label: string;
+  value: number | string;
+  accent?: boolean;
+  hint?: string;
+}) {
+  return (
+    <div className="tile rounded-md px-4 py-3">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant/70">{label}</p>
+      <p
+        className={`mt-1.5 tabular-nums ${accent ? "text-error" : "text-on-surface"}`}
+        style={{
+          fontFamily: "var(--font-display)",
+          fontVariationSettings: '"opsz" 144, "SOFT" 30',
+          fontSize: 22,
+          fontWeight: 400,
+          letterSpacing: "-0.02em",
+        }}
+      >
+        {value}
+      </p>
+      {hint ? <p className="mt-0.5 text-[10.5px] text-on-surface-variant/70">{hint}</p> : null}
+    </div>
+  );
 }
 
 export default function RecommendationsPage() {
-  const { role } = useAuth();
-  const canAct = role === "owner" || role === "member";
-
-  const [allRecs, setAllRecs] = useState<Recommendation[]>([]);
+  const [data, setData] = useState<RecommendationsResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<number | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    getRecommendations().then(({ results }) => {
-      if (!cancelled) {
-        setAllRecs(results ?? []);
-        setLoading(false);
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const stats = useMemo(
-    () => ({
-      total: allRecs.length,
-      implemented: allRecs.filter((r) => r.status === "implemented").length,
-      deferred: allRecs.filter((r) => r.status === "deferred").length,
-      new: allRecs.filter((r) => r.status === "new").length,
-    }),
-    [allRecs],
-  );
-
-  const cols = useMemo(() => {
-    const n = allRecs.filter((r) => r.status === "new");
-    const prog = allRecs.filter((r) => r.status === "deferred");
-    const implemented = allRecs.filter((r) => r.status === "implemented");
-    const validated = implemented.filter((r) => r.tags.some((t) => t.toLowerCase().includes("top")));
-    const doneOnly = implemented.filter((r) => !r.tags.some((t) => t.toLowerCase().includes("top")));
-    return {
-      new: n,
-      progress: prog,
-      done: doneOnly,
-      validated,
-    };
-  }, [allRecs]);
-
-  async function handleStatusChange(id: string, status: RecommendationStatus) {
-    setActionLoading(id);
+  async function load() {
+    setLoading(true);
+    setError(null);
     try {
-      await updateRecommendationStatus(id, status);
-      setAllRecs((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
+      setData(await fetchDashboardRecommendations());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Recommendations API request failed.");
+      setData(null);
     } finally {
-      setActionLoading(null);
+      setLoading(false);
     }
   }
 
-  function renderCard(rec: Recommendation) {
-    const { tag, tone } = riskTagFromSeverity(rec.severity);
-    const sev = severityConfig[rec.severity] ?? severityConfig.info;
-    const isDeferred = rec.status === "deferred";
-    const isActing = actionLoading === rec.id;
+  useEffect(() => {
+    void load();
+  }, []);
 
+  const grouped = useMemo(() => {
+    const base: Record<RecommendationStatus, RecommendationItem[]> = {
+      new: [],
+      in_progress: [],
+      done: [],
+      dismissed: [],
+    };
+    for (const item of data?.results ?? []) {
+      base[item.status]?.push(item);
+    }
+    return base;
+  }, [data]);
+
+  async function setStatus(item: RecommendationItem, status: RecommendationStatus) {
+    setBusyId(item.id);
+    try {
+      const updated = await updateDashboardRecommendationStatus(item.id, status);
+      setData((prev) => {
+        if (!prev) return prev;
+        const results = prev.results.map((r) => (r.id === item.id ? updated : r));
+        const stats = {
+          total: results.length,
+          new: results.filter((r) => r.status === "new").length,
+          in_progress: results.filter((r) => r.status === "in_progress").length,
+          done: results.filter((r) => r.status === "done").length,
+          dismissed: results.filter((r) => r.status === "dismissed").length,
+        };
+        return { results, stats };
+      });
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  function renderCard(item: RecommendationItem) {
+    const tone = priorityTone(item.priority);
     return (
-      <KanbanCard
-        riskTag={tag}
-        riskTone={tone}
-        title={rec.title}
-        description={rec.description}
-        muted={isDeferred && rec.status === "deferred"}
-        synthesis={
-          <span>
-            &ldquo;{rec.title}&rdquo; — checkout урсгалд шууд нөлөөлнө. Үр дүнг KPI-аар хэмжихийг зөвлөж байна.
+      <article
+        key={item.id}
+        className="tile rounded-md card-lift flex flex-col gap-3 px-4 py-3.5"
+      >
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span
+            className="rounded-[3px] px-1.5 py-0.5 font-mono text-[10.5px] font-semibold tracking-[0.04em]"
+            style={{ background: "rgb(31 77 62 / 0.08)", color: "#1F4D3E" }}
+          >
+            {item.reason_code}
           </span>
-        }
-        metrics={
-          <div className="flex flex-wrap gap-2 text-on-surface-variant">
-            {rec.impactBefore ? (
-              <span className="rounded-md border border-error/20 bg-error/5 px-2 py-0.5 font-medium text-error">← {rec.impactBefore}</span>
-            ) : null}
-            {rec.impactAfter ? (
-              <span className="rounded-md border border-secondary/25 bg-secondary-container/40 px-2 py-0.5 font-medium text-on-secondary-container">
-                → {rec.impactAfter}
-              </span>
-            ) : null}
-            <span className="rounded-md border border-outline-variant/15 px-2 py-0.5">Хүчин зүйл: {rec.tags.length}</span>
+          <span
+            className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-0.5 text-[10.5px] font-medium uppercase tracking-[0.14em]"
+            style={{ background: tone.bg, color: tone.fg }}
+          >
+            <span aria-hidden className="size-1 rounded-full" style={{ background: tone.dot }} />
+            {item.priority}
+          </span>
+          <span className="ml-auto text-[10px] font-mono text-on-surface-variant/70">
+            {item.source === "gemini" ? "Gemini" : "Fallback"}
+          </span>
+        </div>
+
+        <h3
+          className="text-[15px] leading-[1.25] text-on-surface"
+          style={{
+            fontFamily: "var(--font-display)",
+            fontVariationSettings: '"opsz" 96, "SOFT" 30',
+            fontWeight: 400,
+            letterSpacing: "-0.018em",
+          }}
+        >
+          {item.title}
+        </h3>
+        <p className="text-[12px] leading-[1.55] text-on-surface-variant">{item.summary}</p>
+
+        <div className="space-y-2.5">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant/70">
+              Expected impact
+            </p>
+            <p className="mt-1 text-[11.5px] leading-[1.5] text-on-surface">{item.expected_impact}</p>
           </div>
-        }
-        footer={
-          <div className="space-y-3">
-            <div className="flex flex-wrap gap-2">
-              {rec.tags.map((t) => (
-                <span
-                  key={t}
-                  className="inline-flex items-center gap-1 rounded-md border border-outline-variant/10 bg-surface-alt px-2 py-0.5 text-[0.6875rem] font-medium text-on-surface-variant"
-                >
-                  <Tag className="size-3" aria-hidden />
-                  {t}
-                </span>
-              ))}
+
+          {item.evidence.length ? (
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant/70">
+                Evidence
+              </p>
+              <ul className="mt-1 space-y-1 text-[11.5px] leading-[1.5] text-on-surface-variant">
+                {item.evidence.map((evidence) => (
+                  <li key={evidence} className="flex gap-2">
+                    <span aria-hidden className="mt-1.5 size-1 shrink-0 rounded-full bg-on-surface-variant/40" />
+                    <span>{evidence}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-[0.625rem] text-on-surface-variant">{rec.createdAt}</span>
-              <div className="flex items-center gap-1 text-[0.625rem] font-semibold text-on-surface-variant">
-                <sev.Icon className="size-3.5" aria-hidden />
-                {sev.label}
-              </div>
+          ) : null}
+
+          {item.action_steps.length ? (
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant/70">
+                Action steps
+              </p>
+              <ol className="mt-1 space-y-1.5 text-[11.5px] leading-[1.5] text-on-surface">
+                {item.action_steps.map((step, i) => (
+                  <li key={step} className="flex gap-2">
+                    <span
+                      className="flex size-4 shrink-0 items-center justify-center rounded-full font-mono text-[9px] font-semibold"
+                      style={{ background: "rgb(28 25 23 / 0.06)", color: "rgb(28 25 23)" }}
+                    >
+                      {i + 1}
+                    </span>
+                    <span className="text-on-surface-variant">{step}</span>
+                  </li>
+                ))}
+              </ol>
             </div>
-            {rec.status === "implemented" ? (
-              <div className="rounded-md border border-primary/20 bg-primary-container/30 px-2 py-1.5 text-[0.6875rem] font-semibold text-on-primary-container">
-                Эцсийн синтез: KPI сайжсан — баталгаажуулахад бэлэн.
-              </div>
-            ) : null}
-            {rec.status === "deferred" ? (
-              <div className="space-y-1">
-                <div className="flex justify-between text-[0.625rem] font-bold uppercase tracking-wide text-on-surface-variant">
-                  <span>Хэрэгжилт</span>
-                  <span>65%</span>
-                </div>
-                <div className="h-1.5 rounded-full bg-surface-container-high overflow-hidden">
-                  <div className="h-full w-[65%] rounded-full bg-primary" />
-                </div>
-              </div>
-            ) : null}
-            {canAct ? (
-              <div className="flex flex-wrap gap-2 pt-1">
-                {rec.status !== "implemented" ? (
-                  <button
-                    type="button"
-                    disabled={isActing}
-                    onClick={() => handleStatusChange(rec.id, "implemented")}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-on-primary disabled:opacity-50"
-                  >
-                    {isActing ? <Loader2 className="size-3.5 animate-spin" aria-hidden /> : <CheckCircle2 className="size-3.5" aria-hidden />}
-                    Хэрэгжлээ
-                  </button>
-                ) : null}
-                {rec.status === "deferred" ? (
-                  <button
-                    type="button"
-                    disabled={isActing}
-                    onClick={() => handleStatusChange(rec.id, "new")}
-                  className="inline-flex items-center gap-1 rounded-lg border border-outline-variant/10 bg-surface-container-lowest px-3 py-1.5 text-xs font-bold text-on-surface shadow-card disabled:opacity-50"
-                  >
-                    Дахин идэвхжүүлэх
-                  </button>
-                ) : rec.status !== "implemented" ? (
-                  <button
-                    type="button"
-                    disabled={isActing}
-                    onClick={() => handleStatusChange(rec.id, "deferred")}
-                    className="inline-flex items-center gap-1 rounded-lg border border-outline-variant/10 bg-surface-container-lowest px-3 py-1.5 text-xs font-bold text-on-surface-variant shadow-card disabled:opacity-50"
-                  >
-                    Хойшлуулах
-                  </button>
-                ) : null}
-              </div>
-            ) : null}
-            <div className="flex items-center gap-2 text-[0.625rem] text-on-surface-variant">
-              <span>Тус болсон уу?</span>
-              <button type="button" className="rounded border border-outline-variant/10 px-2 py-0.5 font-semibold hover:bg-surface-alt">
-                Тийм
-              </button>
-              <button type="button" className="rounded border border-outline-variant/10 px-2 py-0.5 font-semibold hover:bg-surface-alt">
-                Үгүй
-              </button>
-            </div>
-          </div>
-        }
-      />
+          ) : null}
+        </div>
+
+        <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-2 hairline-t">
+          {item.status !== "in_progress" ? (
+            <button
+              type="button"
+              disabled={busyId === item.id}
+              onClick={() => void setStatus(item, "in_progress")}
+              className="inline-flex items-center gap-1 rounded-md hairline bg-surface-container-lowest px-2 py-1 text-[10.5px] font-medium text-on-surface hover:bg-surface-container-low transition-colors disabled:opacity-50"
+            >
+              <Clock3 className="size-3" aria-hidden />
+              Start
+            </button>
+          ) : null}
+          {item.status !== "done" ? (
+            <button
+              type="button"
+              disabled={busyId === item.id}
+              onClick={() => void setStatus(item, "done")}
+              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10.5px] font-semibold text-white hover:opacity-95 transition-opacity disabled:opacity-50"
+              style={{ background: "#1F4D3E" }}
+            >
+              <Check className="size-3" aria-hidden />
+              Mark done
+            </button>
+          ) : null}
+          {item.status !== "dismissed" ? (
+            <button
+              type="button"
+              disabled={busyId === item.id}
+              onClick={() => void setStatus(item, "dismissed")}
+              className="ml-auto inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10.5px] font-medium text-on-surface-variant hover:text-on-surface hover:bg-[rgb(28_25_23/0.04)] transition-colors disabled:opacity-50"
+            >
+              Dismiss
+            </button>
+          ) : null}
+        </div>
+      </article>
     );
   }
 
   return (
-    <EditorialShell activeNav="recommendations" title="Зөвлөмж" subtitle="AI-д суурилсан зөвлөмжүүд">
-      <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6 max-w-450 mx-auto">
+    <EditorialShell activeNav="recommendations" title="What To Fix Next" subtitle="Gemini / fallback action board">
+      <div className="mx-auto max-w-[1400px] px-6 py-8 sm:px-8 lg:px-10">
+        <header className="page-enter">
+          <p className="text-[10.5px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant/70">
+            Recommendations · action queue
+          </p>
+          <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <h1
+                className="text-[36px] leading-[1.05] text-on-surface"
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontVariationSettings: '"opsz" 144, "SOFT" 30',
+                  fontWeight: 400,
+                  letterSpacing: "-0.024em",
+                }}
+              >
+                What to fix next
+              </h1>
+              <p className="mt-1.5 max-w-[68ch] text-[12.5px] text-on-surface-variant">
+                Gemini and fallback rules turn dominant reasons into concrete action items. Move them across columns to
+                track which ones your team is shipping. Status changes persist through the Main service.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => void load()}
+              className="inline-flex items-center gap-1.5 rounded-md hairline bg-surface-container-lowest px-3 py-1.5 text-[12px] font-medium text-on-surface hover:bg-surface-container-low transition-colors"
+            >
+              <RefreshCw className={`size-3.5 ${loading ? "animate-spin" : ""}`} aria-hidden />
+              Refresh
+            </button>
+          </div>
+        </header>
 
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <h1 className="text-[1.1rem] font-semibold text-on-surface tracking-tight">Зөвлөмжийн бүртгэл</h1>
-            <p className="text-[13px] text-on-surface-variant mt-0.5">CartAnalytics AI-аас үүссэн нарийвчилсан ойлголтууд.</p>
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              setLoading(true);
-              getRecommendations().then(({ results }) => {
-                setAllRecs(results);
-                setLoading(false);
-              });
-            }}
-            className="inline-flex items-center gap-2 rounded-lg border border-outline-variant/[0.1] bg-surface-container-lowest px-3 py-2 text-[13px] font-semibold text-on-surface hover:bg-surface-alt transition-colors"
-          >
-            <RefreshCw className="size-3.5" aria-hidden />
-            Шинэчлэх
-          </button>
-        </div>
+        <div className="editorial-rule mt-6" />
 
-        {/* KPI bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="rounded-lg border border-[#2563eb]/20 bg-[#2563eb]/6 px-4 py-3">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-[#3b82f6]/80">Нийт нөлөө</p>
-            <p className="mt-1.5 text-[1.5rem] font-semibold text-[#3b82f6] tabular-nums">+12.4%</p>
-          </div>
-          <div className="rounded-lg border border-outline-variant/[0.09] bg-surface-container-lowest px-4 py-3">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant">Хүлээгдэж буй</p>
-            <p className="mt-1.5 text-[1.5rem] font-semibold text-on-surface tabular-nums">+8.2%</p>
-          </div>
-          <div className="rounded-lg border border-outline-variant/[0.09] bg-surface-container-lowest px-4 py-3">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant">Нийт зөвлөмж</p>
-            <p className="mt-1.5 text-[1.5rem] font-semibold text-on-surface tabular-nums">{stats.total}</p>
-          </div>
-          <div className="rounded-lg border border-[#10b981]/20 bg-[#10b981]/5 px-4 py-3">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-[#10b981]/80">Хэрэгжсэн</p>
-            <p className="mt-1.5 text-[1.5rem] font-semibold text-[#10b981] tabular-nums">{stats.implemented}</p>
-          </div>
-        </div>
+        {/* Stats */}
+        <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5 stagger-children">
+          <MetricCell label="Total" value={data?.stats?.total ?? 0} hint="Active items" />
+          <MetricCell label="New" value={data?.stats?.new ?? 0} hint="Awaiting review" />
+          <MetricCell label="In progress" value={data?.stats?.in_progress ?? 0} hint="Team is shipping" />
+          <MetricCell label="Done" value={data?.stats?.done ?? 0} hint="Marked complete" />
+          <MetricCell label="Dismissed" value={data?.stats?.dismissed ?? 0} hint="Set aside" />
+        </section>
 
-        <FilterToolbar>
-          <FilterSelect label="Нөлөө">
-            <span className="text-on-surface">Ихээс бага</span>
-          </FilterSelect>
-          <FilterSelect label="Эрсдэл">
-            <span className="text-on-surface">Бүх түвшин</span>
-          </FilterSelect>
-        </FilterToolbar>
+        {error ? (
+          <div className="mt-4 rounded-md border border-error/25 bg-error/[0.05] px-4 py-3 text-[12.5px] text-error">
+            {error}
+          </div>
+        ) : null}
 
+        {/* Board */}
         {loading ? (
-          <div className="flex gap-4 overflow-x-auto pb-2">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="min-w-70 flex-1 rounded-xl border border-outline-variant/[0.09] bg-surface-container-lowest p-4 animate-pulse h-64" />
+          <div className="mt-6 grid gap-4 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="skeleton h-80 rounded-md" />
+            ))}
+          </div>
+        ) : data?.results.length ? (
+          <div className="mt-6 grid gap-4 xl:grid-cols-4">
+            {STATUS_COLUMNS.map(({ key, label, Icon, accent }) => (
+              <section key={key} className="rounded-md hairline bg-surface-container-low/30 p-3 flex flex-col">
+                <header className="flex items-center justify-between gap-3 px-1 pb-2.5 mb-2 hairline-b">
+                  <h2 className="inline-flex items-center gap-2 text-[12.5px] font-medium text-on-surface">
+                    <span aria-hidden className="size-1.5 rounded-full" style={{ background: accent }} />
+                    <Icon className="size-3.5 text-on-surface-variant/60" aria-hidden />
+                    {label}
+                  </h2>
+                  <span
+                    className="rounded-md hairline bg-surface-container-lowest px-1.5 py-0.5 font-mono text-[10.5px] tabular-nums text-on-surface"
+                  >
+                    {grouped[key].length}
+                  </span>
+                </header>
+                <div className="space-y-3 flex-1">
+                  {grouped[key].length ? (
+                    grouped[key].map(renderCard)
+                  ) : (
+                    <div className="rounded-md hairline bg-surface-container-lowest/50 px-3 py-8 text-center">
+                      <p className="text-[11.5px] text-on-surface-variant/70">Empty</p>
+                    </div>
+                  )}
+                </div>
+              </section>
             ))}
           </div>
         ) : (
-          <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
-            <KanbanColumn title="Шинэ" count={cols.new.length} dotClass="bg-primary">
-              {cols.new.map((rec) => (
-                <div key={rec.id}>{renderCard(rec)}</div>
-              ))}
-              {cols.new.length === 0 ? (
-                <p className="text-xs text-on-surface-variant px-1 py-4 text-center">Хоосон багана.</p>
-              ) : null}
-            </KanbanColumn>
-            <KanbanColumn title="Хийгдэж байна" count={cols.progress.length} dotClass="bg-sky-400">
-              {cols.progress.map((rec) => (
-                <div key={rec.id}>{renderCard(rec)}</div>
-              ))}
-              {cols.progress.length === 0 ? (
-                <p className="text-xs text-on-surface-variant px-1 py-4 text-center">Хоосон багана.</p>
-              ) : null}
-            </KanbanColumn>
-            <KanbanColumn title="Дууссан" count={cols.done.length} dotClass="bg-slate-400">
-              {cols.done.map((rec) => (
-                <div key={rec.id}>{renderCard(rec)}</div>
-              ))}
-              {cols.done.length === 0 ? (
-                <p className="text-xs text-on-surface-variant px-1 py-4 text-center">Хоосон багана.</p>
-              ) : null}
-            </KanbanColumn>
-            <KanbanColumn title="Баталгаажсан" count={cols.validated.length} dotClass="bg-emerald-500">
-              {cols.validated.map((rec) => (
-                <KanbanCard
-                  key={`v-${rec.id}`}
-                  riskTag="Топ гүйцэтгэл"
-                  riskTone="top"
-                  title={rec.title}
-                  description={rec.description}
-                  metrics={<span className="font-display text-lg font-semibold text-primary">+15.8% AOV</span>}
-                  synthesis="Бизнес логикоор баталгаажсан — KPI ахин давтагдах боломжтой."
-                  footer={
-                    <button type="button" className="text-xs font-bold text-primary hover:underline">
-                      Дэлгэрэнгүй
-                    </button>
-                  }
-                />
-              ))}
-              {cols.validated.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-outline-variant/10 bg-surface-alt/30 p-6 text-center text-xs text-on-surface-variant">
-                  Топ гүйцэтгэлтэй, баталгаажсан зөвлөмж энд харагдана.
-                </div>
-              ) : null}
-            </KanbanColumn>
+          <div className="mt-6 tile rounded-md px-6 py-16 text-center">
+            <Sparkles className="mx-auto size-6 text-on-surface-variant/60" aria-hidden />
+            <p
+              className="mt-3 text-[20px] text-on-surface"
+              style={{
+                fontFamily: "var(--font-display)",
+                fontVariationSettings: '"opsz" 96',
+                fontWeight: 400,
+                letterSpacing: "-0.02em",
+              }}
+            >
+              No recommendations yet
+            </p>
+            <p className="mx-auto mt-2 max-w-[42ch] text-[12.5px] text-on-surface-variant">
+              Run a demo abandoned flow so the Main service produces a diagnosis. Recommendations are generated
+              automatically once a dominant reason is set.
+            </p>
           </div>
         )}
       </div>
-      <Fab />
     </EditorialShell>
   );
 }

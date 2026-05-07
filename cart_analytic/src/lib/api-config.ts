@@ -16,7 +16,14 @@ export const API_ENDPOINTS = {
   logout:            "/api/auth/logout/",
   refresh:           "/api/auth/token/refresh/",
   // Dashboard
-  overview:          "/api/analytics/overview/",
+  overview:          "/api/dashboard/overview/",
+  dashboardTrends:   "/api/dashboard/trends/",
+  dashboardReasons:  "/api/dashboard/reasons/",
+  dashboardSessions: "/api/dashboard/sessions/",
+  dashboardSessionDetail: (id: string) => `/api/dashboard/sessions/${id}/`,
+  dashboardRecommendations: "/api/dashboard/recommendations/",
+  dashboardRecommendationStatus: (id: number | string) => `/api/dashboard/recommendations/${id}/status/`,
+  dashboardIntegration: "/api/dashboard/integration/",
   scores:            "/api/analytics/scores/",
   abandonmentRate:   "/api/analytics/abandonment-rate/",
   // Sessions
@@ -59,6 +66,10 @@ export const API_ENDPOINTS = {
   teamMembers:       "/api/settings/team/",
   teamMemberDetail:  (id: number | string) => `/api/settings/team/${id}/`,
   teamInvite:        "/api/settings/team/invite/",
+  // Pipeline monitor
+  pipelineMonitor:   "/api/pipeline/monitor/",
+  // ML Insights
+  mlInsights:        "/api/ml/insights/",
 } as const;
 
 function parseAuthMode(value: string | undefined): ApiAuthMode {

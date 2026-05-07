@@ -2,6 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 interface Props {
   searchParams: Promise<{ q?: string }>;
 }
@@ -78,4 +80,3 @@ export default async function SearchPage({ searchParams }: Props) {
     </div>
   );
 }
-

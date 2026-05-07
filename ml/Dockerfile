@@ -19,6 +19,7 @@ RUN pip install --no-cache-dir \
       -r requirements.txt
 
 COPY app/ app/
+COPY viewer.html viewer.html
 
 # Run as non-root for container security best practice.
 RUN useradd --create-home --shell /bin/bash appuser

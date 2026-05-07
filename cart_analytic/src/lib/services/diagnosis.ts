@@ -14,14 +14,7 @@ export type DiagnosisEntry = {
   scores?: Record<string, number>;
 };
 
-const mockDiagnoses: DiagnosisEntry[] = [
-  { id: "DG-401", sessionId: "sess_a1b2c3", createdAt: "2026-04-10", riskLevel: "high", dominantScore: "S1", predictionScore: 0.91, scores: { S1: 0.91, S2: 0.43, S3: 0.29, S4: 0.54, S5: 0.63, S6: 0.37, S7: 0.71 } },
-  { id: "DG-402", sessionId: "sess_d4e5f6", createdAt: "2026-04-09", riskLevel: "medium", dominantScore: "S3", predictionScore: 0.58, scores: { S1: 0.31, S2: 0.25, S3: 0.58, S4: 0.42, S5: 0.19, S6: 0.11, S7: 0.34 } },
-  { id: "DG-403", sessionId: "sess_g7h8i9", createdAt: "2026-04-08", riskLevel: "high", dominantScore: "S2", predictionScore: 0.84, scores: { S1: 0.62, S2: 0.84, S3: 0.41, S4: 0.57, S5: 0.38, S6: 0.29, S7: 0.51 } },
-  { id: "DG-404", sessionId: "sess_j1k2l3", createdAt: "2026-04-07", riskLevel: "low", dominantScore: "S5", predictionScore: 0.21, scores: { S1: 0.12, S2: 0.09, S3: 0.14, S4: 0.18, S5: 0.21, S6: 0.07, S7: 0.10 } },
-  { id: "DG-405", sessionId: "sess_m4n5o6", createdAt: "2026-04-06", riskLevel: "medium", dominantScore: "S4", predictionScore: 0.47, scores: { S1: 0.33, S2: 0.28, S3: 0.39, S4: 0.47, S5: 0.22, S6: 0.18, S7: 0.31 } },
-  { id: "DG-406", sessionId: "sess_p7q8r9", createdAt: "2026-04-05", riskLevel: "high", dominantScore: "S1", predictionScore: 0.88, scores: { S1: 0.88, S2: 0.51, S3: 0.44, S4: 0.67, S5: 0.72, S6: 0.43, S7: 0.81 } },
-];
+const mockDiagnoses: DiagnosisEntry[] = [];
 
 type ApiDiagnosisEntry = {
   id: string;
@@ -29,8 +22,13 @@ type ApiDiagnosisEntry = {
   created_at: string;
   risk?: DiagnosisRisk;
   risk_level?: DiagnosisRisk;
-  dominant_score?: string;
+  dominant_score?: string | number;
+  dominant_reason?: string;
+  dominant_score_key?: string;
   prediction_score?: number;
+  abandonment_probability?: number;
+  recommendation?: string | null;
+  model_version?: string | null;
   scores?: Record<string, number>;
 };
 
@@ -40,10 +38,16 @@ function mapApiEntry(api: ApiDiagnosisEntry): DiagnosisEntry {
     sessionId: api.session_id,
     createdAt: api.created_at,
     riskLevel: api.risk ?? api.risk_level ?? "low",
-    dominantScore: (api.dominant_score as ScoreLabel) ?? "S1",
-    predictionScore: api.prediction_score ?? 0,
+    dominantScore: ((api.dominant_reason ?? api.dominant_score_key) as ScoreLabel) ?? dominantFromScores(api.scores),
+    predictionScore: api.abandonment_probability ?? api.prediction_score ?? 0,
     scores: api.scores,
   };
+}
+
+function dominantFromScores(scores?: Record<string, number>): ScoreLabel {
+  const labels: ScoreLabel[] = ["S1", "S2", "S3", "S4", "S5", "S6", "S7"];
+  if (!scores) return labels[0];
+  return labels.reduce((best, key) => ((scores[key] ?? 0) > (scores[best] ?? 0) ? key : best), labels[0]);
 }
 
 export type DiagnosisFilters = {
@@ -91,7 +95,8 @@ export async function getDiagnosisDetail(id: string): Promise<DiagnosisEntry> {
   } catch (error) {
     if (error instanceof ApiError && isMockFallback()) {
       console.warn("[mock]", endpoint);
-      return mockDiagnoses.find((d) => d.id === id) ?? { ...mockDiagnoses[0]!, id };
+      const found = mockDiagnoses.find((d) => d.id === id);
+      if (found) return found;
     }
     throw error;
   }

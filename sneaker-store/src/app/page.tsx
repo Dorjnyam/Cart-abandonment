@@ -1,6 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
+import ThesisDemoPanel from "@/components/ThesisDemoPanel";
+
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const [newArrivals, onSale, topDrops] = await Promise.all([
@@ -25,6 +28,7 @@ export default async function HomePage() {
   ]);
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 pb-20 md:py-12">
+      <ThesisDemoPanel />
       <section className="grid min-h-[70vh] items-center gap-8 md:grid-cols-2">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-zinc-400">KICKLAB</p>
@@ -136,4 +140,3 @@ export default async function HomePage() {
     </div>
   );
 }
-

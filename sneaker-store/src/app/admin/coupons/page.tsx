@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminCouponsPage() {
   const coupons = await prisma.coupon.findMany({ orderBy: { code: "asc" } });
 
@@ -16,4 +18,3 @@ export default async function AdminCouponsPage() {
     </div>
   );
 }
-

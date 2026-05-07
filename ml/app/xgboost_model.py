@@ -3,9 +3,18 @@ import pickle
 from pathlib import Path
 from typing import Any
 
+import joblib
 import numpy as np
-import shap
-import xgboost as xgb
+
+try:
+    import shap
+except ModuleNotFoundError:  # pragma: no cover - exercised in minimal local envs
+    shap = None
+
+try:
+    import xgboost as xgb
+except ModuleNotFoundError:  # pragma: no cover - exercised in minimal local envs
+    xgb = None
 
 from app.config import CATEGORICAL_ENCODINGS, settings
 
@@ -14,24 +23,40 @@ logger = logging.getLogger(__name__)
 
 class XGBoostModel:
     def __init__(self) -> None:
-        self.model: xgb.XGBClassifier | None = None
-        self.explainer: shap.TreeExplainer | None = None
+        self.model: Any | None = None
+        self.explainer: Any | None = None
         self.feature_names: list[str] = []
         self.model_version: str = settings.model_version_xgboost
+        self.threshold: float = settings.abandon_threshold
         self.model_loaded: bool = False
 
     def load(self, model_path: str | None = None) -> None:
+        if xgb is None:
+            raise RuntimeError("xgboost is not installed; install ml/requirements.txt before loading the model")
         path = Path(model_path or settings.model_path_xgboost)
         try:
-            with path.open("rb") as f:
-                model_obj = pickle.load(f)
+            try:
+                model_obj = joblib.load(path)
+            except Exception:
+                with path.open("rb") as f:
+                    model_obj = pickle.load(f)
+
+            if isinstance(model_obj, dict):
+                feature_names = model_obj.get("feature_order") or model_obj.get("feature_names")
+                self.threshold = float(model_obj.get("threshold", settings.abandon_threshold))
+                self.model_version = str(model_obj.get("model_version", settings.model_version_xgboost))
+                model_obj = model_obj.get("model")
+            else:
+                feature_names = None
 
             if not isinstance(model_obj, xgb.XGBClassifier):
                 raise TypeError("Model file must contain a pickled xgb.XGBClassifier")
 
             self.model = model_obj
-            self.feature_names = list(self.model.feature_names_in_)
-            self.explainer = shap.TreeExplainer(self.model)
+            self.feature_names = list(feature_names or getattr(self.model, "feature_names_in_", []))
+            if not self.feature_names:
+                raise ValueError("Model artifact does not contain feature order")
+            self.explainer = shap.TreeExplainer(self.model) if shap is not None else None
             self.model_loaded = True
             logger.info(
                 "XGBoost model loaded from %s — %d features: %s",
@@ -52,6 +77,7 @@ class XGBoostModel:
         self.model = None
         self.explainer = None
         self.feature_names = []
+        self.threshold = settings.abandon_threshold
         self.model_loaded = False
 
     def _feature_array(self, features: dict[str, Any]) -> np.ndarray:

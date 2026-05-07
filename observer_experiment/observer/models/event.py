@@ -14,6 +14,7 @@ CORE_DB_KEYS = frozenset(
         "event_id",      # client-supplied dedup key — must survive tier filter
         "visitor_id",
         "session_id",
+        "tenant_id",
         "event_type",
         "url",
         "referrer",
@@ -31,6 +32,9 @@ ALIASES_TO_CANONICAL: dict[str, str] = {
     "outbound_click_count": "outbound_click",
     "rage_click_bursts": "rage_click",
     "query": "search_query",
+    "productName": "product_name",
+    "product_category": "category",
+    "product_price": "price",
 }
 
 # Only mapped ca_user_* keys are merged; unknown ca_user_* are dropped in normalize.
@@ -44,6 +48,7 @@ ALLOWED_T3: frozenset[str] = frozenset(
     {
         "visitor_id",
         "session_id",
+        "tenant_id",
         "visit_count",
         "url",
         "path",
@@ -81,6 +86,10 @@ T2_EXTRA: frozenset[str] = frozenset(
         "search_query_from_url",
         "is_order_success",
         "product_id",
+        "product_name",
+        "category",
+        "price",
+        "quantity",
         "product_price",
         "product_category",
         "product_availability",
@@ -99,10 +108,15 @@ T2_EXTRA: frozenset[str] = frozenset(
 T1_EXTRA: frozenset[str] = frozenset(
     {
         "cart_value",
+        "cart_total",
         "cart_item_count",
         "checkout_step",
+        "discount",
+        "shipping_cost",
+        "error_type",
         "payment_method",
         "shipping_method",
+        "order_id",
         "order_total",
         "discount_code",
         "is_sale",
@@ -167,6 +181,9 @@ def filter_payload_for_tier(data: dict[str, Any], tier: str) -> dict[str, Any]:
         if k in FORBIDDEN_KEYS:
             continue
         if k in allowed:
+            result[k] = v
+            continue
+        if tier == "T1":
             result[k] = v
 
     return result

@@ -8,16 +8,14 @@ import EditorialShell from "@/components/editorial/EditorialShell";
 import { getDiagnosisDetail, type DiagnosisEntry } from "@/lib/services/diagnosis";
 
 const SCORE_META: Record<string, { label: string; color: string }> = {
-  S1: { label: "Сэтгэл зүйн шалтгаан", color: "bg-error" },
-  S2: { label: "Техникийн саад", color: "bg-error" },
-  S3: { label: "Итгэлцлийн асуудал", color: "bg-tertiary" },
-  S4: { label: "Мобайл UI-н саад", color: "bg-tertiary" },
-  S5: { label: "Үнийн мэдрэмж", color: "bg-tertiary" },
-  S6: { label: "Шийдвэр гаргалтын саад", color: "bg-secondary" },
-  S7: { label: "Нийгмийн нөлөөлөл", color: "bg-error" },
+  S1: { label: "Psychological hesitation", color: "bg-error" },
+  S2: { label: "Technical friction", color: "bg-error" },
+  S3: { label: "Trust issue", color: "bg-tertiary" },
+  S4: { label: "Mobile usability issue", color: "bg-tertiary" },
+  S5: { label: "Price sensitivity", color: "bg-tertiary" },
+  S6: { label: "Indecision/navigation disorder", color: "bg-secondary" },
+  S7: { label: "External influence/referral effect", color: "bg-error" },
 };
-
-const DEFAULT_SCORES: Record<string, number> = { S1: 0.82, S2: 0.43, S3: 0.29, S4: 0.54, S5: 0.63, S6: 0.37, S7: 0.71 };
 
 export default function DiagnosisDetailPage() {
   const params = useParams<{ id: string }>();
@@ -32,7 +30,7 @@ export default function DiagnosisDetailPage() {
       .finally(() => setLoading(false));
   }, [params.id]);
 
-  const scores = entry?.scores ?? DEFAULT_SCORES;
+  const scores = entry?.scores ?? {};
 
   return (
     <EditorialShell activeNav="diagnosis" title="Оношлогооны дэлгэрэнгүй" subtitle={`Оношлогоо / ${params.id}`}>
@@ -45,6 +43,10 @@ export default function DiagnosisDetailPage() {
         {loading ? (
           <div className="flex h-64 items-center justify-center">
             <Loader2 className="size-8 animate-spin text-primary" aria-hidden />
+          </div>
+        ) : !entry ? (
+          <div className="rounded-lg border border-outline-variant/20 bg-surface-container-lowest p-8 text-sm text-on-surface-variant">
+            No persisted diagnosis exists for this session.
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

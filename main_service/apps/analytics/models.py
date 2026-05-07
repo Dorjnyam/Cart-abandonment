@@ -21,6 +21,12 @@ class Session(models.Model):
     event_count = models.IntegerField(default=0)
     page_views = models.IntegerField(default=0)
     device_type = models.CharField(max_length=32, null=True, blank=True)
+    session_state = models.CharField(max_length=32, default='UNKNOWN', db_index=True)
+    has_purchase_success = models.BooleanField(default=False, db_index=True)
+    has_checkout_start = models.BooleanField(default=False)
+    has_cart_activity = models.BooleanField(default=False)
+    final_event_type = models.CharField(max_length=64, blank=True, default='')
+    event_sequence = models.JSONField(default=list, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
@@ -53,6 +59,10 @@ class PredictionResult(models.Model):
     confidence = models.FloatField(null=True, blank=True)
     model_version = models.CharField(max_length=64, null=True, blank=True)
     predicted_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    business_outcome = models.CharField(max_length=32, default='unknown', db_index=True)
+    prediction_overridden = models.BooleanField(default=False, db_index=True)
+    override_reason = models.CharField(max_length=255, blank=True, default='')
+    outcome_metadata = models.JSONField(default=dict, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
@@ -100,6 +110,15 @@ class Diagnosis(models.Model):
     score_s6 = models.DecimalField(max_digits=6, decimal_places=4)
     score_s7 = models.DecimalField(max_digits=6, decimal_places=4)
 
+    abandonment_probability = models.FloatField(null=True, blank=True)
+    predicted_label = models.IntegerField(null=True, blank=True)
+    predicted_class = models.CharField(max_length=32, null=True, blank=True, db_index=True)
+    model_version = models.CharField(max_length=64, null=True, blank=True)
+    dominant_reason = models.CharField(max_length=2, null=True, blank=True, db_index=True)
+    reason_label = models.CharField(max_length=128, null=True, blank=True)
+    explanation = models.TextField(blank=True, default="")
+    top_features = models.JSONField(default=list, blank=True)
+
     # VG Service motif counts (optional, stores result from /compute-entropy)
     vg_entropy = models.FloatField(null=True, blank=True)
     vg_motifs = models.JSONField(null=True, blank=True, help_text="Motif counts: {z1, z2, z3, z4}")
@@ -120,7 +139,9 @@ class Recommendation(models.Model):
     class Status(models.TextChoices):
         CREATED = 'created', 'Created'
         VIEWED = 'viewed', 'Viewed'
+        IN_PROGRESS = 'in_progress', 'In Progress'
         IMPLEMENTED = 'implemented', 'Implemented'
+        DISMISSED = 'dismissed', 'Dismissed'
 
     diagnosis = models.OneToOneField(Diagnosis, on_delete=models.CASCADE, related_name='recommendation')
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='recommendations')

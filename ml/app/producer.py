@@ -4,7 +4,7 @@ import logging
 from aiokafka import AIOKafkaProducer
 
 from app.config import settings
-from app.schemas import PredictedClass, PredictionOut, PredictionResult
+from app.schemas import PredictionOut, PredictionResult
 
 logger = logging.getLogger(__name__)
 
@@ -29,20 +29,50 @@ def get_producer() -> AIOKafkaProducer | None:
     return _producer
 
 
-async def publish_prediction(prediction: PredictionOut) -> None:
+async def publish_prediction(prediction: PredictionOut | PredictionResult) -> None:
     if _producer is None:
         raise RuntimeError("Kafka producer is not started")
 
-    payload = {
-        "session_id": str(prediction.session_id),
-        "tenant_id": str(prediction.tenant_id),
-        "window_seconds": prediction.window_seconds,
-        "abandon_probability": prediction.abandon_probability,
-        "diagnosis_category": prediction.diagnosis_category,
-        "shap_values": prediction.shap_values,
-        "model_version": prediction.model_version,
-        "predicted_at": prediction.predicted_at.isoformat(),
-    }
+    if isinstance(prediction, PredictionResult):
+        payload = {
+            "session_id": str(prediction.session_id),
+            "tenant_id": str(prediction.tenant_id),
+            "organization_id": str(prediction.organization_id),
+            "visitor_id": str(prediction.visitor_id) if prediction.visitor_id is not None else None,
+            "abandonment_probability": prediction.abandonment_probability,
+            "predicted_label": prediction.predicted_label,
+            "predicted_class": prediction.predicted_class.value,
+            "model_name": prediction.model_name,
+            "model_version": prediction.model_version,
+            "threshold": prediction.threshold,
+            "top_features": [item.model_dump() for item in prediction.top_features],
+            "features": prediction.features,
+            "created_at": prediction.created_at.isoformat(),
+            "session_state": prediction.session_state,
+            "has_purchase_success": prediction.has_purchase_success,
+            "has_checkout_start": prediction.has_checkout_start,
+            "has_cart_activity": prediction.has_cart_activity,
+            "final_event_type": prediction.final_event_type,
+            "event_sequence": prediction.event_sequence,
+        }
+    else:
+        payload = {
+            "session_id": str(prediction.session_id),
+            "tenant_id": str(prediction.tenant_id),
+            "organization_id": str(prediction.tenant_id),
+            "abandonment_probability": prediction.abandon_probability,
+            "predicted_label": 1 if prediction.diagnosis_category == "abandoned" else 0,
+            "predicted_class": prediction.diagnosis_category,
+            "model_name": "xgboost",
+            "model_version": prediction.model_version,
+            "threshold": 0.5,
+            "top_features": [
+                {"feature": key, "value": 0.0, "importance": value}
+                for key, value in prediction.shap_values.items()
+            ],
+            "features": {},
+            "created_at": prediction.predicted_at.isoformat(),
+        }
     session_id = str(prediction.session_id)
     last_exc: Exception | None = None
     for attempt in range(3):
@@ -76,7 +106,7 @@ async def publish_prediction_v2(prediction: PredictionResult) -> None:
     if _producer is None:
         raise RuntimeError("Kafka producer is not started")
 
-    score = prediction.prediction_score
+    score = prediction.abandonment_probability
     confidence = (
         "high" if abs(score - 0.5) > 0.3
         else "medium" if abs(score - 0.5) > 0.1
@@ -84,18 +114,29 @@ async def publish_prediction_v2(prediction: PredictionResult) -> None:
     )
     payload = {
         "session_id": str(prediction.session_id),
+        "tenant_id": str(prediction.tenant_id),
+        "organization_id": str(prediction.organization_id),
         "visitor_id": str(prediction.visitor_id) if prediction.visitor_id is not None else None,
-        "prediction_score": score,
+        "abandonment_probability": score,
+        "predicted_label": prediction.predicted_label,
         "predicted_class": prediction.predicted_class.value,
-        "prediction": "abandon" if prediction.predicted_class == PredictedClass.abandoned else "convert",
+        "model_name": prediction.model_name,
+        "threshold": prediction.threshold,
         "confidence": confidence,
-        "shap_values": prediction.shap_values,
+        "top_features": [item.model_dump() for item in prediction.top_features],
+        "features": prediction.features,
         "model_version": prediction.model_version,
-        "timestamp": prediction.timestamp.isoformat(),
+        "created_at": prediction.created_at.isoformat(),
         "xgb_score": prediction.xgb_score,
         "lstm_score": prediction.lstm_score,
-        "ensemble_method": prediction.ensemble_method,
-    }
+            "ensemble_method": prediction.ensemble_method,
+            "session_state": prediction.session_state,
+            "has_purchase_success": prediction.has_purchase_success,
+            "has_checkout_start": prediction.has_checkout_start,
+            "has_cart_activity": prediction.has_cart_activity,
+            "final_event_type": prediction.final_event_type,
+            "event_sequence": prediction.event_sequence,
+        }
     session_id = str(prediction.session_id)
     last_exc: Exception | None = None
     for attempt in range(3):

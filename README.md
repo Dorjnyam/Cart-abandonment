@@ -1,3 +1,46 @@
+# Cart Abandonment Thesis MVP
+
+## Thesis MVP full-stack run
+
+This repository now targets a thesis-defense MVP, not a production-grade deployment.
+The supported claim is XGBoost + SHAP-style feature explanations over a documented
+synthetic/session-simulation dataset. LSTM, production SLOs, and complete
+multi-tenant security are future work unless separately implemented and verified.
+
+Start the MVP stack:
+
+```bash
+docker compose up --build
+```
+
+Stop and remove local volumes:
+
+```bash
+docker compose down -v
+```
+
+Generate the synthetic training dataset and train XGBoost:
+
+```bash
+python ml/scripts/generate_synthetic_sessions.py --output data/sessions.csv
+python ml/scripts/train.py --dataset data/sessions.csv --output ml/models/xgb_cart_abandonment.joblib
+```
+
+Default local demo values:
+
+- Dashboard: `http://localhost:3001`
+- Demo ecommerce: `http://localhost:3000`
+- Main API: `http://localhost:8000`
+- Observer: `http://localhost:8001`
+- Demo dashboard user: `demo@example.com`
+- Demo dashboard password: `change-me-demo-password`
+- Demo observer key: `tk_full_demo_mvp`
+
+Real `.env` files must stay outside git. Rotate any database passwords, JWT/Django
+secrets, Gemini keys, and observer/API keys that were previously committed.
+
+---
+
 Your System Architecture
 The event pipeline is clean and event-driven:
 

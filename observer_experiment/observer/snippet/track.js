@@ -46,6 +46,25 @@
     }
   }
 
+  function getTenantIdFromScript() {
+    var tag = getCurrentScriptTag();
+    if (!tag) return '';
+    var attr = '';
+    try {
+      attr = tag.getAttribute('data-tenant-id') || tag.getAttribute('data-tenant') || '';
+    } catch (e) { /* fall through */ }
+    if (attr) return String(attr).trim();
+    if (tag.src) {
+      try {
+        var sp = new URL(tag.src).searchParams;
+        return (sp.get('tenant_id') || sp.get('tenant') || '').trim();
+      } catch (e2) {
+        return '';
+      }
+    }
+    return '';
+  }
+
   function parseTierFromKey(key) {
     if (!key) return null;
     if (key.indexOf('tk_full_') === 0) return 'T1';
@@ -62,6 +81,7 @@
 
   var OBSERVER_BASE = getObserverBase();
   var API_KEY = getApiKeyFromScript();
+  var TENANT_ID = getTenantIdFromScript();
   // Next.js <Script> / bundlers: set before load — window.__OBSERVER_BASE__ + window.__OBSERVER_API_KEY__
   if (typeof window !== 'undefined') {
     if (window.__OBSERVER_BASE__) {
@@ -70,6 +90,9 @@
     }
     if (window.__OBSERVER_API_KEY__) {
       API_KEY = String(window.__OBSERVER_API_KEY__).trim();
+    }
+    if (window.__OBSERVER_TENANT_ID__) {
+      TENANT_ID = String(window.__OBSERVER_TENANT_ID__).trim();
     }
   }
   var OBSERVER_TIER = parseTierFromKey(API_KEY);
@@ -84,7 +107,7 @@
 
   // Strict tier field lists (must match observer/models/event.py)
   var KEYS_T3 = [
-    'visitor_id', 'session_id', 'visit_count',
+    'visitor_id', 'session_id', 'tenant_id', 'visit_count',
     'url', 'path', 'referrer', 'page_load_ms', 'device_type', 'language',
     'timezone', 'time_on_page_sec', 'max_scroll_pct', 'scroll_up_count',
     'click_count', 'active_time_ms', 'tab_hidden_count', 'tab_hidden_ms', 'copy_count',
@@ -773,6 +796,7 @@
       outbound_click: state.outbound_click_count,
       js_error: state.js_error_count,
     };
+    if (TENANT_ID) raw.tenant_id = TENANT_ID;
 
     if (TR >= 2) {
       raw.detected_page_type = ctx.detected_page_type;

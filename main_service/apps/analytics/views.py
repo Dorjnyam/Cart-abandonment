@@ -1,7 +1,10 @@
+import json
+import os
 from datetime import timedelta
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.db import connections
 from django.db.models import Avg, Count, Q
 from django.db.models.functions import Greatest
 from django.utils import timezone
@@ -13,7 +16,9 @@ from rest_framework.views import APIView
 
 from apps.analytics.duckdb_client import get_duckdb_daily_trend
 from apps.analytics.models import Diagnosis, PredictionResult, Recommendation, Session
+from apps.analytics.observer_db import fetch_session_events
 from apps.analytics.serializers import ExportTriggerSerializer, StoreSettingsSerializer
+from apps.analytics.s1_s7 import REASON_INFO
 from apps.analytics.tasks import export_to_minio
 from apps.analytics.utils import get_tenant
 from apps.tenants.models import APIKey, TeamMember, Tenant
@@ -66,15 +71,58 @@ class AnalyticsOverviewView(APIView):
 
         total_sessions = Session.objects.filter(tenant=tenant).count()
         total_predictions = PredictionResult.objects.filter(tenant=tenant).count()
-        abandoned_count = PredictionResult.objects.filter(
-            tenant=tenant, predicted_class__in=["abandoned", "abandon"]
-        ).count()
+        abandoned_count = _abandoned_prediction_count(PredictionResult.objects.filter(tenant=tenant))
         abandonment_rate = (abandoned_count / total_predictions) if total_predictions else 0.0
         avg_confidence = (
             PredictionResult.objects.filter(tenant=tenant).aggregate(v=Avg("confidence"))["v"] or 0.0
         )
         active_sessions = Session.objects.filter(tenant=tenant, ended_at__isnull=True).count()
+        mobile_count = Session.objects.filter(tenant=tenant, device_type="mobile").count()
+        mobile_rate = (mobile_count / total_sessions) if total_sessions else 0.0
         trend_7d = get_duckdb_daily_trend(tenant.id, days=7)
+
+        # Checkout funnel dropoff — computed from session stages
+        sessions_with_events = Session.objects.filter(tenant=tenant, event_count__gte=3).count()
+        conversions = total_predictions - abandoned_count
+        dropoff = []
+        if total_sessions:
+            stages = [
+                ("Нүүр хуудас",   total_sessions),
+                ("Бараа харах",   sessions_with_events),
+                ("Сагс нэмэх",   total_predictions),
+                ("Checkout",      max(0, total_predictions - abandoned_count // 2)),
+                ("Төлбөр",        conversions),
+            ]
+            for i, (step, users) in enumerate(stages):
+                prev_users = stages[i - 1][1] if i > 0 else users
+                drop_pct = round((1 - users / prev_users) * 100) if prev_users and i > 0 else 0
+                dropoff.append({"step": step, "users": users, "drop_percent": max(0, drop_pct)})
+
+        # Traffic sources — device type breakdown
+        desktop_count = max(0, total_sessions - mobile_count)
+        tablet_count = Session.objects.filter(tenant=tenant, device_type="tablet").count()
+        other_count = max(0, total_sessions - mobile_count - desktop_count)
+        traffic_sources = []
+        if total_sessions:
+            raw = [
+                ("Mobile",   mobile_count),
+                ("Desktop",  max(0, desktop_count - tablet_count)),
+                ("Tablet",   tablet_count),
+                ("Бусад",    other_count),
+            ]
+            traffic_sources = [
+                {"source": name, "value": round(count / total_sessions * 100, 1)}
+                for name, count in raw
+                if count > 0
+            ]
+
+        # Formatted KPI array (matches frontend DashboardKpi shape)
+        kpis = [
+            {"label": "Нийт session",     "value": total_sessions,                                              "trendPercent": 0},
+            {"label": "Орхилтын хувь",    "value": f"{round(abandonment_rate * 100, 1)}%" if total_predictions else "—", "trendPercent": 0},
+            {"label": "Идэвхтэй session", "value": active_sessions,                                             "trendPercent": 0},
+            {"label": "Мобайл хувь",      "value": f"{round(mobile_rate * 100, 1)}%" if total_sessions else "—", "trendPercent": 0},
+        ]
 
         return Response({
             "total_sessions": total_sessions,
@@ -82,7 +130,11 @@ class AnalyticsOverviewView(APIView):
             "abandonment_rate": round(abandonment_rate, 4),
             "avg_confidence": round(float(avg_confidence), 4),
             "active_sessions": active_sessions,
+            "mobile_rate": round(mobile_rate, 4),
             "trend_7d": trend_7d,
+            "kpis": kpis,
+            "dropoff": dropoff,
+            "traffic_sources": traffic_sources,
         })
 
 
@@ -232,6 +284,579 @@ def _dominant_score_ids(diagnosis) -> list:
     return [k for k, v in scores.items() if v >= max_val - 0.001]
 
 
+SCORE_ORDER = [f"S{i}" for i in range(1, 8)]
+MODEL_THRESHOLD = 0.5
+MODEL_VERSION = "xgboost-synthetic-mvp"
+DATASET_TYPE = "synthetic_mvp"
+
+
+def _abandoned_prediction_count(qs) -> int:
+    return qs.filter(
+        Q(business_outcome__in=["abandoned", "abandon"])
+        | Q(business_outcome="unknown", predicted_class__in=["abandoned", "abandon"])
+    ).count()
+
+
+def _converted_prediction_count(qs) -> int:
+    return qs.filter(
+        Q(business_outcome__in=["converted", "convert"])
+        | Q(business_outcome="unknown", predicted_class__in=["converted", "convert"])
+    ).count()
+
+
+def _score_dict(diagnosis) -> dict[str, float]:
+    return {f"S{i}": float(getattr(diagnosis, f"score_s{i}")) for i in range(1, 8)}
+
+
+def _reason_label(code: str | None) -> str:
+    if code in REASON_INFO:
+        return REASON_INFO[code].label
+    return code or "Unknown"
+
+
+def _severity(value: float) -> str:
+    if value >= 0.75:
+        return "high"
+    if value >= 0.5:
+        return "medium"
+    return "low"
+
+
+def _api_status(model_status: str) -> str:
+    return {
+        Recommendation.Status.CREATED: "new",
+        Recommendation.Status.VIEWED: "in_progress",
+        Recommendation.Status.IN_PROGRESS: "in_progress",
+        Recommendation.Status.IMPLEMENTED: "done",
+        Recommendation.Status.DISMISSED: "dismissed",
+    }.get(model_status, "new")
+
+
+def _model_status(api_status: str) -> str | None:
+    return {
+        "new": Recommendation.Status.CREATED,
+        "in_progress": Recommendation.Status.IN_PROGRESS,
+        "done": Recommendation.Status.IMPLEMENTED,
+        "dismissed": Recommendation.Status.DISMISSED,
+    }.get(api_status)
+
+
+def _fallback_recommendation_payload(diagnosis, rec=None) -> dict:
+    code = getattr(diagnosis, "dominant_reason", None) or "S1"
+    label = getattr(diagnosis, "reason_label", None) or _reason_label(code)
+    text = getattr(rec, "text_mn", "") if rec is not None else ""
+    score = max(_score_dict(diagnosis).values()) if diagnosis is not None else 0.0
+    priority = "high" if score >= 0.75 else "medium" if score >= 0.5 else "low"
+    return {
+        "title": f"Address {label}",
+        "summary": text or f"Review sessions where {code} is dominant and remove the strongest checkout barrier.",
+        "reason_code": code,
+        "priority": priority,
+        "effort": "medium",
+        "expected_impact": "Reduce checkout abandonment and improve conversion rate.",
+        "evidence": [
+            f"Dominant reason is {code}.",
+            f"Abandonment probability is {getattr(diagnosis, 'abandonment_probability', 0) or 0:.2f}.",
+        ],
+        "action_steps": [
+            "Inspect the affected checkout step.",
+            "Change one visible barrier at a time.",
+            "Track abandonment rate after the change.",
+        ],
+        "warning": "Generated by deterministic fallback because structured Gemini output is unavailable.",
+        "source": "fallback",
+    }
+
+
+def _recommendation_payload(rec, diagnosis=None) -> dict | None:
+    if rec is None:
+        return None
+    diagnosis = diagnosis or getattr(rec, "diagnosis", None)
+    raw = rec.text_mn or ""
+    parsed = None
+    if raw.strip().startswith("{"):
+        try:
+            parsed = json.loads(raw)
+        except json.JSONDecodeError:
+            parsed = None
+    payload = parsed if isinstance(parsed, dict) else _fallback_recommendation_payload(diagnosis, rec)
+    payload.setdefault("source", "gemini" if parsed else "fallback")
+    payload.setdefault("reason_code", getattr(diagnosis, "dominant_reason", None) or "S1")
+    payload.setdefault("title", f"Address {_reason_label(payload.get('reason_code'))}")
+    payload.setdefault("summary", raw)
+    payload.setdefault("priority", "medium")
+    payload.setdefault("effort", "medium")
+    payload.setdefault("expected_impact", "Reduce cart abandonment.")
+    payload.setdefault("evidence", [])
+    payload.setdefault("action_steps", [])
+    payload.setdefault("warning", "" if parsed else "Structured recommendation was not available.")
+    return {
+        "id": rec.id,
+        "title": payload["title"],
+        "summary": payload["summary"],
+        "body": payload["summary"],
+        "reason_code": payload["reason_code"],
+        "reason_label": _reason_label(payload["reason_code"]),
+        "priority": payload["priority"],
+        "effort": payload["effort"],
+        "expected_impact": payload["expected_impact"],
+        "evidence": payload["evidence"],
+        "action_steps": payload["action_steps"],
+        "warning": payload["warning"],
+        "source": payload["source"],
+        "status": _api_status(rec.status),
+        "created_at": rec.created_at,
+        "session_id": getattr(diagnosis, "session_id", None),
+    }
+
+
+def _prediction_contract(pred) -> dict | None:
+    if pred is None:
+        return None
+    probability = pred.abandonment_probability
+    if probability is None:
+        probability = pred.prediction_score
+    ml_predicted_class = pred.predicted_class or ("abandoned" if probability >= MODEL_THRESHOLD else "converted")
+    business_outcome = getattr(pred, "business_outcome", None) or ml_predicted_class
+    predicted_class = business_outcome if getattr(pred, "prediction_overridden", False) else ml_predicted_class
+    return {
+        "predicted_class": predicted_class,
+        "predicted_label": 1 if predicted_class in {"abandoned", "abandon"} else 0,
+        "ml_predicted_class": ml_predicted_class,
+        "business_outcome": business_outcome,
+        "prediction_overridden": bool(getattr(pred, "prediction_overridden", False)),
+        "override_reason": getattr(pred, "override_reason", "") or "",
+        "abandonment_probability": round(float(probability or 0.0), 4),
+        "model_name": pred.model_variant or "xgboost",
+        "model_version": pred.model_version or MODEL_VERSION,
+        "threshold": MODEL_THRESHOLD,
+        "confidence": round(float(pred.confidence or max(probability or 0, 1 - (probability or 0))), 4),
+    }
+
+
+def _diagnosis_contract(diagnosis) -> dict | None:
+    if diagnosis is None:
+        return None
+    scores = _score_dict(diagnosis)
+    dominant = diagnosis.dominant_reason or max(scores, key=lambda key: scores[key])
+    return {
+        "id": diagnosis.id,
+        "scores": scores,
+        "dominant_reason": dominant,
+        "reason_label": diagnosis.reason_label or _reason_label(dominant),
+        "explanation": diagnosis.explanation or REASON_INFO.get(dominant, REASON_INFO["S1"]).explanation,
+        "severity": _severity(scores[dominant]),
+    }
+
+
+def _top_features_from(prediction=None, diagnosis=None) -> list[dict]:
+    if diagnosis is not None and isinstance(diagnosis.top_features, list) and diagnosis.top_features:
+        return diagnosis.top_features[:8]
+    shap = getattr(prediction, "shap_values", None) or {}
+    if not isinstance(shap, dict):
+        return []
+    return [
+        {"feature": key, "value": None, "importance": round(abs(float(value)), 6)}
+        for key, value in sorted(shap.items(), key=lambda item: abs(float(item[1])), reverse=True)[:8]
+    ]
+
+
+def _event_timeline(session_id: str, session=None) -> list[dict]:
+    events = []
+    for index, event in enumerate(fetch_session_events(session_id)):
+        events.append({
+            "id": str(index + 1),
+            "type": event.get("event_type") or event.get("type") or "event",
+            "timestamp": event.get("_created_at") or event.get("timestamp"),
+            "page": event.get("page") or event.get("page_url") or event.get("url") or "",
+        })
+    if not events and session is not None:
+        for index, event in enumerate(getattr(session, "event_sequence", []) or []):
+            event_type = event.get("event_type") if isinstance(event, dict) else event
+            events.append({
+                "id": str(index + 1),
+                "type": str(event_type or "event"),
+                "timestamp": None,
+                "page": "",
+            })
+    return events
+
+
+def _dashboard_session_row(session, diagnosis=None) -> dict:
+    prediction = _prediction_contract(getattr(session, "prediction", None))
+    diagnosis_payload = _diagnosis_contract(diagnosis)
+    rec = _recommendation_payload(getattr(diagnosis, "recommendation", None), diagnosis) if diagnosis else None
+    return {
+        "session_id": session.session_id,
+        "visitor_id": session.visitor_id,
+        "created_at": session.created_at,
+        "started_at": session.started_at,
+        "ended_at": session.ended_at,
+        "device_type": session.device_type or "unknown",
+        "event_count": session.event_count,
+        "page_views": session.page_views,
+        "cart_value": None,
+        "session_state": getattr(session, "session_state", "UNKNOWN"),
+        "has_purchase_success": getattr(session, "has_purchase_success", False),
+        "business_outcome": prediction.get("business_outcome") if prediction else getattr(session, "session_state", "UNKNOWN").lower(),
+        "prediction": prediction,
+        "diagnosis": diagnosis_payload,
+        "recommendation_status": rec["status"] if rec else None,
+    }
+
+
+def _diagnosis_queryset(tenant):
+    return Diagnosis.objects.filter(tenant=tenant).select_related("recommendation")
+
+
+def _daily_trend(tenant, days: int = 7) -> list[dict]:
+    today = timezone.localdate()
+    rows = []
+    for offset in range(days - 1, -1, -1):
+        day = today - timedelta(days=offset)
+        predictions = PredictionResult.objects.filter(tenant=tenant, created_at__date=day)
+        total = predictions.count()
+        abandoned = _abandoned_prediction_count(predictions)
+        rows.append({
+            "date": day.isoformat(),
+            "sessions": Session.objects.filter(tenant=tenant, created_at__date=day).count(),
+            "abandoned": abandoned,
+            "converted": max(total - abandoned, 0),
+            "abandonment_rate": round(abandoned / total, 4) if total else 0.0,
+        })
+    return rows
+
+
+def _reason_summary(tenant) -> list[dict]:
+    diagnoses = list(_diagnosis_queryset(tenant))
+    results = []
+    for code in SCORE_ORDER:
+        score_field = f"score_s{code[1]}"
+        values = [float(getattr(d, score_field)) for d in diagnoses]
+        avg = sum(values) / len(values) if values else 0.0
+        dominant_count = sum(
+            1
+            for d in diagnoses
+            if (d.dominant_reason or max(_score_dict(d), key=lambda key: _score_dict(d)[key])) == code
+        )
+        info = REASON_INFO[code]
+        results.append({
+            "code": code,
+            "label": info.label,
+            "average_score": round(avg, 4),
+            "dominant_sessions": dominant_count,
+            "severity": _severity(avg),
+            "explanation": info.explanation,
+            "recommended_action": _fallback_recommendation_payload(
+                diagnoses[0] if diagnoses else None,
+                None,
+            )["action_steps"][0] if diagnoses else "Collect diagnosed sessions first.",
+        })
+    return results
+
+
+def _funnel(tenant) -> list[dict]:
+    total = Session.objects.filter(tenant=tenant).count()
+    viewed = Session.objects.filter(tenant=tenant, page_views__gt=0).count()
+    cart_like = Session.objects.filter(tenant=tenant, event_count__gte=3).count()
+    checkout_like = PredictionResult.objects.filter(tenant=tenant).count()
+    converted = _converted_prediction_count(PredictionResult.objects.filter(tenant=tenant))
+    stages = [
+        ("page_view", total),
+        ("product_view", viewed),
+        ("add_to_cart", cart_like),
+        ("cart_view", cart_like),
+        ("checkout_start", checkout_like),
+        ("purchase_success", converted),
+    ]
+    return [
+        {
+            "step": step,
+            "sessions": count,
+            "drop_percent": round((1 - count / stages[index - 1][1]) * 100, 1)
+            if index > 0 and stages[index - 1][1] else 0.0,
+        }
+        for index, (step, count) in enumerate(stages)
+    ]
+
+
+class DashboardOverviewView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        tenant = resolve_tenant_for_user(request)
+        if not tenant:
+            return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
+
+        sessions = Session.objects.filter(tenant=tenant)
+        predictions = PredictionResult.objects.filter(tenant=tenant)
+        diagnoses = _diagnosis_queryset(tenant)
+        total_sessions = sessions.count()
+        total_predictions = predictions.count()
+        abandoned = _abandoned_prediction_count(predictions)
+        converted = _converted_prediction_count(predictions)
+        high_risk = predictions.filter(abandonment_probability__gte=MODEL_THRESHOLD).count()
+        avg_probability = predictions.aggregate(v=Avg("abandonment_probability"))["v"] or 0.0
+        latest_diagnosis = diagnoses.order_by("-created_at").first()
+        latest_rec = (
+            Recommendation.objects.filter(tenant=tenant)
+            .select_related("diagnosis")
+            .order_by("-created_at")
+            .first()
+        )
+        reason_rows = _reason_summary(tenant)
+        top_reason = max(reason_rows, key=lambda item: (item["dominant_sessions"], item["average_score"]))
+        recent_sessions = list(
+            sessions.select_related("prediction").order_by("-created_at")[:8]
+        )
+        diagnosis_map = {
+            d.session_id: d
+            for d in diagnoses.filter(session_id__in=[s.session_id for s in recent_sessions])
+        }
+
+        return Response({
+            "summary": {
+                "total_sessions": total_sessions,
+                "abandoned_sessions": abandoned,
+                "converted_sessions": converted,
+                "abandonment_rate": round(abandoned / total_predictions, 4) if total_predictions else 0.0,
+                "conversion_rate": round(converted / total_predictions, 4) if total_predictions else 0.0,
+                "high_risk_sessions": high_risk,
+                "average_abandonment_probability": round(float(avg_probability), 4),
+                "active_recommendations": Recommendation.objects.filter(
+                    tenant=tenant,
+                    status__in=[Recommendation.Status.CREATED, Recommendation.Status.VIEWED, Recommendation.Status.IN_PROGRESS],
+                ).count(),
+            },
+            "model": {
+                "active_model": "xgboost",
+                "model_version": getattr(latest_diagnosis, "model_version", None) or MODEL_VERSION,
+                "threshold": MODEL_THRESHOLD,
+                "dataset_type": DATASET_TYPE,
+            },
+            "top_reason": {
+                "score": top_reason["code"],
+                "label": top_reason["label"],
+                "value": top_reason["average_score"],
+                "explanation": top_reason["explanation"],
+            },
+            "latest_recommendation": _recommendation_payload(latest_rec, getattr(latest_rec, "diagnosis", None)) if latest_rec else None,
+            "trend": _daily_trend(tenant, days=7),
+            "funnel": _funnel(tenant),
+            "reasons": reason_rows,
+            "recent_sessions": [_dashboard_session_row(s, diagnosis_map.get(s.session_id)) for s in recent_sessions],
+        })
+
+
+class DashboardTrendsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        tenant = resolve_tenant_for_user(request)
+        if not tenant:
+            return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
+        raw_range = request.query_params.get("range", "7d")
+        days = 30 if raw_range == "30d" else 14 if raw_range == "14d" else 7
+        return Response({"range": raw_range, "trend": _daily_trend(tenant, days=days)})
+
+
+class DashboardReasonsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        tenant = resolve_tenant_for_user(request)
+        if not tenant:
+            return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
+        rows = _reason_summary(tenant)
+        return Response({
+            "dominant_reason_formula": "dominant_reason = argmax(S1, S2, S3, S4, S5, S6, S7)",
+            "reasons": rows,
+            "distribution": [{"code": r["code"], "label": r["label"], "sessions": r["dominant_sessions"]} for r in rows],
+        })
+
+
+class DashboardSessionsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        tenant = resolve_tenant_for_user(request)
+        if not tenant:
+            return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
+
+        qs = Session.objects.filter(tenant=tenant).select_related("prediction").order_by("-created_at")
+        search = request.query_params.get("search")
+        predicted_class = request.query_params.get("predicted_class")
+        dominant_reason = request.query_params.get("dominant_reason")
+        high_risk = request.query_params.get("high_risk")
+
+        if search:
+            qs = qs.filter(Q(session_id__icontains=search) | Q(visitor_id__icontains=search))
+        if predicted_class:
+            qs = qs.filter(prediction__business_outcome=predicted_class)
+        if high_risk in {"true", "1", "yes"}:
+            qs = qs.filter(prediction__abandonment_probability__gte=MODEL_THRESHOLD)
+        if dominant_reason in SCORE_ORDER:
+            session_ids = Diagnosis.objects.filter(
+                tenant=tenant,
+                dominant_reason=dominant_reason,
+            ).values_list("session_id", flat=True)
+            qs = qs.filter(session_id__in=session_ids)
+
+        paginator = _std_paginator(request)
+        page = paginator.paginate_queryset(qs, request)
+        diagnosis_map = {
+            d.session_id: d
+            for d in _diagnosis_queryset(tenant).filter(session_id__in=[item.session_id for item in page])
+        }
+        results = [_dashboard_session_row(item, diagnosis_map.get(item.session_id)) for item in page]
+        return paginator.get_paginated_response(results)
+
+
+class DashboardSessionDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, session_id: str):
+        tenant = resolve_tenant_for_user(request)
+        if not tenant:
+            return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
+
+        session = (
+            Session.objects.filter(tenant=tenant, session_id=session_id)
+            .select_related("prediction")
+            .first()
+        )
+        if not session:
+            return Response({"detail": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+        diagnosis = _diagnosis_queryset(tenant).filter(session_id=session_id).first()
+        rec = _recommendation_payload(getattr(diagnosis, "recommendation", None), diagnosis) if diagnosis else None
+        prediction = getattr(session, "prediction", None)
+        return Response({
+            "session_id": session.session_id,
+            "organization_id": getattr(tenant, "external_id", None) or tenant.id,
+            "tenant_id": tenant.id,
+            "visitor_id": session.visitor_id,
+            "started_at": session.started_at,
+            "ended_at": session.ended_at,
+            "device_type": session.device_type,
+            "event_count": session.event_count,
+            "page_views": session.page_views,
+            "session_state": session.session_state,
+            "has_purchase_success": session.has_purchase_success,
+            "prediction": _prediction_contract(prediction),
+            "diagnosis": _diagnosis_contract(diagnosis),
+            "top_features": _top_features_from(prediction, diagnosis),
+            "events": _event_timeline(session.session_id, session),
+            "recommendation": rec,
+            "developer_details": {
+                "session": _dashboard_session_row(session, diagnosis),
+                "shap_values": getattr(prediction, "shap_values", {}) if prediction else {},
+            },
+        })
+
+
+class DashboardRecommendationsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        tenant = resolve_tenant_for_user(request)
+        if not tenant:
+            return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
+        recs = (
+            Recommendation.objects.filter(tenant=tenant)
+            .select_related("diagnosis")
+            .order_by("-created_at")
+        )
+        results = [_recommendation_payload(rec, rec.diagnosis) for rec in recs]
+        stats = {
+            "total": len(results),
+            "new": sum(1 for item in results if item["status"] == "new"),
+            "in_progress": sum(1 for item in results if item["status"] == "in_progress"),
+            "done": sum(1 for item in results if item["status"] == "done"),
+            "dismissed": sum(1 for item in results if item["status"] == "dismissed"),
+        }
+        return Response({"results": results, "stats": stats})
+
+
+class DashboardRecommendationStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, id: int):
+        tenant = resolve_tenant_for_user(request)
+        if not tenant:
+            return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
+        rec = Recommendation.objects.filter(id=id, tenant=tenant).select_related("diagnosis").first()
+        if not rec:
+            return Response({"detail": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+        new_status = _model_status(str(request.data.get("status", "")).strip())
+        if new_status is None:
+            return Response({"detail": "status must be new, in_progress, done, or dismissed"}, status=status.HTTP_400_BAD_REQUEST)
+        rec.status = new_status
+        if new_status == Recommendation.Status.IMPLEMENTED:
+            rec.implemented_at = timezone.now()
+            rec.implemented_by = request.user
+            rec.save(update_fields=["status", "implemented_at", "implemented_by"])
+        else:
+            rec.implemented_at = None
+            rec.implemented_by = None
+            rec.save(update_fields=["status", "implemented_at", "implemented_by"])
+        return Response(_recommendation_payload(rec, rec.diagnosis))
+
+
+def _last_observer_events(limit: int = 10) -> list[dict]:
+    try:
+        with connections["observer"].cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT session_id, event_type, created_at
+                FROM raw_events
+                ORDER BY created_at DESC
+                LIMIT %s
+                """,
+                [limit],
+            )
+            rows = cursor.fetchall()
+    except Exception:
+        return []
+    return [
+        {
+            "session_id": row[0],
+            "event_type": row[1],
+            "created_at": row[2].isoformat() if hasattr(row[2], "isoformat") else str(row[2]),
+        }
+        for row in rows
+    ]
+
+
+class DashboardIntegrationView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        tenant = resolve_tenant_for_user(request)
+        if not tenant:
+            return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
+        demo_key = os.getenv("DEMO_OBSERVER_API_KEY", "tk_full_demo_mvp")
+        observer_url = os.getenv("OBSERVER_PUBLIC_URL", "http://localhost:8001")
+        snippet = (
+            f'<script src="{observer_url}/static/snippet/track.js?key={demo_key}" '
+            f'data-tenant-id="{tenant.external_id}" async></script>'
+        )
+        return Response({
+            "observer": {
+                "url": observer_url,
+                "health": "runtime check required",
+                "demo_api_key": demo_key,
+                "snippet": snippet,
+            },
+            "kafka": {
+                "health": "runtime check required",
+                "topics": ["raw_events", "session_enriched", "feature_ready", "prediction_done"],
+            },
+            "demo_shop": {"url": "http://localhost:3000"},
+            "dashboard": {"url": "http://localhost:3001"},
+            "last_events": _last_observer_events(limit=10),
+        })
+
+
 class AnalyticsRecommendationView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -309,6 +934,21 @@ def _prediction_block(pred):
         "prediction": pred.predicted_class,
         "confidence": pred.confidence,
         "model_variant": pred.model_variant,
+        "model_version": pred.model_version,
+    }
+
+
+def _diagnosis_block(diagnosis):
+    if diagnosis is None:
+        return None
+    scores = {f"S{i}": float(getattr(diagnosis, f"score_s{i}")) for i in range(1, 8)}
+    dominant = diagnosis.dominant_reason or max(scores, key=lambda key: scores[key])
+    return {
+        "id": diagnosis.id,
+        "scores": scores,
+        "dominant_reason": dominant,
+        "reason_label": diagnosis.reason_label,
+        "recommendation": getattr(getattr(diagnosis, "recommendation", None), "text_mn", None),
     }
 
 
@@ -327,10 +967,15 @@ class SessionsListView(APIView):
         if model_variant:
             qs = qs.filter(prediction__model_variant=model_variant)
         if prediction_filter:
-            qs = qs.filter(prediction__predicted_class=prediction_filter)
+            qs = qs.filter(prediction__business_outcome=prediction_filter)
 
         paginator = _std_paginator(request)
         page = paginator.paginate_queryset(qs, request)
+        diagnosis_map = {
+            d.session_id: d
+            for d in Diagnosis.objects.filter(tenant=tenant, session_id__in=[item.session_id for item in page])
+            .select_related("recommendation")
+        }
 
         data = [
             {
@@ -342,6 +987,7 @@ class SessionsListView(APIView):
                 "page_views": item.page_views,
                 "device_type": item.device_type,
                 "prediction": _prediction_block(getattr(item, "prediction", None)),
+                "diagnosis": _diagnosis_block(diagnosis_map.get(item.session_id)),
             }
             for item in page
         ]
@@ -365,6 +1011,11 @@ class SessionDetailView(APIView):
             return Response({"detail": "Not found"}, status=status.HTTP_404_NOT_FOUND)
 
         prediction = getattr(session, "prediction", None)
+        diagnosis = (
+            Diagnosis.objects.filter(tenant=tenant, session_id=session.session_id)
+            .select_related("recommendation")
+            .first()
+        )
         return Response({
             "session_id": session.session_id,
             "visitor_id": session.visitor_id,
@@ -374,6 +1025,7 @@ class SessionDetailView(APIView):
             "page_views": session.page_views,
             "device_type": session.device_type,
             "prediction": _prediction_block(prediction),
+            "diagnosis": _diagnosis_block(diagnosis),
             "shap_values": prediction.shap_values if prediction else {},
         })
 
@@ -392,7 +1044,7 @@ class AbandonmentRateView(APIView):
 
         qs = PredictionResult.objects.filter(tenant=tenant)
         total = qs.count()
-        abandoned = qs.filter(predicted_class__in=["abandoned", "abandon"]).count()
+        abandoned = _abandoned_prediction_count(qs)
         rate = (abandoned / total) if total else 0.0
 
         return Response({
@@ -525,17 +1177,24 @@ class HealthView(APIView):
                 con.close()
                 checks["duckdb"] = "ok"
             else:
-                checks["duckdb"] = "file_not_found"
-                failed = True
+                checks["duckdb"] = "not_initialized"
         except Exception as e:
             checks["duckdb"] = f"failed: {e}"
-            failed = True
 
         try:
             import redis as _redis
             r = _redis.Redis.from_url(settings.REDIS_URL)
             r.ping()
             checks["redis"] = "ok"
+            raw_ready = r.get("main:prediction_done_consumer:ready")
+            if raw_ready:
+                try:
+                    ready_payload = json.loads(raw_ready.decode("utf-8") if isinstance(raw_ready, bytes) else raw_ready)
+                except (TypeError, ValueError):
+                    ready_payload = {"ready": False, "reason": "invalid readiness payload"}
+                checks["prediction_done_consumer"] = "ok" if ready_payload.get("ready") else f"not_ready: {ready_payload.get('reason', '')}"
+            else:
+                checks["prediction_done_consumer"] = "not_ready"
         except Exception as e:
             checks["redis"] = f"failed: {e}"
             failed = True
@@ -589,7 +1248,7 @@ class AblationSummaryView(APIView):
                 results.append({"model_variant": variant, "count": 0})
                 continue
 
-            abandoned = qs.filter(predicted_class__in=["abandoned", "abandon"]).count()
+            abandoned = _abandoned_prediction_count(qs)
             avg_conf = qs.aggregate(v=Avg("confidence"))["v"] or 0.0
             avg_score = qs.aggregate(v=Avg("prediction_score"))["v"] or 0.0
             results.append({
@@ -643,13 +1302,28 @@ class ExportTriggerView(APIView):
 
 def _diagnosis_row(d, device_map=None) -> dict:
     max_s = float(d.max_score)
+    scores = {f"S{i}": float(getattr(d, f"score_s{i}")) for i in range(1, 8)}
+    dominant_reason = getattr(d, "dominant_reason", None)
+    if not dominant_reason:
+        dominant_reason = max(scores, key=lambda key: scores[key])
+    recommendation = getattr(d, "recommendation", None)
     return {
         "id": d.id,
         "session_id": d.session_id,
         "risk": _risk(max_s),
-        "scores": {f"S{i}": float(getattr(d, f"score_s{i}")) for i in range(1, 8)},
+        "scores": scores,
+        "dominant_reason": dominant_reason,
+        "dominant_score_key": dominant_reason,
+        "reason_label": getattr(d, "reason_label", "") or dominant_reason,
+        "explanation": getattr(d, "explanation", "") or "",
         "dominant_score": round(max_s, 4),
-        "prediction_score": round(max_s, 4),
+        "prediction_score": round(float(d.abandonment_probability) if d.abandonment_probability is not None else max_s, 4),
+        "abandonment_probability": d.abandonment_probability,
+        "predicted_label": d.predicted_label,
+        "predicted_class": d.predicted_class,
+        "model_version": d.model_version,
+        "top_features": d.top_features,
+        "recommendation": getattr(recommendation, "text_mn", None),
         "created_at": d.created_at,
         **({"device_type": (device_map or {}).get(d.session_id)} if device_map is not None else {}),
     }
@@ -665,6 +1339,7 @@ class DiagnosisListView(APIView):
 
         qs = (
             Diagnosis.objects.filter(tenant=tenant)
+            .select_related("recommendation")
             .annotate(max_score=Greatest(
                 "score_s1", "score_s2", "score_s3", "score_s4",
                 "score_s5", "score_s6", "score_s7",
@@ -727,6 +1402,7 @@ class DiagnosisDetailView(APIView):
 
         diagnosis = (
             Diagnosis.objects.filter(id=pk, tenant=tenant)
+            .select_related("recommendation")
             .annotate(max_score=Greatest(
                 "score_s1", "score_s2", "score_s3", "score_s4",
                 "score_s5", "score_s6", "score_s7",
@@ -787,7 +1463,11 @@ class TenantListView(APIView):
             pred_count=Count("prediction_results", distinct=True),
             abandoned_count=Count(
                 "prediction_results",
-                filter=Q(prediction_results__predicted_class__in=["abandoned", "abandon"]),
+                filter=Q(prediction_results__business_outcome__in=["abandoned", "abandon"])
+                | Q(
+                    prediction_results__business_outcome="unknown",
+                    prediction_results__predicted_class__in=["abandoned", "abandon"],
+                ),
                 distinct=True,
             ),
             session_count=Count("sessions", distinct=True),
@@ -833,9 +1513,7 @@ class TenantDetailView(APIView):
             return Response({"detail": "Not found"}, status=status.HTTP_404_NOT_FOUND)
 
         pred_count = PredictionResult.objects.filter(tenant=tenant).count()
-        abandoned = PredictionResult.objects.filter(
-            tenant=tenant, predicted_class__in=["abandoned", "abandon"]
-        ).count()
+        abandoned = _abandoned_prediction_count(PredictionResult.objects.filter(tenant=tenant))
 
         return Response({
             "id": tenant.id,
@@ -911,12 +1589,22 @@ class ApiKeyListCreateView(APIView):
             is_active=True,
             last_shown_at=timezone.now(),
         )
+        observer_url = os.getenv("OBSERVER_PUBLIC_URL", "http://localhost:8001")
+        observer_install_snippet = (
+            f'<script src="{observer_url}/static/snippet/track.js?key={raw_key}" '
+            f'data-tenant-id="{tenant.external_id}" data-tier="{api_key.tier}" async></script>'
+        )
         return Response({
             "id": api_key.id,
             "name": api_key.name,
             "key": raw_key,
+            "key_plain": raw_key,
+            "key_masked": api_key.prefix + "***",
             "tier": api_key.tier,
+            "is_active": api_key.is_active,
             "created_at": api_key.created_at,
+            "tenant_external_id": str(tenant.external_id),
+            "observer_install_snippet": observer_install_snippet,
         }, status=status.HTTP_201_CREATED)
 
 

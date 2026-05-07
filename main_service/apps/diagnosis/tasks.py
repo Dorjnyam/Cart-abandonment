@@ -56,30 +56,37 @@ def process_session(session_id: str, tenant_id: int, tier: str | None = None):
     # `scores` expected shape: { s1..s7, dominant_score, vg_entropy, vg_motifs }
     dominant_score = scores['dominant_score']
 
-    diagnosis = Diagnosis.objects.create(
+    diagnosis, _ = Diagnosis.objects.update_or_create(
         tenant=tenant,
         session_id=session_id,
-        visitor_id=visitor_id,
-        tier=resolved_tier,
-        score_s1=scores['s1'],
-        score_s2=scores['s2'],
-        score_s3=scores['s3'],
-        score_s4=scores['s4'],
-        score_s5=scores['s5'],
-        score_s6=scores['s6'],
-        score_s7=scores['s7'],
-        vg_entropy=scores.get('vg_entropy'),
-        vg_motifs=scores.get('vg_motifs'),
-        status=Diagnosis.Status.CREATED,
+        defaults={
+            'visitor_id': visitor_id,
+            'tier': resolved_tier,
+            'score_s1': scores['s1'],
+            'score_s2': scores['s2'],
+            'score_s3': scores['s3'],
+            'score_s4': scores['s4'],
+            'score_s5': scores['s5'],
+            'score_s6': scores['s6'],
+            'score_s7': scores['s7'],
+            'dominant_reason': (scores.get('dominant_key') or '').upper(),
+            'reason_label': scores.get('reason_label') or '',
+            'explanation': scores.get('explanation') or '',
+            'vg_entropy': scores.get('vg_entropy'),
+            'vg_motifs': scores.get('vg_motifs'),
+            'status': Diagnosis.Status.CREATED,
+        },
     )
 
     text_mn = generate_recommendation_mn(diagnosis=diagnosis, features=features, scores=scores, tenant=tenant)
-    recommendation = Recommendation.objects.create(
+    recommendation, _ = Recommendation.objects.update_or_create(
         diagnosis=diagnosis,
-        tenant=tenant,
-        text_mn=text_mn,
-        dominant_score=dominant_score,
-        status=Recommendation.Status.CREATED,
+        defaults={
+            'tenant': tenant,
+            'text_mn': text_mn,
+            'dominant_score': dominant_score,
+            'status': Recommendation.Status.CREATED,
+        },
     )
 
     ProcessedSession.objects.create(
@@ -122,15 +129,6 @@ def poll_unprocessed_sessions(self):
                 session_obj.event_count = s["event_count"]
                 session_obj.ended_at = s["last_event_at"]
                 session_obj.save(update_fields=["event_count", "ended_at"])
-
-            ProcessedSession.objects.get_or_create(
-                observer_session_id=s["session_id"],
-                defaults={
-                    "visitor_id": s["visitor_id"],
-                    "tenant": tenant,
-                    "tier": tenant.tier,
-                },
-            )
 
             process_session.delay(
                 session_id=s["session_id"],

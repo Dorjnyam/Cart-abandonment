@@ -1,7 +1,8 @@
 fastapi==0.111.0
 uvicorn[standard]==0.30.0
 aiokafka==0.10.0
-kafka-python==2.0.2
+kafka-python==2.3.1
+lz4==4.3.3
 redis[asyncio]==5.0.4
 asyncpg==0.29.0
 celery==5.4.0

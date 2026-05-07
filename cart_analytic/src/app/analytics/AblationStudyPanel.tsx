@@ -11,12 +11,7 @@ import {
   Cell,
 } from "recharts";
 import { AblationBadge } from "@/components/ui/AblationBadge";
-import {
-  fetchAblationSummary,
-  MOCK_ABLATION,
-  type AblationSummary,
-  type VariantMetrics,
-} from "@/lib/services/ablation";
+import { fetchAblationSummary, type AblationSummary, type VariantMetrics } from "@/lib/services/ablation";
 
 const VARIANT_COLORS: Record<string, string> = {
   baseline: "#6B7280",
@@ -31,7 +26,8 @@ function deltaLabel(baseline: VariantMetrics, current: VariantMetrics): string {
 }
 
 export default function AblationStudyPanel() {
-  const [data, setData] = useState<AblationSummary>(MOCK_ABLATION);
+  const [data, setData] = useState<AblationSummary | null>(null);
+  const [error, setError] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo]     = useState("");
   const [loading, setLoading]   = useState(false);
@@ -41,14 +37,23 @@ export default function AblationStudyPanel() {
     try {
       const result = await fetchAblationSummary(from, to);
       setData(result);
+      setError("");
     } catch {
-      setData(MOCK_ABLATION);
+      setError("Ablation data is unavailable.");
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => { void load(); }, []);
+
+  if (!data) {
+    return (
+      <div className="rounded-lg border border-outline-variant/15 bg-surface-container-lowest p-5 text-sm text-on-surface-variant">
+        {loading ? "Loading ablation data..." : error || "No ablation data available."}
+      </div>
+    );
+  }
 
   const baseline = data.variants.find((v) => v.model_variant === "baseline");
 

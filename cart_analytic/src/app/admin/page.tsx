@@ -9,7 +9,7 @@ import ExportModal from "@/components/ui/ExportModal";
 import { useToast } from "@/components/ui/Toast";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/api-config";
 import { apiClient } from "@/lib/api-client";
-import { fetchAblationSummary, MOCK_ABLATION, type AblationSummary } from "@/lib/services/ablation";
+import { fetchAblationSummary, type AblationSummary } from "@/lib/services/ablation";
 
 type ServiceStatus = "ok" | "failed" | "not_configured";
 
@@ -180,11 +180,19 @@ function PipelineHealthTab() {
 }
 
 function ModelMetricsTab() {
-  const [summary, setSummary] = useState<AblationSummary>(MOCK_ABLATION);
+  const [summary, setSummary] = useState<AblationSummary | null>(null);
 
   useEffect(() => {
-    fetchAblationSummary().then(setSummary).catch(() => setSummary(MOCK_ABLATION));
+    fetchAblationSummary().then(setSummary).catch(() => setSummary(null));
   }, []);
+
+  if (!summary) {
+    return (
+      <div className="rounded-lg border border-outline-variant/15 bg-surface-container-lowest p-5 text-sm text-on-surface-variant">
+        Model metrics are unavailable.
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

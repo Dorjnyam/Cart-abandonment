@@ -7,9 +7,24 @@ export type StoreSettings = {
   domain: string;
   plan: string;
   timezone: string;
+  industry?: string;
+  currency?: string;
+  tenant_id?: string;
+  tracking_status?: "active" | "inactive" | "pending";
+  created_at?: string;
 };
 
-const MOCK_STORE: StoreSettings = { name: "Central Market", domain: "central-market.mn", plan: "full", timezone: "Asia/Ulaanbaatar" };
+const MOCK_STORE: StoreSettings = {
+  name: "Central Market",
+  domain: "central-market.mn",
+  plan: "Business",
+  timezone: "Asia/Ulaanbaatar",
+  industry: "Retail / Marketplace",
+  currency: "MNT",
+  tenant_id: "00000000-0000-0000-0000-000000000001",
+  tracking_status: "active",
+  created_at: "2025-09-12",
+};
 
 const MOCK_TEAM: TeamMember[] = [
   { id: 1, email: "bat-erdene@cartanalytics.mn", full_name: "Бат-Эрдэнэ", role: "owner", joined_at: "2023-10-12" },

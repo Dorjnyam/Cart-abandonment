@@ -1,3 +1,5 @@
+import os
+
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from rest_framework import status
@@ -103,8 +105,10 @@ class TenantAPIKeyGenerateView(APIView):
             last_shown_at=timezone.now(),
         )
 
+        observer_url = os.getenv("OBSERVER_PUBLIC_URL", "http://localhost:8001")
         observer_install_snippet = (
-            f'<script data-key="{raw_key}" data-tenant-id="{tenant.id}" data-tier="{tier}"></script>'
+            f'<script src="{observer_url}/static/snippet/track.js?key={raw_key}" '
+            f'data-tenant-id="{tenant.external_id}" data-tier="{tier}" async></script>'
         )
 
         return Response(

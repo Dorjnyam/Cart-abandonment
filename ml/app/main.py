@@ -1,10 +1,14 @@
 import asyncio
 import concurrent.futures
+import json
 import logging
 import os
 import signal
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+from urllib.parse import urlparse
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -17,6 +21,7 @@ from app.db import close_pool, init_pool
 from app.metrics import model_version_info
 from app.pipeline import pipeline
 from app.producer import get_producer, start_producer, stop_producer
+from app.runtime_state import record_event, snapshot as runtime_snapshot
 
 handler = logging.StreamHandler()
 handler.setFormatter(jsonlogger.JsonFormatter("%(asctime)s %(levelname)s %(name)s %(message)s"))
@@ -25,19 +30,12 @@ logging.getLogger().setLevel(logging.INFO)
 
 logger = logging.getLogger(__name__)
 _started_at: datetime | None = None
-_recent_events: list[str] = []
-_MAX_EVENTS = 40
 _consumer_failed = False
 
 
 def _push_event(message: str) -> None:
-    """Keep a small in-memory ring buffer of recent lifecycle events for the viewer."""
-    global _recent_events
-    ts = datetime.now(timezone.utc).isoformat(timespec="seconds")
-    line = f"{ts} · {message}"
-    _recent_events.append(line)
-    if len(_recent_events) > _MAX_EVENTS:
-        _recent_events = _recent_events[-_MAX_EVENTS:]
+    record_event(message)
+    return
 
 
 @asynccontextmanager
@@ -110,6 +108,142 @@ async def _check_producer() -> bool:
         return False
 
 
+def _resolve_model_path(path_value: str) -> Path:
+    path = Path(path_value)
+    if path.is_absolute():
+        return path
+    return Path.cwd() / path
+
+
+def _read_json(path: Path) -> Any:
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return None
+    except json.JSONDecodeError as exc:
+        return {"error": f"invalid json: {exc}"}
+    except OSError as exc:
+        return {"error": str(exc)}
+
+
+def _artifact_info(path: Path) -> dict[str, Any]:
+    exists = path.exists()
+    info: dict[str, Any] = {
+        "path": str(path),
+        "exists": exists,
+    }
+    if exists:
+        stat = path.stat()
+        info["size_bytes"] = stat.st_size
+        info["modified_at"] = datetime.fromtimestamp(stat.st_mtime, timezone.utc).isoformat(
+            timespec="seconds"
+        )
+    return info
+
+
+def _load_model_artifacts() -> dict[str, Any]:
+    model_path = _resolve_model_path(settings.model_path_xgboost)
+    model_dir = model_path.parent
+    artifact_names = [
+        "metrics_xgboost.json",
+        "confusion_matrix.json",
+        "classification_report.json",
+        "dataset_metadata.json",
+        "feature_order.json",
+        "metrics_baseline.json",
+        "metrics_extended.json",
+        "metrics_full.json",
+    ]
+    artifacts = {name: _artifact_info(model_dir / name) for name in artifact_names}
+    confusion = _read_json(model_dir / "confusion_matrix.json")
+    confusion_summary: dict[str, Any] = {}
+    if isinstance(confusion, dict):
+        matrix = confusion.get("matrix")
+        if (
+            isinstance(matrix, list)
+            and len(matrix) == 2
+            and all(isinstance(row, list) and len(row) == 2 for row in matrix)
+        ):
+            tn, fp = matrix[0]
+            fn, tp = matrix[1]
+            total = tn + fp + fn + tp
+            confusion_summary = {
+                "tn": tn,
+                "fp": fp,
+                "fn": fn,
+                "tp": tp,
+                "total": total,
+                "accuracy": (tn + tp) / total if total else None,
+            }
+
+    return {
+        "model_path": _artifact_info(model_path),
+        "directory": str(model_dir),
+        "artifacts": artifacts,
+        "metrics": _read_json(model_dir / "metrics_xgboost.json"),
+        "confusion_matrix": confusion,
+        "confusion_summary": confusion_summary,
+        "classification_report": _read_json(model_dir / "classification_report.json"),
+        "dataset_metadata": _read_json(model_dir / "dataset_metadata.json"),
+        "feature_order": _read_json(model_dir / "feature_order.json"),
+        "variant_metrics": {
+            "baseline": _read_json(model_dir / "metrics_baseline.json"),
+            "extended": _read_json(model_dir / "metrics_extended.json"),
+            "full": _read_json(model_dir / "metrics_full.json"),
+        },
+    }
+
+
+def _kafka_targets() -> list[tuple[str, int]]:
+    targets: list[tuple[str, int]] = []
+    for item in settings.kafka_bootstrap_servers.split(","):
+        host_port = item.strip()
+        if not host_port or ":" not in host_port:
+            continue
+        host, port_str = host_port.rsplit(":", 1)
+        try:
+            targets.append((host, int(port_str)))
+        except ValueError:
+            continue
+    return targets
+
+
+async def _tcp_check(host: str, port: int, timeout: float = 2.0) -> bool:
+    try:
+        _, writer = await asyncio.wait_for(asyncio.open_connection(host, port), timeout=timeout)
+        writer.close()
+        await writer.wait_closed()
+        return True
+    except Exception:
+        return False
+
+
+async def _postgres_query_ok(pool: Any) -> bool:
+    if pool is None:
+        return False
+    try:
+        async with pool.acquire() as conn:
+            await conn.fetchval("SELECT 1")
+        return True
+    except Exception:
+        return False
+
+
+def _pg_details() -> str:
+    parsed = urlparse(settings.pg_dsn_asyncpg)
+    if parsed.hostname is None:
+        return "dsn: configured"
+    return f"host: {parsed.hostname}; port: {parsed.port or 5432}; db: {parsed.path.lstrip('/')}"
+
+
+def _status_entry(ok: bool, label_ok: str, label_bad: str, details: str) -> dict[str, Any]:
+    return {
+        "status": "ok" if ok else "bad",
+        "label": label_ok if ok else label_bad,
+        "details": details,
+    }
+
+
 @app.get("/health")
 async def health() -> JSONResponse:
     consumer_task = get_consumer_task()
@@ -142,18 +276,15 @@ async def predict_single(body: dict) -> dict:
 @app.get("/model/info")
 async def model_info() -> dict:
     return {
+        "model_name": "xgboost",
         "model_version": pipeline.xgb.model_version,
         "model_variant": settings.model_variant,
         "feature_count": len(pipeline.xgb.feature_names),
         "feature_names": pipeline.xgb.feature_names,
         "model_loaded": pipeline.model_loaded,
-        "lstm_loaded": pipeline.lstm_loaded,
+        "lstm_status": "future_work_disabled",
         "threshold": settings.abandon_threshold,
         "shap_enabled": settings.shap_enabled,
-        "ensemble_weights": {
-            "xgboost": settings.ensemble_weight_xgboost,
-            "lstm": settings.ensemble_weight_lstm,
-        },
     }
 
 
@@ -201,7 +332,9 @@ async def internal_status() -> JSONResponse:
         uptime_str = "not started"
 
     model_loaded = pipeline.model_loaded
-    pool_ok = getattr(db_mod, "_pool", None) is not None
+    pool = getattr(db_mod, "_pool", None)
+    pool_initialized = pool is not None
+    pool_query_ok = await _postgres_query_ok(pool)
     producer_ok = getattr(producer_mod, "_producer", None) is not None
     consumer_obj = getattr(consumer_mod, "_consumer", None)
     consumer_task = getattr(consumer_mod, "_consumer_task", None)
@@ -212,37 +345,83 @@ async def internal_status() -> JSONResponse:
         and not _consumer_failed
     )
 
-    def status_entry(ok: bool, label_ok: str, label_bad: str, details: str) -> dict[str, str]:
-        return {
-            "status": "ok" if ok else "bad",
-            "label": label_ok if ok else label_bad,
-            "details": details,
+    kafka_checks = [
+        {
+            "host": host,
+            "port": port,
+            "reachable": await _tcp_check(host, port),
         }
+        for host, port in _kafka_targets()
+    ]
+    kafka_reachable = any(item["reachable"] for item in kafka_checks)
+    runtime = runtime_snapshot()
+    model_artifacts = _load_model_artifacts()
+    stats = runtime["stats"]
+    overall_ok = model_loaded and pool_query_ok and producer_ok and consumer_ok and kafka_reachable
+
+    pipeline_flow = [
+        {
+            "stage": "feature_ready input",
+            "status": "ok" if consumer_ok and kafka_reachable else "bad",
+            "from": "feature_service",
+            "to": "ml_service Kafka consumer",
+            "topic": settings.kafka_input_topic,
+            "count": stats["messages_consumed"],
+        },
+        {
+            "stage": "feature vector validation",
+            "status": "ok" if consumer_ok else "bad",
+            "from": "Kafka JSON payload",
+            "to": "FeatureVector schema",
+            "count": stats["feature_vectors_validated"],
+        },
+        {
+            "stage": "XGBoost inference",
+            "status": "ok" if model_loaded else "bad",
+            "from": f"{len(pipeline.xgb.feature_names)} model features",
+            "to": "abandonment probability + SHAP top features",
+            "count": stats["predictions_created"],
+        },
+        {
+            "stage": "PostgreSQL write",
+            "status": "ok" if pool_query_ok else "bad",
+            "from": "PredictionOut",
+            "to": "predictions.predictions",
+            "count": stats["predictions_persisted"],
+        },
+        {
+            "stage": "Kafka prediction publish",
+            "status": "ok" if producer_ok and kafka_reachable else "bad",
+            "from": "PredictionResult",
+            "to": f"{settings.kafka_output_topic}, {settings.kafka_output_topic_v2}",
+            "count": stats["prediction_messages_published"],
+        },
+    ]
 
     data: dict[str, object] = {
-        "status": "ok" if model_loaded and pool_ok and producer_ok and consumer_ok else "warn",
-        "overall_status": "ok" if model_loaded and pool_ok and producer_ok and consumer_ok else "warn",
+        "status": "ok" if overall_ok else "warn",
+        "overall_status": "ok" if overall_ok else "warn",
         "model_version": pipeline.xgb.model_version,
         "model_variant": settings.model_variant,
         "feature_count": len(pipeline.xgb.feature_names),
         "shap_enabled": settings.shap_enabled,
         "uptime": uptime_str,
         "environment": os.getenv("ENVIRONMENT", "local"),
-        "postgres": status_entry(
-            pool_ok,
+        "postgres": _status_entry(
+            pool_query_ok,
             "Pool ready",
-            "Pool not initialized",
-            f"dsn: {settings.pg_dsn[:30]}...",  # truncate to avoid leaking password in UI
+            "Pool not ready",
+            _pg_details(),
         ),
-        "kafka": status_entry(
-            True,
-            "Configured",
-            "Configuration missing",
+        "kafka": _status_entry(
+            kafka_reachable,
+            "Reachable",
+            "Not reachable",
             f"bootstrap: {settings.kafka_bootstrap_servers}; "
             f"in={settings.kafka_input_topic}; out={settings.kafka_output_topic}; "
             f"out_v2={settings.kafka_output_topic_v2}; dlq={settings.kafka_dlq_topic}",
         ),
-        "minio": status_entry(
+        "minio": _status_entry(
             True,
             "File-based model loading" if not settings.minio_endpoint else "MinIO configured",
             "Not configured",
@@ -258,16 +437,50 @@ async def internal_status() -> JSONResponse:
             "label": "Running" if producer_ok else "Not running",
         },
         "pool": {
-            "status": "ok" if pool_ok else "bad",
-            "label": "Initialized" if pool_ok else "Not initialized",
+            "status": "ok" if pool_initialized else "bad",
+            "label": "Initialized" if pool_initialized else "Not initialized",
         },
         "model": {
             "status": "ok" if model_loaded else "bad",
             "label": "Loaded" if model_loaded else "Not loaded",
+            "name": "xgboost",
+            "version": pipeline.xgb.model_version,
+            "variant": settings.model_variant,
+            "threshold": pipeline.xgb.threshold,
+            "feature_count": len(pipeline.xgb.feature_names),
+            "feature_names": pipeline.xgb.feature_names,
+            "shap_enabled": settings.shap_enabled,
+            "lstm_status": "future_work_disabled",
         },
+        "connections": {
+            "kafka": {
+                "status": "ok" if kafka_reachable else "bad",
+                "checks": kafka_checks,
+                "bootstrap": settings.kafka_bootstrap_servers,
+                "input_topic": settings.kafka_input_topic,
+                "output_topic": settings.kafka_output_topic,
+                "output_topic_v2": settings.kafka_output_topic_v2,
+                "dlq_topic": settings.kafka_dlq_topic,
+            },
+            "postgres": {
+                "status": "ok" if pool_query_ok else "bad",
+                "pool_initialized": pool_initialized,
+                "query_ok": pool_query_ok,
+                "details": _pg_details(),
+            },
+            "producer": {"status": "ok" if producer_ok else "bad"},
+            "consumer": {"status": "ok" if consumer_ok else "bad"},
+            "model_storage": {
+                "status": "ok" if model_artifacts["model_path"]["exists"] else "bad",
+                "path": model_artifacts["model_path"]["path"],
+            },
+        },
+        "runtime": runtime,
+        "pipeline": pipeline_flow,
+        "model_artifacts": model_artifacts,
         "worker": os.getenv("HOSTNAME", os.getenv("COMPUTERNAME", "")),
         "timezone": os.getenv("TZ", "UTC"),
-        "recent_events": list(_recent_events),
+        "recent_events": runtime["recent_events"],
     }
 
     return JSONResponse(content=data)

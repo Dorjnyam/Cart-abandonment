@@ -28,6 +28,8 @@ from app.telemetry import record_event
 logger = logging.getLogger(__name__)
 
 _REDIS_BACKOFF_DELAYS = [1, 2, 5, 10, 30]
+FINAL_EVENT_TYPES = {"beforeunload", "session_end", "abandon_checkout"}
+PURCHASE_EVENT_TYPES = {"purchase_success", "order_complete", "order_success"}
 
 
 def dedupe_key_from_observer_dict(data: dict) -> str | None:
@@ -88,12 +90,20 @@ async def process_raw_event(r: redis_async.Redis, event: RawEvent) -> None:
             {"session_id": session_id, "windows_sec": armed_windows},
         )
 
+    payload_end_reason = str(event.payload.model_extra.get("end_reason") or "").strip().lower()
     is_purchase = (
         event.payload.is_order_success is True
         or str(event.payload.model_extra.get("is_order_success", "")).lower() == "true"
+        or event.event_type in PURCHASE_EVENT_TYPES
+        or payload_end_reason == "purchase"
     )
-    if event.event_type == "beforeunload" or is_purchase:
-        reason = "purchase" if is_purchase else "unload"
+    should_flush = (
+        is_purchase
+        or event.event_type in FINAL_EVENT_TYPES
+        or payload_end_reason in {"unload", "abandoned", "abandon", "session_end"}
+    )
+    if should_flush:
+        reason = "purchase" if is_purchase else (payload_end_reason or "unload")
         await flush_session(r, session_id, end_reason=reason)
         record_event("final_flushed", {"session_id": session_id, "reason": reason})
 

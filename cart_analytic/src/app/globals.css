@@ -1,226 +1,286 @@
 @import "tailwindcss";
 
-/* ── Design tokens — Light (default / :root) ─────────────────────── */
+/* ── Design tokens — Light (default / :root) ─────────────────────────
+ * Aesthetic: refined warm-linen B2B analytics.
+ * Inspired by editorial print + premium SaaS data products.
+ */
 :root {
-  --font-body: "Segoe UI", Arial, sans-serif;
-  --font-display: Georgia, "Times New Roman", serif;
+  --font-body:    var(--font-geist), "Söhne", "Helvetica Neue", system-ui, sans-serif;
+  --font-display: var(--font-fraunces), "Tiempos Headline", Georgia, serif;
+  --font-mono:    var(--font-geist-mono), "JetBrains Mono", ui-monospace, monospace;
 
-  /* Backgrounds */
-  --canvas-rgb:                    244 246 250;
-  --background-rgb:                244 246 250;
-  --surface-rgb:                   238 241 247;
+  /* Backgrounds — warm linen */
+  --canvas-rgb:                    245 244 238;
+  --background-rgb:                245 244 238;
+  --surface-rgb:                   241 239 231;
   --surface-bright-rgb:            255 255 255;
-  --surface-dim-rgb:               228 234 244;
-  --surface-variant-rgb:           225 233 245;
-  --surface-alt-rgb:               240 244 251;
+  --surface-dim-rgb:               237 235 226;
+  --surface-variant-rgb:           241 239 231;
+  --surface-alt-rgb:               239 237 229;
 
   /* Surface containers */
   --surface-container-lowest-rgb:  255 255 255;
-  --surface-container-low-rgb:     240 244 251;
-  --surface-container-rgb:         235 240 249;
-  --surface-container-high-rgb:    229 236 247;
-  --surface-container-highest-rgb: 222 230 244;
+  --surface-container-low-rgb:     250 248 242;
+  --surface-container-rgb:         241 239 231;
+  --surface-container-high-rgb:    237 235 226;
+  --surface-container-highest-rgb: 232 229 219;
 
   /* Text */
-  --on-surface-rgb:                15 23 42;
-  --on-background-rgb:             15 23 42;
-  --on-surface-variant-rgb:        94 108 133;
-  --inverse-surface-rgb:           15 23 42;
-  --inverse-on-surface-rgb:        148 163 184;
+  --on-surface-rgb:                28 25 23;
+  --on-background-rgb:             28 25 23;
+  --on-surface-variant-rgb:        87 83 78;
+  --inverse-surface-rgb:           28 25 23;
+  --inverse-on-surface-rgb:        168 162 158;
   --inverse-primary-rgb:           255 255 255;
 
-  /* Borders */
-  --outline-rgb:                   0 0 0;
-  --outline-variant-rgb:           0 0 0;
+  /* Borders — used at low alpha for hairlines */
+  --outline-rgb:                   28 25 23;
+  --outline-variant-rgb:           28 25 23;
 
-  /* Primary — electric blue */
-  --primary-rgb:                   37 99 235;
+  /* Primary — deep emerald */
+  --primary-rgb:                   31 77 62;
   --on-primary-rgb:                255 255 255;
-  --primary-dim-rgb:               29 78 216;
-  --primary-fixed-rgb:             219 234 254;
-  --primary-fixed-dim-rgb:         191 219 254;
-  --primary-container-rgb:         219 234 254;
-  --on-primary-container-rgb:      30 58 138;
-  --on-primary-fixed-rgb:          15 23 42;
-  --on-primary-fixed-variant-rgb:  51 65 85;
+  --primary-dim-rgb:               20 56 48;
+  --primary-fixed-rgb:             229 239 234;
+  --primary-fixed-dim-rgb:         200 221 210;
+  --primary-container-rgb:         229 239 234;
+  --on-primary-container-rgb:      20 56 48;
+  --on-primary-fixed-rgb:          20 56 48;
+  --on-primary-fixed-variant-rgb:  31 77 62;
 
-  /* Secondary — blue accent */
-  --secondary-rgb:                 37 99 235;
+  /* Secondary — slate blue */
+  --secondary-rgb:                 62 110 142;
   --on-secondary-rgb:              255 255 255;
-  --secondary-dim-rgb:             29 78 216;
-  --secondary-container-rgb:       219 234 254;
-  --on-secondary-container-rgb:    30 64 175;
-  --on-secondary-fixed-rgb:        30 58 138;
-  --on-secondary-fixed-variant-rgb:30 64 175;
-  --secondary-fixed-dim-rgb:       191 219 254;
+  --secondary-dim-rgb:             45 87 116;
+  --secondary-container-rgb:       225 236 243;
+  --on-secondary-container-rgb:    31 66 87;
+  --on-secondary-fixed-rgb:        31 66 87;
+  --on-secondary-fixed-variant-rgb:62 110 142;
+  --secondary-fixed-dim-rgb:       200 220 231;
 
-  /* Tertiary — cyan */
-  --tertiary-rgb:                  6 182 212;
+  /* Tertiary — amber/burnt-honey for medium risk */
+  --tertiary-rgb:                  156 107 20;
   --on-tertiary-rgb:               255 255 255;
-  --tertiary-dim-rgb:              8 145 178;
-  --tertiary-container-rgb:        207 250 254;
-  --on-tertiary-container-rgb:     21 94 117;
-  --tertiary-fixed-rgb:            165 243 252;
-  --tertiary-fixed-dim-rgb:        103 232 249;
-  --on-tertiary-fixed-rgb:         8 47 73;
-  --on-tertiary-fixed-variant-rgb: 14 116 144;
+  --tertiary-dim-rgb:              124 84 16;
+  --tertiary-container-rgb:        247 239 217;
+  --on-tertiary-container-rgb:     92 63 12;
+  --tertiary-fixed-rgb:            247 239 217;
+  --tertiary-fixed-dim-rgb:        232 217 168;
+  --on-tertiary-fixed-rgb:         92 63 12;
+  --on-tertiary-fixed-variant-rgb: 124 84 16;
 
-  /* Error — red */
-  --error-rgb:                     239 68 68;
+  /* Error — clay (sober warning, not alarm-red) */
+  --error-rgb:                     160 53 33;
   --on-error-rgb:                  255 255 255;
-  --error-dim-rgb:                 220 38 38;
-  --error-container-rgb:           254 226 226;
-  --on-error-container-rgb:        127 29 29;
+  --error-dim-rgb:                 126 42 26;
+  --error-container-rgb:           247 232 225;
+  --on-error-container-rgb:        92 31 18;
 
-  /* Insight */
-  --insight-bg-rgb:                219 234 254;
-  --on-insight-rgb:                30 58 138;
+  /* Insight tint */
+  --insight-bg-rgb:                229 239 234;
+  --on-insight-rgb:                20 56 48;
 
-  /* Risk severity */
-  --color-risk-high:               #ef4444;
-  --color-risk-medium:             #f59e0b;
-  --color-risk-low:                #10b981;
+  /* Risk severity (shared across charts) */
+  --color-risk-high:               #A03521;
+  --color-risk-medium:             #9C6B14;
+  --color-risk-low:                #1F4D3E;
 
-  /* Model variant */
-  --color-variant-baseline:        #6b7280;
-  --color-variant-extended:        #2563eb;
-  --color-variant-full:            #7c3aed;
+  /* Model variant palette */
+  --color-variant-baseline:        #78716C;
+  --color-variant-extended:        #3E6E8E;
+  --color-variant-full:            #7A4FA0;
 
-  /* Sidebar (always dark) */
-  --sidebar-navy:                  #0f2044;
+  /* Editorial chart palette — for series ordering */
+  --series-1: #1F4D3E;
+  --series-2: #3E6E8E;
+  --series-3: #9C6B14;
+  --series-4: #7A4FA0;
+  --series-5: #A03521;
+  --series-6: #5A6E5C;
+  --series-7: #8B7355;
+
+  /* Sidebar (light) */
+  --sidebar-bg-rgb:                250 248 242;
+  --sidebar-border-rgb:            28 25 23;
+  --sidebar-ink-rgb:               28 25 23;
+  --sidebar-ink-muted-rgb:         87 83 78;
 }
 
-/* ── Dark mode ──────────────────────────────────────────────────────── */
+/* ── Dark mode (kept functional, warm-slate) ─────────────────────── */
 .dark {
-  /* Backgrounds — deep navy/dark-blue palette */
-  --canvas-rgb:                    7 12 20;
-  --background-rgb:                7 12 20;
-  --surface-rgb:                   13 21 32;
-  --surface-bright-rgb:            27 41 63;
-  --surface-dim-rgb:               7 12 20;
-  --surface-variant-rgb:           30 45 68;
-  --surface-alt-rgb:               21 33 51;
+  --canvas-rgb:                    20 20 18;
+  --background-rgb:                20 20 18;
+  --surface-rgb:                   28 28 25;
+  --surface-bright-rgb:            38 38 34;
+  --surface-dim-rgb:               14 14 12;
+  --surface-variant-rgb:           33 33 30;
+  --surface-alt-rgb:               26 26 23;
 
-  /* Surface containers */
-  --surface-container-lowest-rgb:  17 29 46;
-  --surface-container-low-rgb:     21 33 51;
-  --surface-container-rgb:         25 38 58;
-  --surface-container-high-rgb:    30 46 69;
-  --surface-container-highest-rgb: 36 55 82;
+  --surface-container-lowest-rgb:  24 24 21;
+  --surface-container-low-rgb:     28 28 25;
+  --surface-container-rgb:         33 33 30;
+  --surface-container-high-rgb:    40 40 36;
+  --surface-container-highest-rgb: 48 48 43;
 
-  /* Text */
-  --on-surface-rgb:                232 240 254;
-  --on-background-rgb:             232 240 254;
-  --on-surface-variant-rgb:        128 144 171;
-  --inverse-surface-rgb:           232 240 254;
-  --inverse-primary-rgb:           7 12 20;
-  --inverse-on-surface-rgb:        30 41 59;
+  --on-surface-rgb:                240 237 230;
+  --on-background-rgb:             240 237 230;
+  --on-surface-variant-rgb:        163 158 150;
+  --inverse-surface-rgb:           240 237 230;
+  --inverse-primary-rgb:           20 20 18;
+  --inverse-on-surface-rgb:        87 83 78;
 
-  /* Borders — use with /7 to /14 opacity for correct effect */
-  --outline-rgb:                   255 255 255;
-  --outline-variant-rgb:           255 255 255;
+  --outline-rgb:                   240 237 230;
+  --outline-variant-rgb:           240 237 230;
 
-  /* Primary — electric blue (same in both modes) */
-  --primary-rgb:                   37 99 235;
-  --on-primary-rgb:                255 255 255;
-  --primary-dim-rgb:               37 99 235;
-  --primary-fixed-rgb:             17 29 46;
-  --primary-fixed-dim-rgb:         29 78 216;
-  --primary-container-rgb:         17 29 46;
-  --on-primary-container-rgb:      191 219 254;
-  --on-primary-fixed-rgb:          232 240 254;
-  --on-primary-fixed-variant-rgb:  147 197 253;
+  --primary-rgb:                   125 196 168;
+  --on-primary-rgb:                12 36 28;
+  --primary-dim-rgb:               125 196 168;
+  --primary-fixed-rgb:             20 56 48;
+  --primary-fixed-dim-rgb:         31 77 62;
+  --primary-container-rgb:         20 56 48;
+  --on-primary-container-rgb:      200 221 210;
+  --on-primary-fixed-rgb:          229 239 234;
+  --on-primary-fixed-variant-rgb:  200 221 210;
 
-  /* Secondary */
-  --secondary-rgb:                 59 130 246;
-  --on-secondary-rgb:              255 255 255;
-  --secondary-dim-rgb:             59 130 246;
-  --secondary-container-rgb:       17 29 46;
-  --on-secondary-container-rgb:    191 219 254;
-  --on-secondary-fixed-rgb:        191 219 254;
-  --on-secondary-fixed-variant-rgb:147 197 253;
-  --secondary-fixed-dim-rgb:       30 58 138;
+  --secondary-rgb:                 145 184 209;
+  --on-secondary-rgb:              17 36 49;
+  --secondary-dim-rgb:             145 184 209;
+  --secondary-container-rgb:       31 66 87;
+  --on-secondary-container-rgb:    225 236 243;
+  --on-secondary-fixed-rgb:        225 236 243;
+  --on-secondary-fixed-variant-rgb:200 220 231;
+  --secondary-fixed-dim-rgb:       62 110 142;
 
-  /* Tertiary — cyan */
-  --tertiary-rgb:                  6 182 212;
-  --on-tertiary-rgb:               7 12 20;
-  --tertiary-dim-rgb:              6 182 212;
-  --tertiary-container-rgb:        14 65 85;
-  --on-tertiary-container-rgb:     167 243 252;
-  --tertiary-fixed-rgb:            103 232 249;
-  --tertiary-fixed-dim-rgb:        6 182 212;
-  --on-tertiary-fixed-rgb:         8 47 73;
-  --on-tertiary-fixed-variant-rgb: 165 243 252;
+  --tertiary-rgb:                  217 173 95;
+  --on-tertiary-rgb:               48 33 6;
+  --tertiary-dim-rgb:              217 173 95;
+  --tertiary-container-rgb:        92 63 12;
+  --on-tertiary-container-rgb:     247 239 217;
+  --tertiary-fixed-rgb:            232 217 168;
+  --tertiary-fixed-dim-rgb:        217 173 95;
+  --on-tertiary-fixed-rgb:         48 33 6;
+  --on-tertiary-fixed-variant-rgb: 247 239 217;
 
-  /* Error */
-  --error-rgb:                     239 68 68;
-  --on-error-rgb:                  7 12 20;
-  --error-dim-rgb:                 239 68 68;
-  --error-container-rgb:           69 17 17;
-  --on-error-container-rgb:        254 202 202;
+  --error-rgb:                     220 130 110;
+  --on-error-rgb:                  48 14 7;
+  --error-dim-rgb:                 220 130 110;
+  --error-container-rgb:           70 22 12;
+  --on-error-container-rgb:        247 232 225;
 
-  /* Insight */
-  --insight-bg-rgb:                17 29 46;
-  --on-insight-rgb:                147 197 253;
-}
+  --insight-bg-rgb:                33 33 30;
+  --on-insight-rgb:                200 221 210;
 
-/* ── Sidebar always stays dark (navy) ─── */
-html body aside {
-  --on-surface-rgb:                255 255 255;
-  --on-surface-variant-rgb:        148 163 184;
-  --on-background-rgb:             255 255 255;
-  --outline-rgb:                   255 255 255;
-  --outline-variant-rgb:           255 255 255;
-  --surface-container-lowest-rgb:  255 255 255;
+  --sidebar-bg-rgb:                24 24 21;
+  --sidebar-border-rgb:            240 237 230;
+  --sidebar-ink-rgb:               240 237 230;
+  --sidebar-ink-muted-rgb:         163 158 150;
 }
 
 /* ── Base styles ────────────────────────────────────────────────────── */
 html {
   -webkit-font-smoothing: antialiased;
-  text-rendering: geometricPrecision;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "ss01", "cv11", "cv02";
 }
 
 body {
   background: rgb(var(--background-rgb));
   color: rgb(var(--on-surface-rgb));
-  font-family: var(--font-body, "Work Sans"), "Noto Sans Mongolian", sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.55;
+  letter-spacing: -0.005em;
 }
 
-h1, h2, h3, h4 {
-  font-family: var(--font-display, "Newsreader"), "Noto Sans Mongolian", serif;
-  letter-spacing: -0.02em;
+/* Display elements use Fraunces with optical-size + softness for editorial polish */
+.font-display,
+h1, h2 {
+  font-family: var(--font-display);
+  font-feature-settings: "ss01", "cv11";
+  letter-spacing: -0.022em;
+  font-variation-settings: "opsz" 144, "SOFT" 30;
 }
 
-/* ── Scrollbar ──────────────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 5px; height: 5px }
+h3, h4 {
+  font-family: var(--font-body);
+  letter-spacing: -0.012em;
+}
+
+/* Numerals and tabular numbers — for dense data */
+.tabular-nums {
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+
+.font-mono,
+code, pre, kbd, samp {
+  font-family: var(--font-mono);
+  font-feature-settings: "ss01", "ss02";
+}
+
+/* ── Scrollbars — restrained ────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px }
 ::-webkit-scrollbar-track { background: transparent }
 ::-webkit-scrollbar-thumb {
-  background: rgba(128, 144, 171, 0.35);
-  border-radius: 10px;
+  background: rgb(28 25 23 / 0.18);
+  border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(28 25 23 / 0.32);
 }
 .dark ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgb(255 255 255 / 0.12);
 }
 
 .no-scrollbar::-webkit-scrollbar { display: none }
 .no-scrollbar { scrollbar-width: none }
 
-/* ── Shadows ────────────────────────────────────────────────────────── */
+/* ── Selection ──────────────────────────────────────────────────────── */
+::selection {
+  background: rgb(var(--primary-rgb) / 0.18);
+  color: rgb(var(--on-surface-rgb));
+}
+
+/* ── Refined editorial shadows ─────────────────────────────────────── */
 .editorial-shadow {
   box-shadow:
-    0 1px 3px rgb(0 0 0 / 0.06),
-    0 8px 24px -4px rgb(0 0 0 / 0.08);
+    0 1px 0 rgb(28 25 23 / 0.04),
+    0 1px 2px rgb(28 25 23 / 0.04),
+    0 6px 14px -4px rgb(28 25 23 / 0.06);
 }
 
 .dark .editorial-shadow {
   box-shadow:
-    0 1px 3px rgb(0 0 0 / 0.4),
-    0 8px 24px -4px rgb(0 0 0 / 0.55);
+    0 1px 2px rgb(0 0 0 / 0.4),
+    0 8px 24px -4px rgb(0 0 0 / 0.5);
 }
 
-/* ── Material icons (if used) ───────────────────────────────────────── */
+.shadow-card {
+  box-shadow:
+    0 1px 0 rgb(28 25 23 / 0.04),
+    0 1px 2px rgb(28 25 23 / 0.04),
+    0 6px 14px -4px rgb(28 25 23 / 0.06);
+}
+
+.dark .shadow-card {
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.4),
+    0 8px 24px -4px rgb(0 0 0 / 0.5);
+}
+
+/* ── Hairline (1px, very subtle) ───────────────────────────────────── */
+.hairline-b { border-bottom: 1px solid rgb(28 25 23 / 0.08); }
+.hairline-t { border-top:    1px solid rgb(28 25 23 / 0.08); }
+.hairline-l { border-left:   1px solid rgb(28 25 23 / 0.08); }
+.hairline-r { border-right:  1px solid rgb(28 25 23 / 0.08); }
+.hairline   { border:        1px solid rgb(28 25 23 / 0.08); }
+.dark .hairline-b,
+.dark .hairline-t,
+.dark .hairline-l,
+.dark .hairline-r,
+.dark .hairline { border-color: rgb(255 255 255 / 0.08); }
+
+/* ── Material Symbols (fallback if used) ───────────────────────────── */
 .material-symbols-outlined {
   font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
   line-height: 1;
@@ -228,12 +288,147 @@ h1, h2, h3, h4 {
   letter-spacing: normal;
   word-wrap: normal;
   white-space: nowrap;
-  direction: ltr;
 }
 
-/* ── Tailwind shadow tokens override ───────────────────────────────── */
-.dark .shadow-card {
-  box-shadow:
-    0 1px 2px rgb(0 0 0 / 0.3),
-    0 12px 30px -10px rgb(0 0 0 / 0.55);
+/* ── Subtle structural transitions ─────────────────────────────────── */
+body, main, aside, header {
+  transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease;
 }
+
+/* ── Progress bar width animation ──────────────────────────────────── */
+.transition-bar {
+  transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* ── Page entry animation — slow, restrained ──────────────────────── */
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.page-enter {
+  animation: page-enter 0.42s cubic-bezier(0.2, 0.6, 0.2, 1) both;
+}
+
+@keyframes item-enter {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.stagger-children > *:nth-child(1) { animation: item-enter 0.42s cubic-bezier(0.2,0.6,0.2,1) 0ms   both; }
+.stagger-children > *:nth-child(2) { animation: item-enter 0.42s cubic-bezier(0.2,0.6,0.2,1) 50ms  both; }
+.stagger-children > *:nth-child(3) { animation: item-enter 0.42s cubic-bezier(0.2,0.6,0.2,1) 100ms both; }
+.stagger-children > *:nth-child(4) { animation: item-enter 0.42s cubic-bezier(0.2,0.6,0.2,1) 150ms both; }
+.stagger-children > *:nth-child(5) { animation: item-enter 0.42s cubic-bezier(0.2,0.6,0.2,1) 200ms both; }
+.stagger-children > *:nth-child(6) { animation: item-enter 0.42s cubic-bezier(0.2,0.6,0.2,1) 250ms both; }
+.stagger-children > *:nth-child(7) { animation: item-enter 0.42s cubic-bezier(0.2,0.6,0.2,1) 300ms both; }
+
+/* ── Skeleton shimmer ─────────────────────────────────────────────── */
+@keyframes skeleton-shimmer {
+  0%   { background-position: -800px 0; }
+  100% { background-position:  800px 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgb(28 25 23 / 0.04) 25%,
+    rgb(28 25 23 / 0.08) 50%,
+    rgb(28 25 23 / 0.04) 75%
+  );
+  background-size: 800px 100%;
+  animation: skeleton-shimmer 1.6s ease-in-out infinite;
+  border-radius: 6px;
+  transition: none !important;
+}
+
+.dark .skeleton {
+  background: linear-gradient(
+    90deg,
+    rgb(255 255 255 / 0.04) 25%,
+    rgb(255 255 255 / 0.08) 50%,
+    rgb(255 255 255 / 0.04) 75%
+  );
+  background-size: 800px 100%;
+}
+
+/* ── Card hover (very restrained) ─────────────────────────────────── */
+.card-lift {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease !important;
+}
+.card-lift:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 1px 0 rgb(28 25 23 / 0.04),
+    0 2px 4px rgb(28 25 23 / 0.04),
+    0 12px 28px -8px rgb(28 25 23 / 0.10);
+}
+
+/* ── Editorial dotted rule (used as section separator) ────────────── */
+.editorial-rule {
+  height: 1px;
+  background-image: linear-gradient(
+    to right,
+    rgb(28 25 23 / 0.16) 33%,
+    rgba(0,0,0,0) 0%
+  );
+  background-position: top;
+  background-size: 4px 1px;
+  background-repeat: repeat-x;
+}
+
+.dark .editorial-rule {
+  background-image: linear-gradient(
+    to right,
+    rgb(255 255 255 / 0.18) 33%,
+    rgba(0,0,0,0) 0%
+  );
+}
+
+/* ── Bordered tile — used for KPI / metric blocks ──────────────────── */
+.tile {
+  background: rgb(var(--surface-container-lowest-rgb));
+  border: 1px solid rgb(28 25 23 / 0.08);
+}
+.dark .tile {
+  border-color: rgb(255 255 255 / 0.08);
+}
+
+/* ── Smooth scroll ─────────────────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ── Recharts overrides — match editorial color palette ────────────── */
+.recharts-cartesian-axis-tick-value {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  fill: rgb(87 83 78);
+}
+.dark .recharts-cartesian-axis-tick-value {
+  fill: rgb(163 158 150);
+}
+.recharts-cartesian-grid line {
+  stroke: rgb(28 25 23 / 0.06);
+}
+.dark .recharts-cartesian-grid line {
+  stroke: rgb(255 255 255 / 0.06);
+}
+.recharts-default-tooltip {
+  background: rgb(var(--surface-container-lowest-rgb)) !important;
+  border: 1px solid rgb(28 25 23 / 0.08) !important;
+  border-radius: 6px !important;
+  font-size: 11.5px !important;
+  font-family: var(--font-body) !important;
+  box-shadow:
+    0 1px 0 rgb(28 25 23 / 0.04),
+    0 6px 14px -4px rgb(28 25 23 / 0.10) !important;
+}
+
+/* ── Form controls, base ───────────────────────────────────────────── */
+input, select, textarea, button {
+  font-family: inherit;
+  letter-spacing: inherit;
+}
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; }

@@ -2,12 +2,14 @@ import json
 import logging
 import os
 import signal
+import time
 from typing import Any, Dict
 
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from kafka import KafkaConsumer, KafkaProducer
 
-from apps.analytics.tasks import process_prediction
+from apps.analytics.prediction_pipeline import handle_prediction_payload
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +30,26 @@ def _send_to_dlq(producer: KafkaProducer | None, topic: str, raw_bytes: bytes, r
         producer.flush(timeout=5)
     except Exception as exc:
         logger.error("Failed to write prediction_done message to DLQ: %s", exc)
+
+
+def _set_consumer_ready(topic: str, group_id: str, ready: bool, reason: str = "") -> None:
+    try:
+        import redis
+
+        client = redis.Redis.from_url(settings.REDIS_URL)
+        key = "main:prediction_done_consumer:ready"
+        payload = json.dumps(
+            {
+                "ready": ready,
+                "topic": topic,
+                "group_id": group_id,
+                "reason": reason,
+                "updated_at": time.time(),
+            }
+        )
+        client.set(key, payload, ex=300)
+    except Exception as exc:
+        logger.warning("Could not update prediction consumer readiness marker: %s", exc)
 
 
 class Command(BaseCommand):
@@ -54,10 +76,29 @@ class Command(BaseCommand):
             bootstrap_servers=bootstrap_servers.split(","),
             enable_auto_commit=False,
             group_id=group_id,
+            auto_offset_reset=os.getenv("KAFKA_AUTO_OFFSET_RESET", "earliest"),
         )
         producer = KafkaProducer(bootstrap_servers=bootstrap_servers.split(","))
 
         self.stdout.write(self.style.SUCCESS(f"Consuming Kafka topic={topic} group_id={group_id}"))
+        deadline = time.time() + int(os.getenv("KAFKA_TOPIC_READY_TIMEOUT_SECONDS", "60"))
+        partitions = None
+        while time.time() < deadline:
+            partitions = consumer.partitions_for_topic(topic)
+            if partitions:
+                logger.info(
+                    "Prediction consumer ready topic=%s partitions=%s group_id=%s",
+                    topic,
+                    sorted(partitions),
+                    group_id,
+                )
+                _set_consumer_ready(topic, group_id, True)
+                break
+            logger.info("Waiting for Kafka topic metadata topic=%s", topic)
+            time.sleep(1)
+        if not partitions:
+            _set_consumer_ready(topic, group_id, False, "topic metadata unavailable")
+            raise CommandError(f"Kafka topic {topic!r} has no partition metadata after startup wait.")
 
         try:
             for message in consumer:
@@ -77,20 +118,12 @@ class Command(BaseCommand):
                 try:
                     session_id = payload.get("session_id")
                     tenant_id = payload.get("tenant_id")
-                    visitor_id = payload.get("visitor_id")
                     prediction_score = float(
                         payload.get("prediction_score")
                         or payload.get("abandonment_probability", 0.0)
                     )
-                    predicted_class = str(
-                        payload.get("predicted_class") or payload.get("prediction", "abandoned")
-                    )
-                    shap_values = payload.get("shap_values") or {}
-                    model_variant = payload.get("model_variant", "baseline")
-                    abandonment_probability = float(payload.get("abandonment_probability", prediction_score))
-                    confidence = float(payload.get("confidence", 0.5))
-                    model_version = payload.get("model_version")
-                    predicted_at = payload.get("predicted_at")
+                    payload.setdefault("abandonment_probability", prediction_score)
+                    payload.setdefault("predicted_class", payload.get("prediction", "abandoned"))
                 except (TypeError, ValueError) as exc:
                     logger.warning("Invalid field type in prediction_done payload: %s", exc)
                     _send_to_dlq(producer, dlq_topic, raw_value, f"field_error: {exc}")
@@ -105,26 +138,12 @@ class Command(BaseCommand):
                     continue
 
                 try:
-                    process_prediction.apply_async(
-                        kwargs={
-                            "session_id": session_id,
-                            "tenant_id": tenant_id,
-                            "prediction_score": prediction_score,
-                            "predicted_class": predicted_class,
-                            "shap_values": shap_values,
-                            "model_variant": model_variant,
-                            "abandonment_probability": abandonment_probability,
-                            "confidence": confidence,
-                            "model_version": model_version,
-                            "predicted_at": predicted_at,
-                            "visitor_id": visitor_id,
-                        },
-                        ignore_result=False,
-                    )
+                    handle_prediction_payload(payload)
                     consumer.commit()
                 except Exception as exc:
                     logger.exception("Error while dispatching process_prediction: %s", exc)
                     # Do not commit; message will be retried on next run.
         finally:
+            _set_consumer_ready(topic, group_id, False, "consumer stopped")
             consumer.close()
             producer.close()

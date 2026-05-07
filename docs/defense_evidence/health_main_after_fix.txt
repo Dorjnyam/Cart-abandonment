@@ -1,0 +1,14 @@
+HTTP/1.1 200 OK
+Server: gunicorn
+Date: Thu, 07 May 2026 16:11:14 GMT
+Connection: close
+Content-Type: application/json
+Vary: Accept, origin
+Allow: GET, HEAD, OPTIONS
+X-Frame-Options: DENY
+Content-Length: 166
+X-Content-Type-Options: nosniff
+Referrer-Policy: same-origin
+Cross-Origin-Opener-Policy: same-origin
+
+{"status":"ok","dependencies":{"postgresql":"ok","duckdb":"not_initialized","redis":"ok","prediction_done_consumer":"ok","minio":"failed: Invalid endpoint: http://"}}

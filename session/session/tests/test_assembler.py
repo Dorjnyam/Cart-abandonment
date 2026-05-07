@@ -11,7 +11,12 @@ from unittest.mock import AsyncMock, call, patch
 
 import pytest
 
-from app.assembler import DEADLINE_ZSET, accumulate_event, flush_session
+from app.assembler import (
+    DEADLINE_ZSET,
+    SESSION_HASH_TTL_MARGIN_SECONDS,
+    accumulate_event,
+    flush_session,
+)
 from app.config import BOT_THRESHOLD, SESSION_TTL_SECONDS
 from app.models import SessionState
 from app.utils import _decode_hash
@@ -44,6 +49,34 @@ async def test_accumulate_updates_event_count(fake_redis):
     assert int(data["event_count"]) == 2
 
 
+async def test_purchase_success_sets_converted_state(fake_redis):
+    event = make_event(event_type="purchase_success", order_id="order-1", payment_method="card")
+    await accumulate_event(fake_redis, event)
+
+    data = _decode_hash(await fake_redis.hgetall(f"session:{event.session_id}"))
+
+    assert data["state"] == SessionState.CONVERTED.value
+    assert data["session_state"] == SessionState.CONVERTED.value
+    assert data["has_purchase_success"] == "true"
+    assert data["final_event_type"] == "purchase_success"
+
+
+async def test_converted_session_is_terminal_after_later_event(fake_redis):
+    first = make_event(event_type="purchase_success")
+    later = make_event(
+        session_id=str(first.session_id),
+        visitor_id=str(first.visitor_id),
+        event_type="abandon_checkout",
+    )
+
+    await accumulate_event(fake_redis, first)
+    await accumulate_event(fake_redis, later)
+
+    data = _decode_hash(await fake_redis.hgetall(f"session:{first.session_id}"))
+    assert data["state"] == SessionState.CONVERTED.value
+    assert data["has_purchase_success"] == "true"
+
+
 async def test_accumulate_hincrby_counter_field(fake_redis):
     """rage_click is a COUNTER_FIELD — must use HINCRBY not Python RMW."""
     event1 = make_event(event_type="rage_click", rage_click=1)
@@ -74,8 +107,9 @@ async def test_accumulate_ttl_refreshed(fake_redis):
     await accumulate_event(fake_redis, event)
 
     ttl = await fake_redis.ttl(f"session:{event.session_id}")
-    # TTL must be set and within [1, SESSION_TTL_SECONDS]
-    assert 1 <= ttl <= SESSION_TTL_SECONDS
+    # Hash TTL must outlive the deadline zset score so the sweeper can read it
+    # after the idle timeout fires.
+    assert SESSION_TTL_SECONDS < ttl <= SESSION_TTL_SECONDS + SESSION_HASH_TTL_MARGIN_SECONDS
 
 
 async def test_accumulate_deadline_zset_updated(fake_redis):
@@ -231,3 +265,41 @@ async def test_purchase_event_triggers_flush(fake_redis, monkeypatch):
 
     assert flushed, "flush_session must be called for purchase events"
     assert flushed[0][1] == "purchase"
+
+
+async def test_session_end_event_triggers_unload_flush(fake_redis, monkeypatch):
+    flushed = []
+
+    async def spy_flush(r, session_id, end_reason="timeout"):
+        flushed.append((session_id, end_reason))
+
+    monkeypatch.setattr("app.consumer.flush_session", spy_flush)
+    monkeypatch.setattr("app.consumer.accumulate_event", AsyncMock())
+    monkeypatch.setattr("app.consumer.ensure_window_snapshot_tasks", AsyncMock(return_value=[]))
+
+    from app.consumer import process_raw_event
+
+    event = make_event(event_type="session_end")
+    await process_raw_event(fake_redis, event)
+
+    assert flushed, "flush_session must be called for browser session_end events"
+    assert flushed[0][1] == "unload"
+
+
+async def test_payload_end_reason_triggers_flush(fake_redis, monkeypatch):
+    flushed = []
+
+    async def spy_flush(r, session_id, end_reason="timeout"):
+        flushed.append((session_id, end_reason))
+
+    monkeypatch.setattr("app.consumer.flush_session", spy_flush)
+    monkeypatch.setattr("app.consumer.accumulate_event", AsyncMock())
+    monkeypatch.setattr("app.consumer.ensure_window_snapshot_tasks", AsyncMock(return_value=[]))
+
+    from app.consumer import process_raw_event
+
+    event = make_event(event_type="abandon_checkout", end_reason="unload")
+    await process_raw_event(fake_redis, event)
+
+    assert flushed, "flush_session must be called when Observer payload includes end_reason"
+    assert flushed[0][1] == "unload"

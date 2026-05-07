@@ -9,6 +9,14 @@ from apps.analytics.views import (
     AnalyticsRecommendationView,
     AnalyticsRecommendationImplementView,
     AnalyticsScoresView,
+    DashboardIntegrationView,
+    DashboardOverviewView,
+    DashboardReasonsView,
+    DashboardRecommendationStatusView,
+    DashboardRecommendationsView,
+    DashboardSessionDetailView,
+    DashboardSessionsView,
+    DashboardTrendsView,
     # Diagnosis
     DiagnosisDetailView,
     DiagnosisListView,
@@ -33,6 +41,20 @@ from apps.analytics.views import (
 )
 
 urlpatterns = [
+    # Dashboard-ready thesis MVP API
+    path("dashboard/overview/", DashboardOverviewView.as_view(), name="dashboard-overview"),
+    path("dashboard/trends/", DashboardTrendsView.as_view(), name="dashboard-trends"),
+    path("dashboard/reasons/", DashboardReasonsView.as_view(), name="dashboard-reasons"),
+    path("dashboard/sessions/", DashboardSessionsView.as_view(), name="dashboard-sessions"),
+    path("dashboard/sessions/<str:session_id>/", DashboardSessionDetailView.as_view(), name="dashboard-session-detail"),
+    path("dashboard/recommendations/", DashboardRecommendationsView.as_view(), name="dashboard-recommendations"),
+    path(
+        "dashboard/recommendations/<int:id>/status/",
+        DashboardRecommendationStatusView.as_view(),
+        name="dashboard-recommendation-status",
+    ),
+    path("dashboard/integration/", DashboardIntegrationView.as_view(), name="dashboard-integration"),
+
     # ── Analytics dashboard ──────────────────────────────────────────────────
     path("analytics/overview/", AnalyticsOverviewView.as_view(), name="analytics-overview"),
     path("analytics/scores/", AnalyticsScoresView.as_view(), name="analytics-scores"),

@@ -1,22 +1,25 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <title>ML Service Viewer</title>
+    <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ML Service Monitor</title>
     <style>
       :root {
-        color-scheme: light dark;
+        color-scheme: dark;
         --bg: #0b1020;
-        --bg-card: #151a2c;
-        --border: #262b3f;
-        --accent: #4f46e5;
-        --accent-soft: rgba(79, 70, 229, 0.2);
+        --panel: #111827;
+        --panel-2: #0f172a;
+        --line: #243044;
         --text: #e5e7eb;
         --muted: #9ca3af;
-        --ok: #22c55e;
-        --bad: #ef4444;
-        --warn: #eab308;
+        --soft: #cbd5e1;
+        --green: #22c55e;
+        --red: #ef4444;
+        --amber: #f59e0b;
+        --blue: #38bdf8;
+        --violet: #a78bfa;
+        --cyan: #2dd4bf;
       }
 
       * {
@@ -25,720 +28,852 @@
 
       body {
         margin: 0;
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
-          "Segoe UI", sans-serif;
-        background: radial-gradient(circle at top, #111827 0, #020617 55%);
+        min-width: 320px;
+        background: var(--bg);
         color: var(--text);
-        min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        padding: 32px 16px;
-      }
-
-      .shell {
-        width: 100%;
-        max-width: 1080px;
-        background: linear-gradient(145deg, #020617 0, #020617 45%, #0b1120 100%);
-        border-radius: 18px;
-        border: 1px solid rgba(148, 163, 184, 0.22);
-        box-shadow:
-          0 24px 80px rgba(15, 23, 42, 0.9),
-          0 0 0 1px rgba(15, 23, 42, 0.8) inset;
-        overflow: hidden;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        letter-spacing: 0;
       }
 
       header {
-        padding: 18px 22px 8px;
-        border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        border-bottom: 1px solid var(--line);
+        background: rgba(11, 16, 32, 0.96);
+        backdrop-filter: blur(10px);
+      }
+
+      .header-inner {
+        max-width: 1500px;
+        margin: 0 auto;
+        padding: 16px 20px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        background: radial-gradient(circle at top left, #1f2937 0, #020617 60%);
-      }
-
-      .title-block {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .badge {
-        width: 26px;
-        height: 26px;
-        border-radius: 11px;
-        background: radial-gradient(circle at 30% 0, #a855f7, #4f46e5);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow:
-          0 0 0 1px rgba(191, 219, 254, 0.35),
-          0 0 25px rgba(79, 70, 229, 0.8);
-        font-size: 16px;
+        gap: 16px;
       }
 
       h1 {
         margin: 0;
-        font-size: 17px;
-        letter-spacing: 0.03em;
-        font-weight: 600;
+        font-size: 22px;
+        font-weight: 760;
       }
 
-      .subtitle {
-        margin: 2px 0 0;
-        font-size: 12px;
-        color: var(--muted);
+      h2 {
+        margin: 0 0 12px;
+        font-size: 15px;
+        font-weight: 720;
+        color: var(--soft);
       }
 
-      .pill {
-        border-radius: 999px;
-        padding: 4px 10px;
-        font-size: 11px;
-        border: 1px solid rgba(148, 163, 184, 0.4);
-        color: var(--muted);
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background: rgba(15, 23, 42, 0.9);
+      button {
+        border: 1px solid #31577a;
+        border-radius: 6px;
+        background: #14324a;
+        color: #ecfeff;
+        padding: 9px 12px;
+        font: inherit;
+        cursor: pointer;
       }
 
-      .pill-dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 999px;
-        background: #22c55e;
-        box-shadow: 0 0 8px rgba(34, 197, 94, 0.9);
+      button:hover {
+        background: #17415f;
       }
 
       main {
-        padding: 16px 18px 20px;
-        display: grid;
-        grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-        gap: 14px;
+        max-width: 1500px;
+        margin: 0 auto;
+        padding: 18px 20px 28px;
       }
 
-      @media (max-width: 800px) {
-        main {
-          grid-template-columns: minmax(0, 1fr);
-        }
-      }
-
-      section {
-        background: radial-gradient(circle at top, #020617 0, #020617 55%, #020617);
-        border-radius: 14px;
-        padding: 14px 14px 10px;
-        border: 1px solid rgba(31, 41, 55, 0.9);
-        box-shadow:
-          0 16px 40px rgba(15, 23, 42, 0.95),
-          0 0 0 1px rgba(15, 23, 42, 0.9) inset;
-      }
-
-      section h2 {
-        margin: 0 0 10px;
-        font-size: 13px;
-        font-weight: 600;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        color: #9ca3af;
+      .toolbar {
         display: flex;
         align-items: center;
-        gap: 6px;
-      }
-
-      section h2 span.dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 999px;
-        background: rgba(148, 163, 184, 0.5);
-      }
-
-      .kv-list {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr);
-        gap: 6px;
-        font-size: 12px;
-      }
-
-      .kv-row {
-        display: flex;
-        justify-content: space-between;
-        gap: 10px;
-        padding: 6px 8px;
-        border-radius: 9px;
-        background: rgba(15, 23, 42, 0.95);
-        border: 1px solid rgba(31, 41, 55, 0.95);
-      }
-
-      .kv-label {
+        gap: 12px;
         color: var(--muted);
-        white-space: nowrap;
+        font-size: 13px;
+        flex-wrap: wrap;
       }
 
-      .kv-value {
-        font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo,
-          Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-        font-size: 11px;
-        color: #e5e7eb;
-        text-align: right;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+      .grid {
+        display: grid;
+        gap: 12px;
       }
 
-      .status-pill {
+      .overview {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+      }
+
+      .two-col {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      }
+
+      .wide-left {
+        grid-template-columns: minmax(0, 1.35fr) minmax(360px, 0.65fr);
+      }
+
+      .panel,
+      .metric,
+      .stage,
+      .prediction,
+      .connection {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+      }
+
+      .panel {
+        padding: 14px;
+        min-width: 0;
+      }
+
+      .metric {
+        padding: 13px;
+        min-height: 90px;
+      }
+
+      .metric-label,
+      .field-label {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.35;
+      }
+
+      .metric-value {
+        margin-top: 7px;
+        font-size: 24px;
+        line-height: 1.1;
+        font-weight: 780;
+        overflow-wrap: anywhere;
+      }
+
+      .metric-sub {
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 12px;
+        overflow-wrap: anywhere;
+      }
+
+      .pill {
         display: inline-flex;
         align-items: center;
+        justify-content: center;
         gap: 6px;
+        min-height: 24px;
         padding: 3px 8px;
         border-radius: 999px;
-        font-size: 11px;
-        border: 1px solid rgba(55, 65, 81, 0.9);
-        background: rgba(8, 47, 73, 0.2);
+        border: 1px solid var(--line);
+        font-size: 12px;
+        color: var(--soft);
+        background: #0b1220;
+        white-space: nowrap;
       }
 
-      .status-pill.ok {
-        border-color: rgba(34, 197, 94, 0.7);
-        background: rgba(22, 163, 74, 0.16);
-        color: #bbf7d0;
-      }
-
-      .status-pill.bad {
-        border-color: rgba(239, 68, 68, 0.7);
-        background: rgba(220, 38, 38, 0.18);
-        color: #fecaca;
-      }
-
-      .status-pill.warn {
-        border-color: rgba(234, 179, 8, 0.7);
-        background: rgba(202, 138, 4, 0.16);
-        color: #fef3c7;
-      }
-
-      .status-dot {
+      .pill::before {
+        content: "";
         width: 7px;
         height: 7px;
-        border-radius: 999px;
-        box-shadow: 0 0 8px currentColor;
+        border-radius: 50%;
+        background: var(--muted);
       }
 
-      .status-pill.ok .status-dot {
-        background: var(--ok);
+      .pill.ok::before {
+        background: var(--green);
       }
 
-      .status-pill.bad .status-dot {
-        background: var(--bad);
+      .pill.warn::before {
+        background: var(--amber);
       }
 
-      .status-pill.warn .status-dot {
-        background: var(--warn);
+      .pill.bad::before {
+        background: var(--red);
       }
 
-      .mini-grid {
+      .value-ok {
+        color: var(--green);
+      }
+
+      .value-warn {
+        color: var(--amber);
+      }
+
+      .value-bad {
+        color: var(--red);
+      }
+
+      .connections {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 6px;
-        margin-top: 6px;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
       }
 
-      .mini-card {
-        border-radius: 9px;
-        border: 1px solid rgba(31, 41, 55, 0.9);
-        background: radial-gradient(circle at top left, #020617 0, #020617 60%);
-        padding: 7px 8px 6px;
+      .connection {
+        padding: 12px;
+        min-width: 0;
       }
 
-      .mini-label {
-        font-size: 10px;
-        color: var(--muted);
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-      }
-
-      .mini-value {
-        margin-top: 3px;
-        font-size: 12px;
-      }
-
-      .mini-sub {
-        margin-top: 2px;
-        font-size: 10px;
-        color: var(--muted);
-      }
-
-      .log-pane {
-        margin-top: 6px;
-        border-radius: 9px;
-        border: 1px solid rgba(31, 41, 55, 0.9);
-        background: radial-gradient(circle at top left, #020617 0, #020617 60%);
-        max-height: 170px;
-        overflow: auto;
-        font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo,
-          Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-        font-size: 11px;
-        padding: 6px 0;
-      }
-
-      .log-line {
-        padding: 2px 10px;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        overflow: hidden;
-        color: #9ca3af;
-      }
-
-      .log-line:nth-child(odd) {
-        background: rgba(15, 23, 42, 0.65);
-      }
-
-      .log-line:nth-child(even) {
-        background: rgba(15, 23, 42, 0.35);
-      }
-
-      .log-line strong {
-        color: #e5e7eb;
-      }
-
-      .tag {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        border-radius: 999px;
-        padding: 2px 7px;
-        font-size: 10px;
-        background: rgba(15, 23, 42, 0.85);
-        border: 1px solid rgba(55, 65, 81, 0.9);
-        color: var(--muted);
-      }
-
-      .footer {
-        padding: 6px 14px 10px;
-        border-top: 1px solid rgba(17, 24, 39, 0.85);
+      .connection-head,
+      .prediction-head {
         display: flex;
         justify-content: space-between;
         align-items: center;
         gap: 8px;
-        font-size: 11px;
+      }
+
+      .connection-name,
+      .prediction-id {
+        font-weight: 700;
+        overflow-wrap: anywhere;
+      }
+
+      .connection-detail {
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.45;
+        overflow-wrap: anywhere;
+      }
+
+      .stages {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .stage {
+        padding: 12px;
+        min-height: 150px;
+        position: relative;
+      }
+
+      .stage-title {
+        margin-top: 9px;
+        font-size: 14px;
+        font-weight: 760;
+      }
+
+      .stage-meta {
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.45;
+        overflow-wrap: anywhere;
+      }
+
+      .stage-count {
+        position: absolute;
+        right: 10px;
+        bottom: 10px;
+        color: var(--blue);
+        font-weight: 780;
+      }
+
+      .score-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .score-box {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel-2);
+        padding: 10px;
+      }
+
+      .score-value {
+        margin-top: 6px;
+        font-size: 20px;
+        font-weight: 760;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid var(--line);
+        padding: 8px 6px;
+        text-align: left;
+        font-size: 13px;
+        vertical-align: top;
+      }
+
+      th {
+        color: var(--muted);
+        font-weight: 650;
+      }
+
+      .matrix {
+        table-layout: fixed;
+      }
+
+      .matrix th,
+      .matrix td {
+        text-align: center;
+      }
+
+      .matrix-cell {
+        font-size: 22px;
+        font-weight: 780;
+      }
+
+      .matrix-good {
+        color: var(--green);
+      }
+
+      .matrix-risk {
+        color: var(--amber);
+      }
+
+      .predictions {
+        display: grid;
+        gap: 10px;
+        max-height: 520px;
+        overflow: auto;
+        padding-right: 2px;
+      }
+
+      .prediction {
+        padding: 12px;
+      }
+
+      .prediction-grid {
+        margin-top: 10px;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .feature-list {
+        margin-top: 10px;
+        display: grid;
+        gap: 6px;
+      }
+
+      .feature-row {
+        display: grid;
+        grid-template-columns: minmax(120px, 1fr) 80px 80px;
+        gap: 8px;
+        color: var(--soft);
+        font-size: 12px;
+        align-items: center;
+      }
+
+      .bar {
+        height: 5px;
+        border-radius: 999px;
+        background: #1f2937;
+        overflow: hidden;
+      }
+
+      .bar > span {
+        display: block;
+        height: 100%;
+        background: var(--cyan);
+      }
+
+      pre {
+        margin: 0;
+        max-height: 420px;
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #050914;
+        padding: 10px;
+        color: #d1d5db;
+        font-size: 12px;
+        line-height: 1.45;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .events {
+        display: grid;
+        gap: 7px;
+        max-height: 420px;
+        overflow: auto;
+      }
+
+      .event {
+        display: grid;
+        grid-template-columns: 150px minmax(0, 1fr);
+        gap: 10px;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 7px;
+        font-size: 12px;
+      }
+
+      .event-time {
         color: var(--muted);
       }
 
-      .footer span.key {
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-          "Liberation Mono", "Courier New", monospace;
-        padding: 2px 6px;
-        border-radius: 6px;
-        border: 1px solid rgba(55, 65, 81, 0.85);
-        background: rgba(15, 23, 42, 0.9);
+      .event.error {
+        color: #fecaca;
       }
 
-      .pill-button {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        border-radius: 999px;
-        border: 1px solid rgba(79, 70, 229, 0.7);
-        background: rgba(15, 23, 42, 0.95);
-        color: #e5e7eb;
-        padding: 4px 10px;
-        font-size: 11px;
-        cursor: pointer;
+      .empty {
+        color: var(--muted);
+        font-size: 13px;
+        padding: 10px 0;
       }
 
-      .pill-button:hover {
-        background: rgba(30, 64, 175, 0.5);
+      .section-gap {
+        margin-top: 12px;
       }
 
-      .pill-button-dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 999px;
-        background: var(--accent);
-        box-shadow: 0 0 8px rgba(79, 70, 229, 1);
+      @media (max-width: 1180px) {
+        .overview,
+        .stages {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .connections,
+        .score-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .wide-left,
+        .two-col {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .header-inner {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        main {
+          padding: 14px 12px 22px;
+        }
+
+        .overview,
+        .connections,
+        .stages,
+        .score-grid,
+        .prediction-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .event {
+          grid-template-columns: 1fr;
+        }
+
+        .feature-row {
+          grid-template-columns: minmax(0, 1fr) 64px 64px;
+        }
       }
     </style>
   </head>
   <body>
-    <div class="shell">
-      <header>
-        <div class="title-block">
-          <div class="badge">μ</div>
-          <div>
-            <h1>ML Prediction Service · Viewer</h1>
-            <p class="subtitle">
-              Live view into model, Kafka, and PostgreSQL connections.
-            </p>
-          </div>
-        </div>
-        <div class="pill">
-          <span class="pill-dot"></span>
-          <span id="overall-status-label">Connecting…</span>
-        </div>
-      </header>
-
-      <main>
-        <section>
-          <h2>
-            <span class="dot"></span>
-            Service Overview
-          </h2>
-          <div class="kv-list">
-            <div class="kv-row">
-              <span class="kv-label">Model version</span>
-              <span class="kv-value" id="model-version">—</span>
-            </div>
-            <div class="kv-row">
-              <span class="kv-label">Feature count</span>
-              <span class="kv-value" id="feature-count">—</span>
-            </div>
-            <div class="kv-row">
-              <span class="kv-label">Uptime</span>
-              <span class="kv-value" id="uptime">—</span>
-            </div>
-            <div class="kv-row">
-              <span class="kv-label">Environment</span>
-              <span class="kv-value" id="environment">—</span>
-            </div>
-          </div>
-
-          <div class="mini-grid">
-            <div class="mini-card">
-              <div class="mini-label">PostgreSQL</div>
-              <div class="mini-value">
-                <span
-                  class="status-pill"
-                  id="pg-status-pill"
-                  data-kind="status"
-                >
-                  <span class="status-dot"></span>
-                  <span id="pg-status-label">Unknown</span>
-                </span>
-              </div>
-              <div class="mini-sub" id="pg-details">dsn: —</div>
-            </div>
-
-            <div class="mini-card">
-              <div class="mini-label">Kafka</div>
-              <div class="mini-value">
-                <span
-                  class="status-pill"
-                  id="kafka-status-pill"
-                  data-kind="status"
-                >
-                  <span class="status-dot"></span>
-                  <span id="kafka-status-label">Unknown</span>
-                </span>
-              </div>
-              <div class="mini-sub" id="kafka-details">bootstrap: —</div>
-            </div>
-
-            <div class="mini-card">
-              <div class="mini-label">MinIO / Model Storage</div>
-              <div class="mini-value">
-                <span
-                  class="status-pill"
-                  id="minio-status-pill"
-                  data-kind="status"
-                >
-                  <span class="status-dot"></span>
-                  <span id="minio-status-label">Unknown</span>
-                </span>
-              </div>
-              <div class="mini-sub" id="minio-details">endpoint: —</div>
-            </div>
-          </div>
-
-          <div class="log-pane" id="log-pane"></div>
-        </section>
-
-        <section>
-          <h2>
-            <span class="dot"></span>
-            Processes & Connections
-          </h2>
-
-          <div class="kv-list">
-            <div class="kv-row">
-              <span class="kv-label">Kafka consumer</span>
-              <span class="kv-value">
-                <span
-                  class="status-pill"
-                  id="consumer-status-pill"
-                  data-kind="status"
-                >
-                  <span class="status-dot"></span>
-                  <span id="consumer-status-label">Unknown</span>
-                </span>
-              </span>
-            </div>
-
-            <div class="kv-row">
-              <span class="kv-label">Kafka producer</span>
-              <span class="kv-value">
-                <span
-                  class="status-pill"
-                  id="producer-status-pill"
-                  data-kind="status"
-                >
-                  <span class="status-dot"></span>
-                  <span id="producer-status-label">Unknown</span>
-                </span>
-              </span>
-            </div>
-
-            <div class="kv-row">
-              <span class="kv-label">DB pool</span>
-              <span class="kv-value">
-                <span
-                  class="status-pill"
-                  id="pool-status-pill"
-                  data-kind="status"
-                >
-                  <span class="status-dot"></span>
-                  <span id="pool-status-label">Unknown</span>
-                </span>
-              </span>
-            </div>
-
-            <div class="kv-row">
-              <span class="kv-label">Model loaded</span>
-              <span class="kv-value">
-                <span
-                  class="status-pill"
-                  id="model-status-pill"
-                  data-kind="status"
-                >
-                  <span class="status-dot"></span>
-                  <span id="model-status-label">Unknown</span>
-                </span>
-              </span>
-            </div>
-          </div>
-
-          <div style="margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap;">
-            <div class="tag" id="worker-tag">
-              <span>worker: —</span>
-            </div>
-            <div class="tag" id="tz-tag">
-              <span>timezone: —</span>
-            </div>
-          </div>
-
-          <div
-            style="
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              margin-top: 12px;
-            "
-          >
-            <div style="font-size: 11px; color: var(--muted);">
-              Next poll in
-              <span id="refresh-countdown">—</span>
-              s
-            </div>
-            <button id="refresh-btn" class="pill-button" type="button">
-              <span class="pill-button-dot"></span>
-              <span>Refresh now</span>
-            </button>
-          </div>
-        </section>
-      </main>
-
-      <div class="footer">
+    <header>
+      <div class="header-inner">
         <div>
-          Keyboard:
-          <span class="key">R</span>
-          to refresh,
-          <span class="key">Shift</span> +
-          <span class="key">R</span>
-          to toggle auto-refresh.
+          <h1>ML Service Monitor</h1>
+          <div class="toolbar">
+            <span id="overall-pill" class="pill warn">Loading</span>
+            <span id="last-updated">Last updated: never</span>
+            <span id="worker">worker: -</span>
+          </div>
         </div>
-        <div id="auto-refresh-label">Auto-refresh: on (5s)</div>
+        <button id="refresh">Refresh now</button>
       </div>
-    </div>
+    </header>
+
+    <main>
+      <section class="grid overview" id="overview"></section>
+
+      <section class="panel section-gap">
+        <h2>Connections</h2>
+        <div class="connections" id="connections"></div>
+      </section>
+
+      <section class="panel section-gap">
+        <h2>Live Pipeline</h2>
+        <div class="stages" id="pipeline"></div>
+      </section>
+
+      <section class="grid wide-left section-gap">
+        <div class="panel">
+          <h2>Model Performance</h2>
+          <div class="score-grid" id="scores"></div>
+          <div class="grid two-col section-gap">
+            <div>
+              <h2>Confusion Matrix</h2>
+              <div id="confusion"></div>
+            </div>
+            <div>
+              <h2>Classification Report</h2>
+              <div id="class-report"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Model Runtime</h2>
+          <div id="model-runtime"></div>
+        </div>
+      </section>
+
+      <section class="grid wide-left section-gap">
+        <div class="panel">
+          <h2>Recent Predictions</h2>
+          <div class="predictions" id="predictions"></div>
+        </div>
+
+        <div class="panel">
+          <h2>Last Session Transform</h2>
+          <pre id="last-transform">{}</pre>
+        </div>
+      </section>
+
+      <section class="grid two-col section-gap">
+        <div class="panel">
+          <h2>Runtime Events</h2>
+          <div class="events" id="events"></div>
+        </div>
+        <div class="panel">
+          <h2>Artifacts</h2>
+          <pre id="artifacts">{}</pre>
+        </div>
+      </section>
+    </main>
 
     <script>
-      const statusMap = {
-        ok: { className: "ok", label: "Connected" },
-        bad: { className: "bad", label: "Unavailable" },
-        warn: { className: "warn", label: "Degraded" },
-        unknown: { className: "", label: "Unknown" },
+      const state = {
+        timer: null,
       };
 
-      function setStatus(idBase, status, label) {
-        const pill = document.getElementById(idBase + "-pill");
-        const text = document.getElementById(idBase + "-label");
-        if (!pill || !text) return;
-
-        Object.values(statusMap).forEach((s) => {
-          if (s.className) pill.classList.remove(s.className);
-        });
-
-        const cfg = statusMap[status] || statusMap.unknown;
-        if (cfg.className) pill.classList.add(cfg.className);
-        text.textContent = label || cfg.label;
+      function statusClass(status) {
+        if (status === "ok") return "ok";
+        if (status === "bad" || status === "down") return "bad";
+        return "warn";
       }
 
-      function appendLog(lines) {
-        const pane = document.getElementById("log-pane");
-        pane.innerHTML = "";
-        (lines || []).forEach((line) => {
-          const div = document.createElement("div");
-          div.className = "log-line";
-          div.textContent = line;
-          pane.appendChild(div);
-        });
-        pane.scrollTop = pane.scrollHeight;
+      function safe(value, fallback = "-") {
+        return value === undefined || value === null || value === "" ? fallback : value;
       }
 
-      let autoRefresh = true;
-      let countdown = 5;
-      let timerId = null;
+      function pct(value) {
+        if (typeof value !== "number" || Number.isNaN(value)) return "-";
+        return `${(value * 100).toFixed(1)}%`;
+      }
 
-      async function fetchStatus() {
+      function fixed(value, digits = 3) {
+        if (typeof value !== "number" || Number.isNaN(value)) return "-";
+        return value.toFixed(digits);
+      }
+
+      function json(value) {
+        return JSON.stringify(value ?? {}, null, 2);
+      }
+
+      function metric(label, value, sub = "", cls = "") {
+        return `
+          <div class="metric">
+            <div class="metric-label">${label}</div>
+            <div class="metric-value ${cls}">${value}</div>
+            <div class="metric-sub">${sub}</div>
+          </div>
+        `;
+      }
+
+      function pill(status, label) {
+        return `<span class="pill ${statusClass(status)}">${label}</span>`;
+      }
+
+      function renderOverview(data) {
+        const stats = data.runtime?.stats || {};
+        const model = data.model || {};
+        const last = data.runtime?.last_prediction;
+        const scoreClass =
+          last?.predicted_class === "abandoned"
+            ? "value-warn"
+            : last?.predicted_class === "converted"
+              ? "value-ok"
+              : "";
+
+        document.getElementById("overview").innerHTML = [
+          metric("Health", safe(data.overall_status, "warn"), `uptime ${safe(data.uptime)}`, data.overall_status === "ok" ? "value-ok" : "value-warn"),
+          metric("Model", safe(model.version || data.model_version), `${safe(model.feature_count || data.feature_count)} features`),
+          metric("Messages", safe(stats.messages_consumed, 0), "feature_ready consumed"),
+          metric("Predictions", safe(stats.predictions_created, 0), "created by XGBoost"),
+          metric("Failures", safe(stats.failures, 0), `${safe(stats.dlq_messages, 0)} sent to DLQ`, stats.failures ? "value-bad" : "value-ok"),
+          metric("Last Score", last ? fixed(last.score, 3) : "-", safe(last?.predicted_class), scoreClass),
+        ].join("");
+      }
+
+      function renderConnections(data) {
+        const connections = data.connections || {};
+        const kafkaChecks = connections.kafka?.checks || [];
+        const kafkaDetail = kafkaChecks.length
+          ? kafkaChecks.map((item) => `${item.host}:${item.port} ${item.reachable ? "reachable" : "down"}`).join("; ")
+          : safe(data.kafka?.details);
+
+        const items = [
+          ["Kafka broker", connections.kafka?.status || data.kafka?.status, data.kafka?.label || "Kafka", kafkaDetail],
+          ["Kafka consumer", connections.consumer?.status || data.consumer?.status, data.consumer?.label || "Consumer", `input topic: ${safe(connections.kafka?.input_topic)}`],
+          ["Kafka producer", connections.producer?.status || data.producer?.status, data.producer?.label || "Producer", `outputs: ${safe(connections.kafka?.output_topic)}, ${safe(connections.kafka?.output_topic_v2)}`],
+          ["PostgreSQL", connections.postgres?.status || data.postgres?.status, data.postgres?.label || "PostgreSQL", connections.postgres?.details || data.postgres?.details],
+          ["Model artifact", connections.model_storage?.status || data.model?.status, data.model?.label || "Model", connections.model_storage?.path],
+          ["Model storage", data.minio?.status, data.minio?.label, data.minio?.details],
+          ["SHAP", data.shap_enabled ? "ok" : "warn", data.shap_enabled ? "Enabled" : "Disabled", "top feature explanations"],
+          ["LSTM", "warn", "Future work disabled", "ensemble method: xgb_only"],
+        ];
+
+        document.getElementById("connections").innerHTML = items
+          .map(([name, status, label, detail]) => `
+            <div class="connection">
+              <div class="connection-head">
+                <div class="connection-name">${name}</div>
+                ${pill(status, safe(label))}
+              </div>
+              <div class="connection-detail">${safe(detail)}</div>
+            </div>
+          `)
+          .join("");
+      }
+
+      function renderPipeline(data) {
+        const stages = data.pipeline || [];
+        document.getElementById("pipeline").innerHTML = stages
+          .map((stage, index) => `
+            <div class="stage">
+              ${pill(stage.status, `Stage ${index + 1}`)}
+              <div class="stage-title">${safe(stage.stage)}</div>
+              <div class="stage-meta">from: ${safe(stage.from)}</div>
+              <div class="stage-meta">to: ${safe(stage.to)}</div>
+              <div class="stage-meta">${stage.topic ? `topic: ${stage.topic}` : ""}</div>
+              <div class="stage-count">${safe(stage.count, 0)}</div>
+            </div>
+          `)
+          .join("");
+      }
+
+      function renderScores(data) {
+        const metrics = data.model_artifacts?.metrics?.models?.xgboost || {};
+        const tuning = data.model_artifacts?.metrics?.threshold_tuning || {};
+        const summary = data.model_artifacts?.confusion_summary || {};
+        const scores = [
+          ["Accuracy", pct(metrics.accuracy), "test set"],
+          ["F1", pct(metrics.f1), `validation best ${pct(tuning.validation_f1)}`],
+          ["Precision", pct(metrics.precision), "abandoned class"],
+          ["Recall", pct(metrics.recall), "abandoned class"],
+          ["ROC AUC", pct(metrics.roc_auc), "ranking quality"],
+          ["PR AUC", pct(metrics.pr_auc), "positive class quality"],
+          ["Threshold", fixed(metrics.threshold ?? tuning.best_threshold, 2), "abandonment cutoff"],
+          ["Matrix Acc.", pct(summary.accuracy), `${safe(summary.total, 0)} test sessions`],
+        ];
+        document.getElementById("scores").innerHTML = scores
+          .map(([label, value, sub]) => `
+            <div class="score-box">
+              <div class="field-label">${label}</div>
+              <div class="score-value">${value}</div>
+              <div class="metric-sub">${sub}</div>
+            </div>
+          `)
+          .join("");
+      }
+
+      function renderConfusion(data) {
+        const confusion = data.model_artifacts?.confusion_matrix || {};
+        const labels = confusion.labels || ["converted", "abandoned"];
+        const matrix = confusion.matrix || [[0, 0], [0, 0]];
+        document.getElementById("confusion").innerHTML = `
+          <table class="matrix">
+            <thead>
+              <tr>
+                <th>Actual \\ Predicted</th>
+                <th>${safe(labels[0])}</th>
+                <th>${safe(labels[1])}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>${safe(labels[0])}</th>
+                <td><span class="matrix-cell matrix-good">${safe(matrix[0]?.[0], 0)}</span><div class="metric-sub">true converted</div></td>
+                <td><span class="matrix-cell matrix-risk">${safe(matrix[0]?.[1], 0)}</span><div class="metric-sub">false alarm</div></td>
+              </tr>
+              <tr>
+                <th>${safe(labels[1])}</th>
+                <td><span class="matrix-cell matrix-risk">${safe(matrix[1]?.[0], 0)}</span><div class="metric-sub">missed abandon</div></td>
+                <td><span class="matrix-cell matrix-good">${safe(matrix[1]?.[1], 0)}</span><div class="metric-sub">true abandoned</div></td>
+              </tr>
+            </tbody>
+          </table>
+        `;
+      }
+
+      function renderClassReport(data) {
+        const report = data.model_artifacts?.classification_report || {};
+        const rows = [
+          ["converted", report["0"]],
+          ["abandoned", report["1"]],
+          ["macro avg", report["macro avg"]],
+          ["weighted avg", report["weighted avg"]],
+        ];
+        document.getElementById("class-report").innerHTML = `
+          <table>
+            <thead>
+              <tr><th>Class</th><th>Precision</th><th>Recall</th><th>F1</th><th>Support</th></tr>
+            </thead>
+            <tbody>
+              ${rows.map(([label, row]) => `
+                <tr>
+                  <td>${label}</td>
+                  <td>${pct(row?.precision)}</td>
+                  <td>${pct(row?.recall)}</td>
+                  <td>${pct(row?.["f1-score"])}</td>
+                  <td>${safe(row?.support)}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        `;
+      }
+
+      function renderModelRuntime(data) {
+        const model = data.model || {};
+        const dataset = data.model_artifacts?.dataset_metadata || {};
+        const stats = data.runtime?.stats || {};
+        const featureNames = model.feature_names || [];
+        document.getElementById("model-runtime").innerHTML = `
+          <table>
+            <tbody>
+              <tr><th>Status</th><td>${pill(model.status, model.label)}</td></tr>
+              <tr><th>Name</th><td>${safe(model.name)}</td></tr>
+              <tr><th>Version</th><td>${safe(model.version)}</td></tr>
+              <tr><th>Variant</th><td>${safe(model.variant)}</td></tr>
+              <tr><th>Threshold</th><td>${fixed(model.threshold, 3)}</td></tr>
+              <tr><th>Features</th><td>${safe(model.feature_count)} loaded</td></tr>
+              <tr><th>Active inference</th><td>${safe(stats.active_inferences, 0)}</td></tr>
+              <tr><th>Dataset</th><td>${safe(dataset.dataset || dataset.source || "synthetic MVP dataset")}</td></tr>
+              <tr><th>Feature order</th><td>${featureNames.slice(0, 12).join(", ")}${featureNames.length > 12 ? "..." : ""}</td></tr>
+            </tbody>
+          </table>
+        `;
+      }
+
+      function renderPredictions(data) {
+        const predictions = data.runtime?.recent_predictions || [];
+        const target = document.getElementById("predictions");
+        if (!predictions.length) {
+          target.innerHTML = `<div class="empty">No predictions have been processed since the ML service started.</div>`;
+          return;
+        }
+        target.innerHTML = predictions
+          .map((item) => {
+            const features = item.top_features || [];
+            return `
+              <article class="prediction">
+                <div class="prediction-head">
+                  <div class="prediction-id">${safe(item.session_id)}</div>
+                  ${pill(item.predicted_class === "abandoned" ? "warn" : "ok", safe(item.predicted_class))}
+                </div>
+                <div class="prediction-grid">
+                  <div><div class="field-label">Score</div><div>${fixed(item.score, 3)}</div></div>
+                  <div><div class="field-label">Threshold</div><div>${fixed(item.threshold, 3)}</div></div>
+                  <div><div class="field-label">Model</div><div>${safe(item.model_version)}</div></div>
+                  <div><div class="field-label">Created</div><div>${safe(item.created_at)}</div></div>
+                </div>
+                <div class="feature-list">
+                  ${features.map((feature) => {
+                    const width = Math.min(100, Math.abs(Number(feature.importance) || 0) * 100).toFixed(0);
+                    return `
+                      <div class="feature-row">
+                        <span>${safe(feature.feature)}</span>
+                        <span>${fixed(Number(feature.value), 2)}</span>
+                        <div class="bar"><span style="width:${width}%"></span></div>
+                      </div>
+                    `;
+                  }).join("")}
+                </div>
+              </article>
+            `;
+          })
+          .join("");
+      }
+
+      function renderTransform(data) {
+        const payload = {
+          input_feature_vector: data.runtime?.last_feature_vector || null,
+          output_prediction: data.runtime?.last_prediction || null,
+          last_error: data.runtime?.last_error || null,
+        };
+        document.getElementById("last-transform").textContent = json(payload);
+      }
+
+      function renderEvents(data) {
+        const events = data.recent_events || [];
+        const target = document.getElementById("events");
+        if (!events.length) {
+          target.innerHTML = `<div class="empty">No runtime events yet.</div>`;
+          return;
+        }
+        target.innerHTML = events
+          .map((event) => `
+            <div class="event ${event.level === "error" ? "error" : ""}">
+              <div class="event-time">${safe(event.at)}</div>
+              <div>${safe(event.message)}</div>
+            </div>
+          `)
+          .join("");
+      }
+
+      function renderArtifacts(data) {
+        const artifacts = data.model_artifacts || {};
+        document.getElementById("artifacts").textContent = json({
+          model_path: artifacts.model_path,
+          artifacts: artifacts.artifacts,
+          variant_metrics: artifacts.variant_metrics,
+          dataset_metadata: artifacts.dataset_metadata,
+        });
+      }
+
+      function render(data) {
+        const overall = data.overall_status || data.status || "warn";
+        const overallPill = document.getElementById("overall-pill");
+        overallPill.className = `pill ${statusClass(overall)}`;
+        overallPill.textContent = overall === "ok" ? "All systems running" : "Attention needed";
+        document.getElementById("last-updated").textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+        document.getElementById("worker").textContent = `worker: ${safe(data.worker)}`;
+
+        renderOverview(data);
+        renderConnections(data);
+        renderPipeline(data);
+        renderScores(data);
+        renderConfusion(data);
+        renderClassReport(data);
+        renderModelRuntime(data);
+        renderPredictions(data);
+        renderTransform(data);
+        renderEvents(data);
+        renderArtifacts(data);
+      }
+
+      async function loadStatus() {
         try {
-          const res = await fetch("/internal/status");
-          if (!res.ok) {
-            throw new Error("HTTP " + res.status);
-          }
-          const data = await res.json();
-
-          // Overview
-          document.getElementById("model-version").textContent =
-            data.model_version || "—";
-          document.getElementById("feature-count").textContent =
-            data.feature_count?.toString() ?? "—";
-          document.getElementById("uptime").textContent =
-            data.uptime || "—";
-          document.getElementById("environment").textContent =
-            data.environment || "—";
-
-          // Backends
-          setStatus(
-            "pg-status",
-            data.postgres?.status || "unknown",
-            data.postgres?.label
-          );
-          document.getElementById("pg-details").textContent =
-            data.postgres?.details || "dsn: —";
-
-          setStatus(
-            "kafka-status",
-            data.kafka?.status || "unknown",
-            data.kafka?.label
-          );
-          document.getElementById("kafka-details").textContent =
-            data.kafka?.details || "bootstrap: —";
-
-          setStatus(
-            "minio-status",
-            data.minio?.status || "unknown",
-            data.minio?.label
-          );
-          document.getElementById("minio-details").textContent =
-            data.minio?.details || "endpoint: —";
-
-          // Processes
-          setStatus(
-            "consumer-status",
-            data.consumer?.status || "unknown",
-            data.consumer?.label
-          );
-          setStatus(
-            "producer-status",
-            data.producer?.status || "unknown",
-            data.producer?.label
-          );
-          setStatus(
-            "pool-status",
-            data.pool?.status || "unknown",
-            data.pool?.label
-          );
-          setStatus(
-            "model-status",
-            data.model?.status || "unknown",
-            data.model?.label
-          );
-
-          // Misc
-          document.getElementById("worker-tag").textContent =
-            "worker: " + (data.worker || "—");
-          document.getElementById("tz-tag").textContent =
-            "timezone: " + (data.timezone || "—");
-
-          appendLog(data.recent_events || []);
-
-          // Overall status
-          const overall =
-            data.overall_status || (data.status === "ok" ? "ok" : "warn");
-          const overallLabel = document.getElementById(
-            "overall-status-label"
-          );
-          overallLabel.textContent =
-            overall === "ok"
-              ? "All systems nominal"
-              : overall === "bad"
-              ? "Attention required"
-              : "Partially available";
-        } catch (err) {
-          const overallLabel = document.getElementById(
-            "overall-status-label"
-          );
-          overallLabel.textContent = "Viewer cannot reach /internal/status";
-          setStatus("pg-status", "unknown");
-          setStatus("kafka-status", "unknown");
-          setStatus("minio-status", "unknown");
-          setStatus("consumer-status", "unknown");
-          setStatus("producer-status", "unknown");
-          setStatus("pool-status", "unknown");
-          setStatus("model-status", "unknown");
-          appendLog([
-            "viewer: failed to fetch /internal/status",
-            String(err),
-          ]);
+          const response = await fetch("/internal/status", { cache: "no-store" });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          render(await response.json());
+        } catch (error) {
+          const overallPill = document.getElementById("overall-pill");
+          overallPill.className = "pill bad";
+          overallPill.textContent = "Viewer disconnected";
+          document.getElementById("last-updated").textContent =
+            `Last updated: ${new Date().toLocaleTimeString()} (${error.message})`;
         }
       }
 
-      function tick() {
-        if (!autoRefresh) return;
-        countdown -= 1;
-        if (countdown <= 0) {
-          countdown = 5;
-          fetchStatus();
-        }
-        document.getElementById("refresh-countdown").textContent =
-          countdown.toString();
-      }
-
-      function syncAutoRefreshLabel() {
-        document.getElementById("auto-refresh-label").textContent =
-          "Auto-refresh: " + (autoRefresh ? "on (5s)" : "off");
-      }
-
-      window.addEventListener("load", () => {
-        document.getElementById("refresh-countdown").textContent =
-          countdown.toString();
-        syncAutoRefreshLabel();
-        fetchStatus();
-        timerId = setInterval(tick, 1000);
-
-        document
-          .getElementById("refresh-btn")
-          .addEventListener("click", () => {
-            countdown = 5;
-            fetchStatus();
-          });
-
-        window.addEventListener("keydown", (e) => {
-          if (e.key.toLowerCase() === "r" && !e.repeat) {
-            if (e.shiftKey) {
-              autoRefresh = !autoRefresh;
-              syncAutoRefreshLabel();
-            } else {
-              countdown = 5;
-              fetchStatus();
-            }
-          }
-        });
-      });
+      document.getElementById("refresh").addEventListener("click", loadStatus);
+      loadStatus();
+      state.timer = setInterval(loadStatus, 3000);
     </script>
   </body>
 </html>

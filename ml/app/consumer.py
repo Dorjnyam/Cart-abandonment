@@ -9,6 +9,15 @@ from app.db import write_prediction
 from app.metrics import active_inference_tasks, inference_failures, messages_consumed, predictions_produced
 from app.pipeline import pipeline
 from app.producer import get_producer, publish_prediction, publish_prediction_v2
+from app.runtime_state import (
+    decrement_active_inference,
+    increment_active_inference,
+    record_dlq,
+    record_feature_vector,
+    record_message_received,
+    record_prediction_failure,
+    record_prediction_success,
+)
 from app.schemas import FeatureVector
 
 logger = logging.getLogger(__name__)
@@ -58,6 +67,7 @@ async def _consume_loop() -> None:
 
     async for msg in _consumer:
         messages_consumed.inc()
+        record_message_received(msg.topic, msg.partition, msg.offset)
         fv: FeatureVector | None = None
         msg_key = f"{msg.topic}-{msg.partition}-{msg.offset}"
         try:
@@ -67,36 +77,41 @@ async def _consume_loop() -> None:
                 msg.offset,
             )
             fv = FeatureVector(**msg.value)
+            record_feature_vector(fv, topic=msg.topic, partition=msg.partition, offset=msg.offset)
             logger.info("Inference start session_id=%s", fv.session_id)
 
             active_inference_tasks.inc()
+            increment_active_inference()
             try:
                 prediction_legacy, prediction_v2 = await pipeline.predict(fv)
             finally:
                 active_inference_tasks.dec()
+                decrement_active_inference()
 
             await write_prediction(prediction_legacy, feature_version=fv.version)
-            await publish_prediction(prediction_legacy)
+            await publish_prediction(prediction_v2)
             await publish_prediction_v2(prediction_v2)
             await _consumer.commit()
             predictions_produced.inc()
             _retry_counts.pop(msg_key, None)
+            record_prediction_success(fv, prediction_v2)
 
             logger.info(
                 "Predicted session=%s window=%s score=%.3f xgb=%.3f lstm=%s class=%s",
                 fv.session_id,
                 fv.window_seconds,
-                prediction_v2.prediction_score,
+                prediction_v2.abandonment_probability,
                 prediction_v2.xgb_score,
-                f"{prediction_v2.lstm_score:.3f}" if prediction_v2.lstm_score is not None else "n/a",
+                "disabled",
                 prediction_v2.predicted_class.value,
             )
-        except Exception:
+        except Exception as exc:
             session_id = fv.session_id if fv is not None else "unknown"
             logger.exception("Prediction failed session_id=%s", session_id)
             inference_failures.labels(model="pipeline").inc()
 
             _retry_counts[msg_key] = _retry_counts.get(msg_key, 0) + 1
+            record_prediction_failure(str(session_id), str(exc), _retry_counts[msg_key])
             if _retry_counts[msg_key] >= MAX_RETRIES:
                 logger.error(
                     "DLQ: max retries (%d) reached for session_id=%s; forwarding to dead-letter topic",
@@ -106,6 +121,7 @@ async def _consume_loop() -> None:
                 await _publish_dlq(msg.value)
                 await _consumer.commit()
                 _retry_counts.pop(msg_key, None)
+                record_dlq(str(session_id))
             # Offset NOT committed on ordinary failure → message will be replayed.
 
 

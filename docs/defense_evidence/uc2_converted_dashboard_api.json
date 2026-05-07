@@ -1,0 +1,154 @@
+{
+  "status": 200,
+  "body": {
+    "session_id": "20df6d0e-d4e3-5e93-ae0f-9e64680dd6cd",
+    "organization_id": "00000000-0000-0000-0000-000000000001",
+    "tenant_id": 1,
+    "visitor_id": "unknown",
+    "started_at": "2026-05-07T16:11:44.522489Z",
+    "ended_at": "2026-05-07T16:11:44.522489Z",
+    "device_type": "desktop",
+    "event_count": 6,
+    "page_views": 4,
+    "session_state": "CONVERTED",
+    "has_purchase_success": true,
+    "prediction": {
+      "predicted_class": "converted",
+      "predicted_label": 0,
+      "ml_predicted_class": "abandoned",
+      "business_outcome": "converted",
+      "prediction_overridden": true,
+      "override_reason": "session_state is CONVERTED",
+      "abandonment_probability": 0.4757,
+      "model_name": "xgboost",
+      "model_version": "xgboost-synthetic-mvp",
+      "threshold": 0.5,
+      "confidence": 0.5243
+    },
+    "diagnosis": null,
+    "top_features": [
+      {
+        "feature": "active_time_ms",
+        "value": null,
+        "importance": 0.70975
+      },
+      {
+        "feature": "direction_changes",
+        "value": null,
+        "importance": 0.504018
+      },
+      {
+        "feature": "mouse_distance",
+        "value": null,
+        "importance": 0.400219
+      },
+      {
+        "feature": "mongolian_trust_barrier",
+        "value": null,
+        "importance": 0.36256
+      },
+      {
+        "feature": "avg_price_in_session",
+        "value": null,
+        "importance": 0.347688
+      },
+      {
+        "feature": "price_hesitation_score",
+        "value": null,
+        "importance": 0.292533
+      },
+      {
+        "feature": "time_on_page_sec",
+        "value": null,
+        "importance": 0.290986
+      },
+      {
+        "feature": "session_duration_sec",
+        "value": null,
+        "importance": 0.248072
+      }
+    ],
+    "events": [
+      {
+        "id": "1",
+        "type": "page_view",
+        "timestamp": null,
+        "page": ""
+      },
+      {
+        "id": "2",
+        "type": "product_view",
+        "timestamp": null,
+        "page": ""
+      },
+      {
+        "id": "3",
+        "type": "add_to_cart",
+        "timestamp": null,
+        "page": ""
+      },
+      {
+        "id": "4",
+        "type": "cart_view",
+        "timestamp": null,
+        "page": ""
+      },
+      {
+        "id": "5",
+        "type": "checkout_start",
+        "timestamp": null,
+        "page": ""
+      },
+      {
+        "id": "6",
+        "type": "purchase_success",
+        "timestamp": null,
+        "page": ""
+      }
+    ],
+    "recommendation": null,
+    "developer_details": {
+      "session": {
+        "session_id": "20df6d0e-d4e3-5e93-ae0f-9e64680dd6cd",
+        "visitor_id": "unknown",
+        "created_at": "2026-05-07T16:11:44.544588Z",
+        "started_at": "2026-05-07T16:11:44.522489Z",
+        "ended_at": "2026-05-07T16:11:44.522489Z",
+        "device_type": "desktop",
+        "event_count": 6,
+        "page_views": 4,
+        "cart_value": null,
+        "session_state": "CONVERTED",
+        "has_purchase_success": true,
+        "business_outcome": "converted",
+        "prediction": {
+          "predicted_class": "converted",
+          "predicted_label": 0,
+          "ml_predicted_class": "abandoned",
+          "business_outcome": "converted",
+          "prediction_overridden": true,
+          "override_reason": "session_state is CONVERTED",
+          "abandonment_probability": 0.4757,
+          "model_name": "xgboost",
+          "model_version": "xgboost-synthetic-mvp",
+          "threshold": 0.5,
+          "confidence": 0.5243
+        },
+        "diagnosis": null,
+        "recommendation_status": null
+      },
+      "shap_values": {
+        "order_total": -0.23669570684432983,
+        "active_time_ms": 0.7097497582435608,
+        "max_scroll_pct": -0.22365914285182953,
+        "mouse_distance": 0.400219202041626,
+        "time_on_page_sec": 0.2909861207008362,
+        "direction_changes": -0.5040181875228882,
+        "avg_price_in_session": -0.3476879298686981,
+        "session_duration_sec": 0.248071551322937,
+        "price_hesitation_score": -0.2925325930118561,
+        "mongolian_trust_barrier": 0.3625599443912506
+      }
+    }
+  }
+}

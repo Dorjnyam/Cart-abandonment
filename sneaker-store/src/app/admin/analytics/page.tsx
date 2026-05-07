@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminAnalyticsPage() {
   const [orders, cartAbandonSessions] = await Promise.all([
     prisma.order.findMany(),
@@ -20,4 +22,3 @@ export default async function AdminAnalyticsPage() {
     </div>
   );
 }
-

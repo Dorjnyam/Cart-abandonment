@@ -1,0 +1,11 @@
+docker version  
+request returned Internal Server Error for API route and version http://%2F%2F.%2Fpipe%2Fdocker_engine/v1.24/version, check if the server supports the requested API version
+Client:
+ Cloud integration: v1.0.35+desktop.5
+ Version:           24.0.7
+ API version:       1.43
+ Go version:        go1.20.10
+ Git commit:        afdd53b
+ Built:             Thu Oct 26 09:08:44 2023
+ OS/Arch:           windows/amd64
+ Context:           default

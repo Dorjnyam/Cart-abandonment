@@ -74,14 +74,16 @@ _runtime: dict[str, object] = {
 
 
 def _required_env_status() -> dict[str, bool]:
-    return {
+    status = {
         "KAFKA_BOOTSTRAP": bool(os.environ.get("KAFKA_BOOTSTRAP")),
         "FEATURE_VERSION": bool(os.environ.get("FEATURE_VERSION")),
         "FEATURE_VARIANT": bool(os.environ.get("FEATURE_VARIANT")),
         "LOG_LEVEL": bool(os.environ.get("LOG_LEVEL")),
         "PORT": bool(os.environ.get("PORT")),
-        "GRAPH_DB_DSN": bool(os.environ.get("GRAPH_DB_DSN")),
     }
+    if FEATURE_VARIANT.upper() == "D":
+        status["GRAPH_DB_DSN"] = bool(os.environ.get("GRAPH_DB_DSN"))
+    return status
 
 
 async def _tcp_check(host: str, port: int, timeout: float = 2.0) -> bool:

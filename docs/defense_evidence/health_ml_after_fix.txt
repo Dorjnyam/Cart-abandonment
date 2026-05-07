@@ -1,0 +1,7 @@
+HTTP/1.1 200 OK
+date: Thu, 07 May 2026 16:11:15 GMT
+server: uvicorn
+content-length: 161
+content-type: application/json
+
+{"status":"ok","model_loaded":true,"consumer_running":true,"consumer_failed":false,"producer_ok":true,"model_version":"xgboost-synthetic-mvp","feature_count":38}

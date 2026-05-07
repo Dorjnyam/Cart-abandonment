@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "Shop Sneakers | Sneaker Store",
   description: "Browse sneakers with filters, sorting, and pagination.",
 };
+export const dynamic = "force-dynamic";
 
 interface Props {
   searchParams: Promise<{

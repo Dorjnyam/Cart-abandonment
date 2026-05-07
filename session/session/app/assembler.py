@@ -8,6 +8,8 @@ from typing import Any
 import redis.asyncio as redis_async
 
 from app.config import SESSION_TTL_SECONDS, SESSION_WINDOWS
+from app.db import write_session_to_pg
+from app.emitter import emit_session_enriched
 from app.metrics import (
     sessions_created,
     sessions_finalized,
@@ -26,6 +28,7 @@ MAX_FIELDS = {"checkout_step", "form_fields_touched", "max_scroll_pct", "checkou
 LATEST_FIELDS = {"page_load_ms"}  # per-page metric — overwrite, never sum
 DEADLINE_ZSET = "session_deadlines"
 FLUSH_LOCK_TTL = 30  # seconds; prevents double-flush from sweeper + consumer races
+SESSION_HASH_TTL_MARGIN_SECONDS = 60
 
 
 def _derive_page(payload: dict[str, Any]) -> str | None:
@@ -39,6 +42,15 @@ def _derive_page(payload: dict[str, Any]) -> str | None:
 def _event_matches(event_type: str, *candidates: str) -> bool:
     normalized = event_type.lower()
     return any(candidate in normalized for candidate in candidates)
+
+
+def _payload_truthy(payload: dict[str, Any], key: str) -> bool:
+    value = payload.get(key)
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() in {"1", "true", "yes"}
+    return bool(value)
 
 
 async def accumulate_event(r: redis_async.Redis, event: RawEvent) -> None:
@@ -71,6 +83,14 @@ async def accumulate_event(r: redis_async.Redis, event: RawEvent) -> None:
 
     event_payload = event.payload.model_dump(exclude_none=True)
     payload_updates: dict[str, Any] = {}
+    if event_payload.get("price") is not None and event_payload.get("product_price") is None:
+        event_payload["product_price"] = event_payload["price"]
+    if event_payload.get("category") is not None and event_payload.get("product_category") is None:
+        event_payload["product_category"] = event_payload["category"]
+    if event_payload.get("cart_total") is not None and event_payload.get("cart_value") is None:
+        event_payload["cart_value"] = event_payload["cart_total"]
+    if event_payload.get("quantity") is not None and event_payload.get("cart_item_count") is None:
+        event_payload["cart_item_count"] = event_payload["quantity"]
     for field, value in event_payload.items():
         current_val = current.get(field)
         if field in COUNTER_FIELDS:
@@ -120,9 +140,23 @@ async def accumulate_event(r: redis_async.Redis, event: RawEvent) -> None:
     seq = json.loads(current.get("event_sequence", "[]"))
     seq.append(event_type)
 
+    has_purchase_event = _event_matches(event_type, "purchase_success", "order_success")
+    has_checkout_start = (
+        current.get("has_checkout_start", "false") == "true"
+        or event_type == "checkout_start"
+        or _event_matches(event_type, "checkout_start")
+    )
+    has_cart_activity = (
+        current.get("has_cart_activity", "false") == "true"
+        or event_type in {"add_to_cart", "remove_from_cart", "cart_view"}
+        or _event_matches(event_type, "add_to_cart", "remove_from_cart", "cart_view", "cart_add", "cart_remove")
+    )
     is_purchase = current.get("is_completed_purchase", "false") == "true"
+    is_currently_converted = current.get("state") == SessionState.CONVERTED.value
     state = SessionState.NEW if not current else SessionState.ACTIVE
-    if event_payload.get("is_order_success") is True or event_payload.get("is_order_success") == "true":
+    if is_currently_converted:
+        state = SessionState.CONVERTED
+    if has_purchase_event or _payload_truthy(event_payload, "is_order_success"):
         is_purchase = True
         state = SessionState.CONVERTED
 
@@ -131,6 +165,11 @@ async def accumulate_event(r: redis_async.Redis, event: RawEvent) -> None:
         "event_sequence": json.dumps(seq),
         "last_seen_at": event.timestamp.isoformat(),
         "is_completed_purchase": str(is_purchase).lower(),
+        "has_purchase_success": str(is_purchase).lower(),
+        "has_checkout_start": str(has_checkout_start).lower(),
+        "has_cart_activity": str(has_cart_activity).lower(),
+        "final_event_type": event_type,
+        "session_state": state.value,
         "state": state.value,
         "time_on_page_total_ms": str(time_on_page_total_ms),
         "last_page": current_page or last_page or "",
@@ -140,7 +179,9 @@ async def accumulate_event(r: redis_async.Redis, event: RawEvent) -> None:
     # Atomic event_count increment — avoids Python read-modify-write race
     pipe.hincrby(key, "event_count", 1)
     pipe.zadd(DEADLINE_ZSET, {str(event.session_id): time.time() + SESSION_TTL_SECONDS})
-    pipe.expire(key, SESSION_TTL_SECONDS)
+    # Keep the hash alive past the deadline so the sweeper can still read it,
+    # flush to Postgres, and emit session_enriched after the idle timeout fires.
+    pipe.expire(key, SESSION_TTL_SECONDS + SESSION_HASH_TTL_MARGIN_SECONDS)
     pipe.expire(f"visitor:{event.visitor_id}:active", SESSION_TTL_SECONDS)
     await pipe.execute()
 
@@ -168,9 +209,6 @@ async def flush_session(
     session_id: str,
     end_reason: str = "timeout",
 ) -> None:
-    from app.db import write_session_to_pg
-    from app.emitter import emit_session_enriched
-
     # Redis SET NX flush-lock: prevents double-flush from sweeper + consumer racing
     lock_key = f"session_flush_lock:{session_id}"
     acquired = await r.set(lock_key, "1", nx=True, ex=FLUSH_LOCK_TTL)

@@ -7,13 +7,15 @@ import { MAIN_OFFSET_CLASS } from "./layoutConstants";
 
 const navHref: Partial<Record<NavKey, string>> = {
   dashboard:       "/dashboard",
+  pipeline:        "/pipeline",
   sessions:        "/sessions",
-  analytics:       "/analytics",
-  ablation:        "/analytics?tab=ablation",
+  "ml-insights":   "/ml-insights",
+  analytics:       "/ml-insights",
+  ablation:        "/ml-insights?tab=ablation",
   diagnosis:       "/diagnosis",
   recommendations: "/recommendations",
   settings:        "/settings",
-  setup:           "/setup",
+  setup:           "/installation",
   admin:           "/admin",
   overview:        "/overview",
   diagnostics:     "/diagnostics",

@@ -38,12 +38,13 @@ _UUID_RE = re.compile(
 class EventPayload(BaseModel):
     """Validated representation of one inbound event."""
 
-    model_config = {"extra": "ignore", "populate_by_name": True}
+    model_config = {"extra": "allow", "populate_by_name": True}
 
     # ── Core DB columns (always expected) ──────────────────────────────────
     event_id: Optional[str] = None   # client dedup key; None → NULL in DB (multiple NULLs allowed)
     visitor_id: Optional[str] = None
     session_id: Optional[str] = None
+    tenant_id: Optional[str] = None
     event_type: Optional[str] = None
     url: Optional[str] = None
     referrer: Optional[str] = None
@@ -86,6 +87,10 @@ class EventPayload(BaseModel):
     search_query_from_url: Optional[Any] = None
     is_order_success: Optional[Any] = None
     product_id: Optional[Any] = None
+    product_name: Optional[Any] = None
+    category: Optional[Any] = None
+    price: Optional[Any] = None
+    quantity: Optional[Any] = None
     product_price: Optional[Any] = None
     product_category: Optional[Any] = None
     product_availability: Optional[Any] = None
@@ -100,10 +105,15 @@ class EventPayload(BaseModel):
 
     # ── T1 extra fields ─────────────────────────────────────────────────────
     cart_value: Optional[Any] = None
+    cart_total: Optional[Any] = None
     cart_item_count: Optional[Any] = None
     checkout_step: Optional[Any] = None
+    discount: Optional[Any] = None
+    shipping_cost: Optional[Any] = None
+    error_type: Optional[Any] = None
     payment_method: Optional[Any] = None
     shipping_method: Optional[Any] = None
+    order_id: Optional[Any] = None
     order_total: Optional[Any] = None
     discount_code: Optional[Any] = None
     is_sale: Optional[Any] = None

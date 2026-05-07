@@ -1,4 +1,4 @@
-from pydantic import AliasChoices, Field, model_validator
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 CATEGORICAL_ENCODINGS: dict[str, dict[str, int]] = {
@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     kafka_dlq_topic: str = "prediction_dlq"
 
     # PostgreSQL
-    pg_dsn: str
+    pg_dsn: str = "postgresql://postgres:postgres@localhost:5432/cartdb"
 
     @property
     def pg_dsn_asyncpg(self) -> str:
@@ -44,13 +44,13 @@ class Settings(BaseSettings):
     minio_secure: bool = False
 
     # Models — legacy single-path + ablation variant paths
-    model_path_xgboost: str = "./models/model_v1_xgboost.pkl"
+    model_path_xgboost: str = "./models/xgb_cart_abandonment.joblib"
     model_path_xgboost_baseline: str = "./models/model_baseline_xgboost.pkl"
     model_path_xgboost_extended: str = "./models/model_extended_xgboost.pkl"
     model_path_xgboost_full: str = "./models/model_full_xgboost.pkl"
     model_path_lstm: str = "./models/model_v1_lstm.pt"
-    model_version_xgboost: str = "xgboost-v1"
-    model_version_lstm: str = "lstm-v1"
+    model_version_xgboost: str = "xgboost-synthetic-mvp"
+    model_version_lstm: str = "future-work-disabled"
     shap_background_samples: int = 100
     shap_top_n: int = 10
     shap_enabled: bool = True  # set SHAP_ENABLED=false to skip SHAP in prod
@@ -61,23 +61,14 @@ class Settings(BaseSettings):
     # Prediction
     abandon_threshold: float = 0.5
     lstm_min_sequence_length: int = 4
-    ensemble_weight_xgboost: float = 0.7
-    ensemble_weight_lstm: float = 0.3
+    ensemble_weight_xgboost: float = 1.0
+    ensemble_weight_lstm: float = 0.0
 
     # Concurrency
     max_concurrent_inferences: int = 4
     inference_thread_workers: int = 4
 
-    model_config = SettingsConfigDict(env_file=".env")
-
-    @model_validator(mode="after")
-    def _check_ensemble_weights(self) -> "Settings":
-        total = self.ensemble_weight_xgboost + self.ensemble_weight_lstm
-        if abs(total - 1.0) > 1e-6:
-            raise ValueError(
-                f"ENSEMBLE_WEIGHT_XGBOOST + ENSEMBLE_WEIGHT_LSTM must equal 1.0, got {total:.4f}"
-            )
-        return self
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", protected_namespaces=())
 
 
 settings = Settings()

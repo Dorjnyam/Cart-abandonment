@@ -1,4 +1,5 @@
 import asyncio
+import json
 import math
 from datetime import datetime, timezone
 from uuid import uuid4
@@ -6,7 +7,75 @@ from uuid import uuid4
 import pytest
 
 from features import FeatureComputer
-from models import SessionEnriched
+from models import AggregatedFields, SessionEnriched
+
+
+def test_aggregated_null_values_use_defaults() -> None:
+    fields = AggregatedFields(
+        time_on_page_sec=None,
+        max_scroll_pct=None,
+        click_count=None,
+        rage_click=None,
+        end_reason=None,
+    )
+
+    assert fields.time_on_page_sec == 0.0
+    assert fields.max_scroll_pct == 0.0
+    assert fields.click_count == 0
+    assert fields.rage_click == 0
+    assert fields.end_reason == ""
+
+
+def test_aggregated_numeric_strings_are_coerced() -> None:
+    fields = AggregatedFields(
+        checkout_step_detected="0.0",
+        max_scroll_pct="45.5",
+        is_order_success="false",
+    )
+
+    assert fields.checkout_step_detected == 0
+    assert fields.max_scroll_pct == pytest.approx(45.5)
+    assert fields.is_order_success is False
+
+
+def test_feature_vector_model_dump_json_is_serializable() -> None:
+    session = SessionEnriched(
+        session_id=uuid4(),
+        visitor_id=uuid4(),
+        tenant_id=uuid4(),
+        started_at=datetime(2026, 3, 15, 14, 30, tzinfo=timezone.utc),
+        window_seconds=30,
+        aggregated_fields={"cart_item_count": 1},
+        event_sequence=[],
+    )
+
+    fv = asyncio.run(FeatureComputer("1.0.0", "C").compute(session))
+    json.dumps(fv.model_dump(mode="json"))
+
+
+def test_feature_vector_carries_outcome_metadata_outside_features() -> None:
+    session = SessionEnriched(
+        session_id=uuid4(),
+        visitor_id=uuid4(),
+        tenant_id=uuid4(),
+        started_at=datetime(2026, 3, 15, 14, 30, tzinfo=timezone.utc),
+        window_seconds=None,
+        session_state="CONVERTED",
+        has_purchase_success=True,
+        has_checkout_start=True,
+        has_cart_activity=True,
+        final_event_type="purchase_success",
+        aggregated_fields={"is_order_success": True, "cart_item_count": 1},
+        event_sequence=["page_view", "purchase_success"],
+    )
+
+    fv = asyncio.run(FeatureComputer("1.0.0", "C").compute(session))
+
+    assert fv.session_state == "CONVERTED"
+    assert fv.has_purchase_success is True
+    assert fv.has_checkout_start is True
+    assert fv.has_cart_activity is True
+    assert fv.final_event_type == "purchase_success"
 
 
 def test_full_feature_vector() -> None:

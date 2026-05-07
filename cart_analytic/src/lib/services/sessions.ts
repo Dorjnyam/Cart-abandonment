@@ -1,6 +1,6 @@
 import { apiRequest, ApiError } from "@/lib/api-client";
 import { API_ENDPOINTS } from "@/lib/api-config";
-import type { PaginatedResponse, Session, SessionDetail, ApiSession, SHAPValues } from "@/types/api";
+import type { PaginatedResponse, Session, SessionDetail, ApiSession, SHAPValues, ScoreLabel } from "@/types/api";
 
 type SessionListParams = {
   page?: number;
@@ -8,23 +8,37 @@ type SessionListParams = {
   prediction?: string;
 };
 
+const SCORE_LABELS: ScoreLabel[] = ["S1", "S2", "S3", "S4", "S5", "S6", "S7"];
+
+function dominantFromDiagnosis(reason?: string, scores?: Record<string, number>): ScoreLabel {
+  if (SCORE_LABELS.includes(reason as ScoreLabel)) return reason as ScoreLabel;
+  if (scores) {
+    return SCORE_LABELS.reduce((best, key) => ((scores[key] ?? 0) > (scores[best] ?? 0) ? key : best), SCORE_LABELS[0]);
+  }
+  return SCORE_LABELS[0];
+}
+
 function mapApiSession(api: ApiSession): Session {
+  const dominantScore = dominantFromDiagnosis(api.diagnosis?.dominant_reason, api.diagnosis?.scores);
   return {
-    id:                      api.session_id,
-    visitorId:               api.visitor_id,
-    createdAt:               api.started_at,
-    device:                  api.device_type === "mobile" ? "mobile" : "desktop",
-    source:                  "Direct",
-    cartValue:               null,
-    predictionScore:         api.prediction?.abandonment_probability ?? 0,
-    dominantScore:           "S1",
-    recommendationGenerated: false,
-    model_variant:           api.prediction?.model_variant as Session["model_variant"] | undefined,
+    id: api.session_id,
+    visitorId: api.visitor_id,
+    createdAt: api.started_at,
+    device: api.device_type === "mobile" ? "mobile" : "desktop",
+    source: "Direct",
+    cartValue: null,
+    predictionScore: api.prediction?.abandonment_probability ?? 0,
+    dominantScore,
+    recommendationGenerated: Boolean(api.diagnosis?.recommendation),
+    model_variant: api.prediction?.model_variant as Session["model_variant"] | undefined,
   };
 }
 
 const EMPTY_PAGE: PaginatedResponse<Session> = {
-  count: 0, next: null, previous: null, results: [],
+  count: 0,
+  next: null,
+  previous: null,
+  results: [],
 };
 
 type ApiSessionDetail = ApiSession & {
@@ -36,18 +50,10 @@ function normalizeShapValues(
   predictionScore: number,
 ): SHAPValues {
   const values = Object.entries(shapValues ?? {})
-    .map(([feature, contribution]) => ({
-      feature,
-      value: contribution,
-      contribution,
-    }))
+    .map(([feature, contribution]) => ({ feature, value: contribution, contribution }))
     .sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution));
 
-  return {
-    baseValue: 0,
-    prediction: predictionScore,
-    values,
-  };
+  return { baseValue: 0, prediction: predictionScore, values };
 }
 
 function mapApiSessionDetail(api: ApiSessionDetail): SessionDetail {
@@ -57,10 +63,8 @@ function mapApiSessionDetail(api: ApiSessionDetail): SessionDetail {
     session,
     prediction: {
       score,
-      dominantScore: "S1",
-      confidence: typeof api.prediction?.confidence === "number"
-        ? api.prediction.confidence
-        : score,
+      dominantScore: session.dominantScore,
+      confidence: typeof api.prediction?.confidence === "number" ? api.prediction.confidence : score,
     },
     events: [],
     featureVector: {
@@ -68,6 +72,7 @@ function mapApiSessionDetail(api: ApiSessionDetail): SessionDetail {
       page_views: api.page_views,
       device_type: api.device_type,
       model_variant: api.prediction?.model_variant ?? null,
+      model_version: api.prediction?.model_version ?? null,
     },
     shapValues: normalizeShapValues(api.shap_values, score),
   };
@@ -79,7 +84,7 @@ export async function getSessions(
   const { page = 1, model_variant, prediction } = params;
   const qs = new URLSearchParams({ page: String(page) });
   if (model_variant) qs.set("model_variant", model_variant);
-  if (prediction)    qs.set("prediction",    prediction);
+  if (prediction) qs.set("prediction", prediction);
 
   try {
     const raw = await apiRequest<PaginatedResponse<ApiSession | Session>>(
@@ -91,11 +96,10 @@ export async function getSessions(
     );
     return { ...raw, results };
   } catch (error) {
-    // 404 when no sessions yet → empty state, not an error
     if (error instanceof ApiError && (error.status === 404 || error.status === 0)) {
       return EMPTY_PAGE;
     }
-    return EMPTY_PAGE;
+    throw error;
   }
 }
 
@@ -103,7 +107,8 @@ export async function getSessionDetail(sessionId: string): Promise<SessionDetail
   try {
     const raw = await apiRequest<SessionDetail | ApiSessionDetail>(API_ENDPOINTS.sessionDetail(sessionId));
     return "session_id" in raw ? mapApiSessionDetail(raw) : raw;
-  } catch {
-    return null;
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return null;
+    throw error;
   }
 }

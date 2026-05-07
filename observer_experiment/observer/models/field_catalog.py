@@ -42,6 +42,12 @@ _FIELD_ROWS: dict[str, tuple[str, str, str, str]] = {
         "Session ID",
         "Таб бүрт `sessionStorage`; мөн DB багана.",
     ),
+    "tenant_id": (
+        "participant",
+        "client_configured",
+        "Tenant ID",
+        "Configured by the install snippet as the tenant external UUID; Session uses it for downstream routing.",
+    ),
     "visit_count": (
         "participant",
         "client_derived",
@@ -264,6 +270,30 @@ _FIELD_ROWS: dict[str, tuple[str, str, str, str]] = {
         "Барааны ID",
         "Impression selector эсвэл T1 `data-ca-id`.",
     ),
+    "product_name": (
+        "commerce_heuristic",
+        "client_measured",
+        "Product name",
+        "Canonical product display name for dashboard evidence.",
+    ),
+    "category": (
+        "commerce_heuristic",
+        "client_measured",
+        "Category",
+        "Canonical product category.",
+    ),
+    "price": (
+        "commerce_heuristic",
+        "client_measured",
+        "Price",
+        "Canonical product price.",
+    ),
+    "quantity": (
+        "commerce_heuristic",
+        "client_measured",
+        "Quantity",
+        "Canonical product quantity.",
+    ),
     "product_price": (
         "commerce_heuristic",
         "client_measured",
@@ -300,6 +330,12 @@ _FIELD_ROWS: dict[str, tuple[str, str, str, str]] = {
         "Сагсны дүн",
         "`data-ca-value` эсвэл `_ca_user`.",
     ),
+    "cart_total": (
+        "commerce_explicit",
+        "t1_explicit",
+        "Cart total",
+        "Canonical cart total used for price sensitivity evidence.",
+    ),
     "cart_item_count": (
         "commerce_explicit",
         "t1_explicit",
@@ -312,6 +348,24 @@ _FIELD_ROWS: dict[str, tuple[str, str, str, str]] = {
         "Checkout алхам (тодорхой)",
         "`data-ca-step` — платформын нэр.",
     ),
+    "discount": (
+        "commerce_explicit",
+        "t1_explicit",
+        "Discount",
+        "Discount amount or zero when no discount was applied.",
+    ),
+    "shipping_cost": (
+        "commerce_explicit",
+        "t1_explicit",
+        "Shipping cost",
+        "Shipping cost shown during cart or checkout.",
+    ),
+    "error_type": (
+        "friction",
+        "client_measured",
+        "Checkout error type",
+        "Canonical checkout error such as payment_failed or validation_error.",
+    ),
     "payment_method": (
         "commerce_explicit",
         "t1_explicit",
@@ -323,6 +377,12 @@ _FIELD_ROWS: dict[str, tuple[str, str, str, str]] = {
         "t1_explicit",
         "Хүргэлтийн арга",
         "`data-ca-shipping` / `_ca_user`.",
+    ),
+    "order_id": (
+        "commerce_explicit",
+        "t1_explicit",
+        "Order ID",
+        "Purchase identifier proving conversion.",
     ),
     "order_total": (
         "commerce_explicit",

@@ -4,17 +4,18 @@ import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import {
   Activity,
-  BarChart3,
-  FlaskConical,
+  BookOpen,
+  BrainCircuit,
   LayoutDashboard,
+  LifeBuoy,
   Lightbulb,
   LogOut,
   Plug,
+  Radio,
   Settings,
   Shield,
   Stethoscope,
   UserCircle,
-  LifeBuoy,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useAuth } from "./AuthContext";
@@ -22,8 +23,9 @@ import { SIDEBAR_WIDTH_CLASS } from "./layoutConstants";
 
 export type NavKey =
   | "dashboard"
+  | "pipeline"
   | "sessions"
-  | "analytics"
+  | "ml-insights"
   | "ablation"
   | "diagnosis"
   | "recommendations"
@@ -33,22 +35,26 @@ export type NavKey =
   | "overview"
   | "diagnostics"
   | "tenants"
-  | "installation";
+  | "installation"
+  | "analytics";
 
-type NavItem = { key: NavKey; label: string; href: string; Icon: LucideIcon };
+type NavItemType = { key: NavKey; label: string; href: string; Icon: LucideIcon };
 
-const mainNavItems: NavItem[] = [
-  { key: "dashboard",       label: "Тойм",           href: "/dashboard",              Icon: LayoutDashboard },
-  { key: "sessions",        label: "Сессүүд",         href: "/sessions",               Icon: Activity },
-  { key: "analytics",       label: "Аналитик",        href: "/analytics",              Icon: BarChart3 },
-  { key: "ablation",        label: "Ablation Study",  href: "/analytics?tab=ablation", Icon: FlaskConical },
-  { key: "diagnosis",       label: "Оношлогоо",       href: "/diagnosis",              Icon: Stethoscope },
-  { key: "recommendations", label: "Зөвлөмж",         href: "/recommendations",        Icon: Lightbulb },
+const productNavItems: NavItemType[] = [
+  { key: "dashboard", label: "Overview", href: "/dashboard", Icon: LayoutDashboard },
+  { key: "ml-insights", label: "Analytics", href: "/ml-insights", Icon: BrainCircuit },
+  { key: "sessions", label: "Sessions", href: "/sessions", Icon: Activity },
+  { key: "diagnosis", label: "Diagnosis", href: "/diagnosis", Icon: Stethoscope },
+  { key: "recommendations", label: "Recommendations", href: "/recommendations", Icon: Lightbulb },
 ];
 
-const systemNavItems: NavItem[] = [
-  { key: "settings", label: "Тохиргоо", href: "/settings", Icon: Settings },
-  { key: "setup",    label: "Суулгалт", href: "/setup",    Icon: Plug },
+const operationsNavItems: NavItemType[] = [
+  { key: "pipeline", label: "Live Pipeline", href: "/pipeline", Icon: Radio },
+];
+
+const systemNavItems: NavItemType[] = [
+  { key: "installation", label: "Installation", href: "/installation", Icon: Plug },
+  { key: "settings", label: "Settings", href: "/settings", Icon: Settings },
 ];
 
 function NavItem({
@@ -66,31 +72,33 @@ function NavItem({
     <Link
       href={href}
       className={[
-        "relative flex items-center gap-3 rounded-lg py-2 px-3 text-[0.8125rem] transition-colors duration-150",
+        "group relative flex items-center gap-2.5 rounded-md py-1.5 pl-3 pr-2.5",
+        "text-[12.5px] transition-colors duration-150",
         active
-          ? "bg-white/10 text-white font-medium"
-          : "text-white/60 hover:text-white/90 hover:bg-white/5",
+          ? "bg-[rgb(28_25_23/0.06)] text-on-surface font-medium"
+          : "text-on-surface-variant hover:bg-[rgb(28_25_23/0.04)] hover:text-on-surface",
       ].join(" ")}
     >
-      {active && (
+      {active ? (
         <span
           aria-hidden
-          className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full bg-[#2563eb]"
+          className="absolute left-0 top-1/2 h-4 w-[2px] -translate-y-1/2 rounded-r-full"
+          style={{ background: "rgb(var(--primary-rgb))" }}
         />
-      )}
+      ) : null}
       <Icon
-        className={`size-4 shrink-0 ${active ? "text-[#3b82f6]" : "text-white/40"}`}
-        strokeWidth={active ? 2 : 1.75}
+        className={`size-[15px] shrink-0 ${active ? "text-primary" : "text-on-surface-variant/70 group-hover:text-on-surface-variant"}`}
+        strokeWidth={1.6}
         aria-hidden
       />
-      <span className="whitespace-nowrap truncate">{label}</span>
+      <span className="truncate whitespace-nowrap tracking-[-0.005em]">{label}</span>
     </Link>
   );
 }
 
 function SectionLabel({ label }: { label: string }) {
   return (
-    <p className="px-3 pt-5 pb-1 text-[0.6rem] font-bold uppercase tracking-[0.15em] text-white/25">
+    <p className="px-3 pb-1.5 pt-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant/70">
       {label}
     </p>
   );
@@ -101,60 +109,68 @@ export default function Sidebar({ active }: { active: NavKey }): ReactNode {
 
   return (
     <aside
-      className={`fixed left-0 top-0 bottom-0 ${SIDEBAR_WIDTH_CLASS} z-50 flex flex-col`}
-      style={{ background: "#050c1a", borderRight: "1px solid rgba(255,255,255,0.06)" }}
+      className={`fixed bottom-0 left-0 top-0 ${SIDEBAR_WIDTH_CLASS} z-50 flex flex-col`}
+      style={{
+        background: "rgb(var(--sidebar-bg-rgb))",
+        borderRight: "1px solid rgb(28 25 23 / 0.08)",
+      }}
     >
-      {/* Logo */}
-      <div className="px-4 py-4 border-b border-white/[0.07]">
-        <Link href="/dashboard" className="flex items-center gap-2.5 min-w-0">
+      {/* Wordmark + workspace */}
+      <div className="px-4 pt-5 pb-4 hairline-b">
+        <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5">
           <span
             aria-hidden
-            className="flex size-[22px] shrink-0 items-center justify-center rounded-[6px] text-white text-[10px] font-bold"
-            style={{ background: "#2563eb" }}
+            className="flex size-7 shrink-0 items-center justify-center rounded-[6px] text-[10.5px] font-semibold text-white"
+            style={{ background: "rgb(var(--primary-rgb))", letterSpacing: "0.02em" }}
           >
             CA
           </span>
           <div className="min-w-0">
-            <div className="text-[13px] font-semibold text-white leading-tight"
-              style={{ fontFamily: "var(--font-display, Newsreader), serif" }}>
-              CartAnalytics
+            <div
+              className="text-[14px] font-medium leading-tight text-on-surface"
+              style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.022em" }}
+            >
+              Cart Analytics
             </div>
-            {storeName && (
-              <div className="text-[10px] text-white/40 truncate mt-0.5">{storeName}</div>
-            )}
+            <div className="mt-0.5 text-[9.5px] uppercase tracking-[0.22em] text-on-surface-variant/70">
+              Recovery Intelligence
+            </div>
           </div>
         </Link>
+
+        {storeName ? (
+          <div className="mt-3.5 flex items-center gap-2 rounded-md hairline px-2.5 py-1.5 bg-surface-container-lowest">
+            <span className="size-1.5 shrink-0 rounded-full" style={{ background: "rgb(var(--primary-rgb))" }} aria-hidden />
+            <span className="truncate text-[11.5px] font-medium text-on-surface">{storeName}</span>
+          </div>
+        ) : null}
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-2 px-2 no-scrollbar">
-        {role === "admin" && (
+      {/* Nav */}
+      <nav className="no-scrollbar flex-1 overflow-y-auto px-2 py-2">
+        {role === "admin" ? (
           <>
-            <SectionLabel label="Админ" />
-            <NavItem
-              active={active === "admin"}
-              label="Tenant удирдлага"
-              href="/admin"
-              Icon={Shield}
-            />
+            <SectionLabel label="Admin" />
+            <NavItem active={active === "admin"} label="Tenant control" href="/admin" Icon={Shield} />
           </>
-        )}
+        ) : null}
 
-        <SectionLabel label="Үндсэн" />
-        {mainNavItems
-          .filter((item) => item.key !== "ablation" || role === "admin" || role === "owner")
-          .map((item) => (
-            <NavItem
-              key={item.key}
-              active={item.key === active}
-              label={item.label}
-              href={item.href}
-              Icon={item.Icon}
-            />
-          ))}
+        <SectionLabel label="Product" />
+        {productNavItems.map((item) => (
+          <NavItem
+            key={item.key}
+            active={
+              item.key === active ||
+              (item.key === "ml-insights" && (active === "analytics" || active === "ablation"))
+            }
+            label={item.label}
+            href={item.href}
+            Icon={item.Icon}
+          />
+        ))}
 
-        <SectionLabel label="Систем" />
-        {systemNavItems.map((item) => (
+        <SectionLabel label="Operations" />
+        {operationsNavItems.map((item) => (
           <NavItem
             key={item.key}
             active={item.key === active}
@@ -163,31 +179,49 @@ export default function Sidebar({ active }: { active: NavKey }): ReactNode {
             Icon={item.Icon}
           />
         ))}
+
+        <SectionLabel label="System" />
+        {systemNavItems.map((item) => (
+          <NavItem
+            key={item.key}
+            active={item.key === active || (item.key === "installation" && active === "setup")}
+            label={item.label}
+            href={item.href}
+            Icon={item.Icon}
+          />
+        ))}
       </nav>
 
-      {/* Profile & logout */}
-      <div className="p-3 border-t border-white/[0.07] space-y-0.5">
+      {/* Footer */}
+      <div className="space-y-0.5 px-2 py-2.5 hairline-t">
         <Link
           href="/profile"
-          className="flex items-center gap-2.5 rounded-lg py-2 px-3 text-white/60 hover:text-white hover:bg-white/5 text-[0.8125rem] transition-colors"
+          className="flex items-center gap-2.5 rounded-md px-3 py-1.5 text-[12.5px] text-on-surface-variant transition-colors hover:bg-[rgb(28_25_23/0.04)] hover:text-on-surface"
         >
-          <UserCircle className="size-4 shrink-0 text-white/35" aria-hidden />
-          <span className="truncate" suppressHydrationWarning>{userName || "Профайл"}</span>
+          <UserCircle className="size-[15px] shrink-0 text-on-surface-variant/70" aria-hidden strokeWidth={1.6} />
+          <span className="truncate" suppressHydrationWarning>{userName || "Profile"}</span>
         </Link>
         <Link
-          href="/settings"
-          className="flex items-center gap-2.5 rounded-lg py-2 px-3 text-white/60 hover:text-white hover:bg-white/5 text-[0.8125rem] transition-colors"
+          href="/installation"
+          className="flex items-center gap-2.5 rounded-md px-3 py-1.5 text-[12.5px] text-on-surface-variant transition-colors hover:bg-[rgb(28_25_23/0.04)] hover:text-on-surface"
         >
-          <LifeBuoy className="size-4 shrink-0 text-white/35" aria-hidden />
-          Дэмжлэг
+          <BookOpen className="size-[15px] shrink-0 text-on-surface-variant/70" aria-hidden strokeWidth={1.6} />
+          Documentation
+        </Link>
+        <Link
+          href="/installation"
+          className="flex items-center gap-2.5 rounded-md px-3 py-1.5 text-[12.5px] text-on-surface-variant transition-colors hover:bg-[rgb(28_25_23/0.04)] hover:text-on-surface"
+        >
+          <LifeBuoy className="size-[15px] shrink-0 text-on-surface-variant/70" aria-hidden strokeWidth={1.6} />
+          Help &amp; support
         </Link>
         <button
           type="button"
           onClick={signOut}
-          className="flex w-full items-center gap-2.5 rounded-lg py-2 px-3 text-white/50 hover:text-white hover:bg-white/5 text-[0.8125rem] transition-colors"
+          className="mt-0.5 flex w-full items-center gap-2.5 rounded-md px-3 py-1.5 text-[12.5px] text-on-surface-variant/80 transition-colors hover:bg-[rgb(28_25_23/0.04)] hover:text-on-surface"
         >
-          <LogOut className="size-4 shrink-0 text-white/30" aria-hidden />
-          Гарах
+          <LogOut className="size-[15px] shrink-0 text-on-surface-variant/70" aria-hidden strokeWidth={1.6} />
+          Sign out
         </button>
       </div>
     </aside>

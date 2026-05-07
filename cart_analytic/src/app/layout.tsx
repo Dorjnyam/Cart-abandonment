@@ -1,20 +1,42 @@
 import type { Metadata } from "next";
+import { Fraunces, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/editorial/AuthContext";
 import { ToastProvider } from "@/components/ui/Toast";
 
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-fraunces",
+  display: "swap",
+});
+
+const geist = Geist({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-geist",
+  display: "swap",
+});
+
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-geist-mono",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "CartAnalytics",
-  description: "Cart analytics dashboard",
+  title: "Cart Analytics — Cart Abandonment Intelligence",
+  description: "Refined analytics for cart abandonment, ML risk scoring, and recovery recommendations.",
 };
 
-/* Restore theme before first paint to avoid flash */
+/* Restore theme before first paint to avoid flash. Default = light. */
 const themeScript = `
 (function(){
   var stored = localStorage.getItem('cart_analytic_theme');
   var theme = stored === 'light' || stored === 'dark'
     ? stored
-    : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'dark');
+    : 'light';
   document.documentElement.classList.remove('light','dark');
   document.documentElement.classList.add(theme);
   document.documentElement.style.colorScheme = theme;
@@ -27,7 +49,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="mn" className="dark" suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`light ${fraunces.variable} ${geist.variable} ${geistMono.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: theme script must run before paint */}
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />

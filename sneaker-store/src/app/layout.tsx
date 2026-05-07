@@ -24,7 +24,7 @@ const OBSERVER_URL =
 /** T1 data-ca clicks require tk_full_*; T2/T3 use tk_smart_* or tk_basic_*. */
 const OBSERVER_SNIPPET_KEY =
   process.env.NEXT_PUBLIC_OBSERVER_SNIPPET_KEY?.trim() ||
-  "tk_smart_47b9cb1051a8c7dc5e039e35833b7c23";
+  "tk_full_demo_mvp";
 
 export default function RootLayout({
   children,

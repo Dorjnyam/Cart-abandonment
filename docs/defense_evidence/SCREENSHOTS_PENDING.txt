@@ -1,0 +1,11 @@
+Screenshot capture status: PENDING.
+
+The requested PNG files were not generated because Docker Desktop failed before the dashboard/demo could be opened reliably:
+- screenshot_demo_abandoned.png
+- screenshot_dashboard_diagnosis.png
+- screenshot_dashboard_s1_s7.png
+- screenshot_dashboard_recommendation.png
+
+Do not use placeholder screenshots for defense. Restart Docker Desktop, rerun E2E, then capture these screens from:
+- Demo shop: http://localhost:3000
+- Dashboard: http://localhost:3001

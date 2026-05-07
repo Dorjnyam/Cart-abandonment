@@ -223,4 +223,10 @@ class FeatureComputer:
             features=FeatureSet(**payload),
             computed_at=datetime.now(timezone.utc),
             window_seconds=session.window_seconds,
+            session_state=session.session_state,
+            has_purchase_success=session.has_purchase_success,
+            has_checkout_start=session.has_checkout_start,
+            has_cart_activity=session.has_cart_activity,
+            final_event_type=session.final_event_type,
+            event_sequence=session.event_sequence,
         )

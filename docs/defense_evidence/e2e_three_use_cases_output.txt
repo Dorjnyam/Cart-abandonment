@@ -1,0 +1,3065 @@
+{
+  "started_at": "2026-05-07T16:11:39.299186+00:00",
+  "health": {
+    "main": {
+      "status": 200,
+      "body": {
+        "status": "ok",
+        "dependencies": {
+          "postgresql": "ok",
+          "duckdb": "not_initialized",
+          "redis": "ok",
+          "prediction_done_consumer": "ok",
+          "minio": "failed: Invalid endpoint: http://"
+        }
+      }
+    },
+    "observer": {
+      "status": 200,
+      "body": {
+        "status": "ok",
+        "postgres": true,
+        "kafka": true,
+        "redis": true
+      }
+    },
+    "session": {
+      "status": 200,
+      "body": {
+        "status": "ok",
+        "redis": true,
+        "kafka": true
+      }
+    },
+    "feature": {
+      "status": 200,
+      "body": {
+        "status": "ok",
+        "service": "feature_svc",
+        "kafka_consumer": true,
+        "kafka_reachable": true
+      }
+    },
+    "ml": {
+      "status": 200,
+      "body": {
+        "status": "ok",
+        "model_loaded": true,
+        "consumer_running": true,
+        "consumer_failed": false,
+        "producer_ok": true,
+        "model_version": "xgboost-synthetic-mvp",
+        "feature_count": 38
+      }
+    }
+  },
+  "use_cases": {
+    "audit_uc1_abandoned_technical": {
+      "send": {
+        "original_session_id": "audit_uc1_abandoned_technical",
+        "canonical_session_id": "ab892586-560d-5dcd-9bff-59751b8bbf79",
+        "events": [
+          {
+            "event_type": "page_view",
+            "status": 200,
+            "body": {
+              "status": "ok",
+              "id": 1,
+              "tier": "T1",
+              "received_fields": [
+                "event_id",
+                "visitor_id",
+                "session_id",
+                "tenant_id",
+                "event_type",
+                "url",
+                "referrer",
+                "timestamp",
+                "ip",
+                "user_agent",
+                "path",
+                "page_load_ms",
+                "device_type",
+                "language",
+                "timezone",
+                "time_on_page_sec",
+                "max_scroll_pct",
+                "click_count",
+                "active_time_ms",
+                "is_logged_in",
+                "product_id",
+                "product_name",
+                "category",
+                "price",
+                "quantity",
+                "page_view_count",
+                "cart_total",
+                "cart_item_count",
+                "page_url"
+              ],
+              "payload_field_count": 19
+            }
+          },
+          {
+            "event_type": "product_view",
+            "status": 200,
+            "body": {
+              "status": "ok",
+              "id": 2,
+              "tier": "T1",
+              "received_fields": [
+                "event_id",
+                "visitor_id",
+                "session_id",
+                "tenant_id",
+                "event_type",
+                "url",
+                "referrer",
+                "timestamp",
+                "ip",
+                "user_agent",
+                "path",
+                "page_load_ms",
+                "device_type",
+                "language",
+                "timezone",
+                "time_on_page_sec",
+                "max_scroll_pct",
+                "click_count",
+                "active_time_ms",
+                "is_logged_in",
+                "product_id",
+                "product_name",
+                "category",
+                "price",
+                "quantity",
+                "page_view_count",
+                "cart_total",
+                "cart_item_count",
+                "page_url"
+              ],
+              "payload_field_count": 19
+            }
+          },
+          {
+            "event_type": "add_to_cart",
+            "status": 200,
+            "body": {
+              "status": "ok",
+              "id": 3,
+              "tier": "T1",
+              "received_fields": [
+                "event_id",
+                "visitor_id",
+                "session_id",
+                "tenant_id",
+                "event_type",
+                "url",
+                "referrer",
+                "timestamp",
+                "ip",
+                "user_agent",
+                "path",
+                "page_load_ms",
+                "device_type",
+                "language",
+                "timezone",
+                "time_on_page_sec",
+                "max_scroll_pct",
+                "click_count",
+                "active_time_ms",
+                "is_logged_in",
+                "action_detected",
+                "product_id",
+                "product_name",
+                "category",
+                "price",
+                "quantity",
+                "cart_total",
+                "cart_item_count",
+                "page_url"
+              ],
+              "payload_field_count": 19
+            }
+          },
+          {
+            "event_type": "cart_view",
+            "status": 200,
+            "body": {
+              "status": "ok",
+              "id": 4,
+              "tier": "T1",
+              "received_fields": [
+                "event_id",
+                "visitor_id",
+                "session_id",
+                "tenant_id",
+                "event_type",
+                "url",
+                "referrer",
+                "timestamp",
+                "ip",
+                "user_agent",
+                "path",
+                "page_load_ms",
+                "device_type",
+                "language",
+                "timezone",
+                "time_on_page_sec",
+                "max_scroll_pct",
+                "click_count",
+                "active_time_ms",
+                "is_logged_in",
+                "product_id",
+                "product_name",
+                "category",
+                "price",
+                "quantity",
+                "cart_total",
+                "cart_item_count",
+                "page_url",
+                "cart_churn_count"
+              ],
+              "payload_field_count": 19
+            }
+          },
+          {
+            "event_type": "checkout_start",
+            "status": 200,
+            "body": {
+              "status": "ok",
+              "id": 5,
+              "tier": "T1",
+              "received_fields": [
+                "event_id",
+                "visitor_id",
+                "session_id",
+                "tenant_id",
+                "event_type",
+                "url",
+                "referrer",
+                "timestamp",
+                "ip",
+                "user_agent",
+                "path",
+                "page_load_ms",
+                "device_type",
+                "language",
+                "timezone",
+                "time_on_page_sec",
+                "max_scroll_pct",
+                "click_count",
+                "active_time_ms",
+                "form_fields_count",
+                "form_fields_touched",
+                "is_logged_in",
+                "checkout_step_detected",
+                "product_id",
+                "product_name",
+                "category",
+                "price",
+                "quantity",
+                "cart_total",
+                "cart_item_count",
+                "checkout_step",
+                "page_url"
+              ],
+              "payload_field_count": 22
+            }
+          },
+          {
+            "event_type": "checkout_error",
+            "status": 200,
+            "body": {
+              "status": "ok",
+              "id": 6,
+              "tier": "T1",
+              "received_fields": [
+                "event_id",
+                "visitor_id",
+                "session_id",
+                "tenant_id",
+                "event_type",
+                "url",
+                "referrer",
+                "timestamp",
+                "ip",
+                "user_agent",
+                "path",
+                "page_load_ms",
+                "device_type",
+                "language",
+                "timezone",
+                "time_on_page_sec",
+                "max_scroll_pct",
+                "click_count",
+                "active_time_ms",
+                "is_logged_in",
+                "rage_click",
+                "checkout_step_detected",
+                "product_id",
+                "product_name",
+                "category",
+                "price",
+                "quantity",
+                "js_error",
+                "cart_total",
+                "cart_item_count",
+                "checkout_step",
+                "error_type",
+                "payment_method",
+                "page_url"
+              ],
+              "payload_field_count": 24
+            }
+          },
+          {
+            "event_type": "checkout_error",
+            "status": 200,
+            "body": {
+              "status": "ok",
+              "id": 7,
+              "tier": "T1",
+              "received_fields": [
+                "event_id",
+                "visitor_id",
+                "session_id",
+                "tenant_id",
+                "event_type",
+                "url",
+                "referrer",
+                "timestamp",
+                "ip",
+                "user_agent",
+                "path",
+                "page_load_ms",
+                "device_type",
+                "language",
+                "timezone",
+                "time_on_page_sec",
+                "max_scroll_pct",
+                "scroll_up_count",
+                "click_count",
+                "active_time_ms",
+                "is_logged_in",
+                "rage_click",
+                "checkout_step_detected",
+                "product_id",
+                "product_name",
+                "category",
+                "price",
+                "quantity",
+                "js_error",
+                "back_navigation",
+                "cart_total",
+                "cart_item_count",
+                "checkout_step",
+                "error_type",
+                "page_url"
+              ],
+              "payload_field_count": 25
+            }
+          },
+          {
+            "event_type": "abandon_checkout",
+            "status": 200,
+            "body": {
+              "status": "ok",
+              "id": 8,
+              "tier": "T1",
+              "received_fields": [
+                "event_id",
+                "visitor_id",
+                "session_id",
+                "tenant_id",
+                "event_type",
+                "url",
+                "referrer",
+                "timestamp",
+                "ip",
+                "user_agent",
+                "path",
+                "page_load_ms",
+                "device_type",
+                "language",
+                "timezone",
+                "time_on_page_sec",
+                "max_scroll_pct",
+                "click_count",
+                "active_time_ms",
+                "tab_hidden_count",
+                "is_logged_in",
+                "product_id",
+                "product_name",
+                "category",
+                "price",
+                "quantity",
+                "cart_total",
+                "cart_item_count",
+                "page_url",
+                "end_reason",
+                "cart_churn_count"
+              ],
+              "payload_field_count": 21
+            }
+          }
+        ],
+        "flush_original": {
+          "status": 200,
+          "body": {
+            "status": "ok",
+            "session_id": "ab892586-560d-5dcd-9bff-59751b8bbf79"
+          }
+        },
+        "flush_canonical": {
+          "status": 200,
+          "body": {
+            "status": "ok",
+            "session_id": "ab892586-560d-5dcd-9bff-59751b8bbf79"
+          }
+        }
+      },
+      "dashboard_detail": {
+        "status": 200,
+        "body": {
+          "session_id": "ab892586-560d-5dcd-9bff-59751b8bbf79",
+          "organization_id": "00000000-0000-0000-0000-000000000001",
+          "tenant_id": 1,
+          "visitor_id": "unknown",
+          "started_at": "2026-05-07T16:11:42.795449Z",
+          "ended_at": "2026-05-07T16:11:42.795449Z",
+          "device_type": "mobile",
+          "event_count": 8,
+          "page_views": 4,
+          "session_state": "ABANDONED",
+          "has_purchase_success": false,
+          "prediction": {
+            "predicted_class": "abandoned",
+            "predicted_label": 1,
+            "ml_predicted_class": "abandoned",
+            "business_outcome": "abandoned",
+            "prediction_overridden": false,
+            "override_reason": "",
+            "abandonment_probability": 0.6992,
+            "model_name": "xgboost",
+            "model_version": "xgboost-synthetic-mvp",
+            "threshold": 0.5,
+            "confidence": 0.6992
+          },
+          "diagnosis": {
+            "id": 1,
+            "scores": {
+              "S1": 0.4375,
+              "S2": 0.785,
+              "S3": 0.3,
+              "S4": 0.6717,
+              "S5": 0.0996,
+              "S6": 0.3667,
+              "S7": 0.66
+            },
+            "dominant_reason": "S2",
+            "reason_label": "Technical friction",
+            "explanation": "The session contains technical friction such as rage clicks, JavaScript errors, slow page load, or form friction.",
+            "severity": "high"
+          },
+          "top_features": [
+            {
+              "value": 8.0,
+              "feature": "scroll_up_count",
+              "importance": 0.6758560538291931
+            },
+            {
+              "value": 268000.0,
+              "feature": "active_time_ms",
+              "importance": 0.5328117609024048
+            },
+            {
+              "value": 0.0,
+              "feature": "price_hesitation_score",
+              "importance": -0.45472922921180725
+            },
+            {
+              "value": 0.0,
+              "feature": "direction_changes",
+              "importance": -0.44903162121772766
+            },
+            {
+              "value": 1.0,
+              "feature": "frustration_index",
+              "importance": 0.42496758699417114
+            },
+            {
+              "value": 0.0,
+              "feature": "mouse_distance",
+              "importance": 0.3816482424736023
+            },
+            {
+              "value": 4.0,
+              "feature": "cart_churn_count",
+              "importance": 0.29349416494369507
+            },
+            {
+              "value": 0.0,
+              "feature": "avg_price_in_session",
+              "importance": -0.2629966735839844
+            }
+          ],
+          "events": [
+            {
+              "id": "1",
+              "type": "page_view",
+              "timestamp": null,
+              "page": ""
+            },
+            {
+              "id": "2",
+              "type": "product_view",
+              "timestamp": null,
+              "page": ""
+            },
+            {
+              "id": "3",
+              "type": "add_to_cart",
+              "timestamp": null,
+              "page": ""
+            },
+            {
+              "id": "4",
+              "type": "cart_view",
+              "timestamp": null,
+              "page": ""
+            },
+            {
+              "id": "5",
+              "type": "checkout_start",
+              "timestamp": null,
+              "page": ""
+            },
+            {
+              "id": "6",
+              "type": "checkout_error",
+              "timestamp": null,
+              "page": ""
+            },
+            {
+              "id": "7",
+              "type": "checkout_error",
+              "timestamp": null,
+              "page": ""
+            },
+            {
+              "id": "8",
+              "type": "abandon_checkout",
+              "timestamp": null,
+              "page": ""
+            }
+          ],
+          "recommendation": {
+            "id": 1,
+            "title": "Fix technical friction",
+            "summary": "The session is most strongly explained by S2 - Technical friction. Review the evidence, remove the strongest visible barrier, and measure conversion rate after the change.",
+            "body": "The session is most strongly explained by S2 - Technical friction. Review the evidence, remove the strongest visible barrier, and measure conversion rate after the change.",
+            "reason_code": "S2",
+            "reason_label": "Technical friction",
+            "priority": "medium",
+            "effort": "medium",
+            "expected_impact": "Lower cart abandonment and improve checkout conversion.",
+            "evidence": [
+              "Dominant reason is S2 (Technical friction).",
+              "Abandonment probability is 0.70."
+            ],
+            "action_steps": [
+              "Inspect the checkout/cart step related to the dominant reason.",
+              "Make one focused UX or messaging change.",
+              "Compare abandonment rate before and after the change."
+            ],
+            "warning": "Generated by fallback rule because Gemini API is not configured or did not return valid JSON.",
+            "source": "fallback",
+            "status": "new",
+            "created_at": "2026-05-07T16:11:42.913207Z",
+            "session_id": "ab892586-560d-5dcd-9bff-59751b8bbf79"
+          },
+          "developer_details": {
+            "session": {
+              "session_id": "ab892586-560d-5dcd-9bff-59751b8bbf79",
+              "visitor_id": "unknown",
+              "created_at": "2026-05-07T16:11:42.869634Z",
+              "started_at": "2026-05-07T16:11:42.795449Z",
+              "ended_at": "2026-05-07T16:11:42.795449Z",
+              "device_type": "mobile",
+              "event_count": 8,
+              "page_views": 4,
+              "cart_value": null,
+              "session_state": "ABANDONED",
+              "has_purchase_success": false,
+              "business_outcome": "abandoned",
+              "prediction": {
+                "predicted_class": "abandoned",
+                "predicted_label": 1,
+                "ml_predicted_class": "abandoned",
+                "business_outcome": "abandoned",
+                "prediction_overridden": false,
+                "override_reason": "",
+                "abandonment_probability": 0.6992,
+                "model_name": "xgboost",
+                "model_version": "xgboost-synthetic-mvp",
+                "threshold": 0.5,
+                "confidence": 0.6992
+              },
+              "diagnosis": {
+                "id": 1,
+                "scores": {
+                  "S1": 0.4375,
+                  "S2": 0.785,
+                  "S3": 0.3,
+                  "S4": 0.6717,
+                  "S5": 0.0996,
+                  "S6": 0.3667,
+                  "S7": 0.66
+                },
+                "dominant_reason": "S2",
+                "reason_label": "Technical friction",
+                "explanation": "The session contains technical friction such as rage clicks, JavaScript errors, slow page load, or form friction.",
+                "severity": "high"
+              },
+              "recommendation_status": "new"
+            },
+            "shap_values": {
+              "active_time_ms": 0.5328117609024048,
+              "max_scroll_pct": -0.2556111514568329,
+              "mouse_distance": 0.3816482424736023,
+              "scroll_up_count": 0.6758560538291931,
+              "cart_churn_count": 0.29349416494369507,
+              "direction_changes": -0.44903162121772766,
+              "frustration_index": 0.42496758699417114,
+              "avg_price_in_session": -0.2629966735839844,
+              "price_hesitation_score": -0.45472922921180725,
+              "mongolian_trust_barrier": 0.17831674218177795
+            }
+          }
+        }
+      },
+      "failures": [],
+      "result": "PASS"
+    },
+    "audit_uc2_converted_purchase": {
+      "send": {
+        "original_session_id": "audit_uc2_converted_purchase",
+        "canonical_session_id": "20df6d0e-d4e3-5e93-ae0f-9e64680dd6cd",
+        "events": [
+          {
+            "event_type": "page_view",
+            "status": 200,
+            "body": {
+              "status": "ok",
+              "id": 9,
+              "tier": "T1",
+              "received_fields": [
+                "event_id",
+                "visitor_id",
+                "session_id",
+                "tenant_id",
+                "event_type",
+                "url",
+                "referrer",
+                "timestamp",
+                "ip",
+                "user_agent",
+                "path",
+                "page_load_ms",
+                "device_type",
+                "language",
+                "timezone",
+                "time_on_page_sec",
+                "max_scroll_pct",
+                "click_count",
+                "active_time_ms",
+                "is_logged_in",
+                "product_id",
+                "product_name",
+                "category",
+                "price",
+                "quantity",
+                "page_view_count",
+                "cart_total",
+                "cart_item_count",
+                "page_url"
+              ],
+              "payload_field_count": 19
+            }
+          },
+          {
+            "event_type": "product_view",
+            "status": 200,
+            "body": {
+              "status": "ok",
+              "id": 10,
+              "tier": "T1",
+              "received_fields": [
+                "event_id",
+                "visitor_id",
+                "session_id",
+                "tenant_id",
+                "event_type",
+                "url",
+                "referrer",
+                "timestamp",
+                "ip",
+                "user_agent",
+                "path",
+                "page_load_ms",
+                "device_type",
+                "language",
+                "timezone",
+                "time_on_page_sec",
+                "max_scroll_pct",
+                "click_count",
+                "active_time_ms",
+                "is_logged_in",
+                "product_id",
+                "product_name",
+                "category",
+                "price",
+                "quantity",
+                "page_view_count",
+                "cart_total",
+                "cart_item_count",
+                "page_url"
+              ],
+              "payload_field_count": 19
+            }
+          },
+          {
+            "event_type": "add_to_cart",
+            "status": 200,
+            "body": {
+              "status": "ok",
+              "id": 11,
+              "tier": "T1",
+              "received_fields": [
+                "event_id",
+                "visitor_id",
+                "session_id",
+                "tenant_id",
+                "event_type",
+                "url",
+                "referrer",
+                "timestamp",
+                "ip",
+                "user_agent",
+                "path",
+                "page_load_ms",
+                "device_type",
+                "language",
+                "timezone",
+                "time_on_page_sec",
+                "max_scroll_pct",
+                "click_count",
+                "active_time_ms",
+                "is_logged_in",
+                "action_detected",
+                "product_id",
+                "product_name",
+                "category",
+                "price",
+                "quantity",
+                "cart_total",
+                "cart_item_count",
+                "page_url"
+              ],
+              "payload_field_count": 19
+            }
+          },
+          {
+            "event_type": "cart_view",
+            "status": 200,
+            "body": {
+              "status": "ok",
+              "id": 12,
+              "tier": "T1",
+              "received_fields": [
+                "event_id",
+                "visitor_id",
+                "session_id",
+                "tenant_id",
+                "event_type",
+                "url",
+                "referrer",
+                "timestamp",
+                "ip",
+                "user_agent",
+                "path",
+                "page_load_ms",
+                "device_type",
+                "language",
+                "timezone",
+                "time_on_page_sec",
+                "max_scroll_pct",
+                "click_count",
+                "active_time_ms",
+                "is_logged_in",
+                "product_id",
+                "product_name",
+                "category",
+                "price",
+                "quantity",
+                "cart_total",
+                "cart_item_count",
+                "page_url"
+              ],
+              "payload_field_count": 18
+            }
+          },
+          {
+            "event_type": "checkout_start",
+            "status": 200,
+            "body": {
+              "status": "ok",
+              "id": 13,
+              "tier": "T1",
+              "received_fields": [
+                "event_id",
+                "visitor_id",
+                "session_id",
+                "tenant_id",
+                "event_type",
+                "url",
+                "referrer",
+                "timestamp",
+                "ip",
+                "user_agent",
+                "path",
+                "page_load_ms",
+                "device_type",
+                "language",
+                "timezone",
+                "time_on_page_sec",
+                "max_scroll_pct",
+                "click_count",
+                "active_time_ms",
+                "form_fields_count",
+                "form_fields_touched",
+                "is_logged_in",
+                "checkout_step_detected",
+                "product_id",
+                "product_name",
+                "category",
+                "price",
+                "quantity",
+                "cart_total",
+                "cart_item_count",
+                "checkout_step",
+                "page_url"
+              ],
+              "payload_field_count": 22
+            }
+          },
+          {
+            "event_type": "purchase_success",
+            "status": 200,
+            "body": {
+              "status": "ok",
+              "id": 14,
+              "tier": "T1",
+              "received_fields": [
+                "event_id",
+                "visitor_id",
+                "session_id",
+                "tenant_id",
+                "event_type",
+                "url",
+                "referrer",
+                "timestamp",
+                "ip",
+                "user_agent",
+                "path",
+                "page_load_ms",
+                "device_type",
+                "language",
+                "timezone",
+                "time_on_page_sec",
+                "max_scroll_pct",
+                "click_count",
+                "active_time_ms",
+                "is_logged_in",
+                "is_order_success",
+                "product_id",
+                "product_name",
+                "category",
+                "price",
+                "quantity",
+                "cart_total",
+                "cart_item_count",
+                "payment_method",
+                "order_id",
+                "page_url",
+                "end_reason"
+              ],
+              "payload_field_count": 22
+            }
+          }
+        ],
+        "flush_original": {
+          "status": 404,
+          "body": {
+            "detail": "session not found in Redis"
+          }
+        },
+        "flush_canonical": {
+          "status": 404,
+          "body": {
+            "detail": "session not found in Redis"
+          }
+        }
+      },
+      "dashboard_detail": {
+        "status": 200,
+        "body": {
+          "session_id": "20df6d0e-d4e3-5e93-ae0f-9e64680dd6cd",
+          "organization_id": "00000000-0000-0000-0000-000000000001",
+          "tenant_id": 1,
+          "visitor_id": "unknown",
+          "started_at": "2026-05-07T16:11:44.522489Z",
+          "ended_at": "2026-05-07T16:11:44.522489Z",
+          "device_type": "desktop",
+          "event_count": 6,
+          "page_views": 4,
+          "session_state": "CONVERTED",
+          "has_purchase_success": true,
+          "prediction": {
+            "predicted_class": "converted",
+            "predicted_label": 0,
+            "ml_predicted_class": "abandoned",
+            "business_outcome": "converted",
+            "prediction_overridden": true,
+            "override_reason": "session_state is CONVERTED",
+            "abandonment_probability": 0.4757,
+            "model_name": "xgboost",
+            "model_version": "xgboost-synthetic-mvp",
+            "threshold": 0.5,
+            "confidence": 0.5243
+          },
+          "diagnosis": null,
+          "top_features": [
+            {
+              "feature": "active_time_ms",
+              "value": null,
+              "importance": 0.70975
+            },
+            {
+              "feature": "direction_changes",
+              "value": null,
+              "importance": 0.504018
+            },
+            {
+              "feature": "mouse_distance",
+              "value": null,
+              "importance": 0.400219
+            },
+            {
+              "feature": "mongolian_trust_barrier",
+              "value": null,
+              "importance": 0.36256
+            },
+            {
+              "feature": "avg_price_in_session",
+              "value": null,
+              "importance": 0.347688
+            },
+            {
+              "feature": "price_hesitation_score",
+              "value": null,
+              "importance": 0.292533
+            },
+            {
+              "feature": "time_on_page_sec",
+              "value": null,
+              "importance": 0.290986
+            },
+            {
+              "feature": "session_duration_sec",
+              "value": null,
+              "importance": 0.248072
+            }
+          ],
+          "events": [
+            {
+              "id": "1",
+              "type": "page_view",
+              "timestamp": null,
+              "page": ""
+            },
+            {
+              "id": "2",
+              "type": "product_view",
+              "timestamp": null,
+              "page": ""
+            },
+            {
+              "id": "3",
+              "type": "add_to_cart",
+              "timestamp": null,
+              "page": ""
+            },
+            {
+              "id": "4",
+              "type": "cart_view",
+              "timestamp": null,
+              "page": ""
+            },
+            {
+              "id": "5",
+              "type": "checkout_start",
+              "timestamp": null,
+              "page": ""
+            },
+            {
+              "id": "6",
+              "type": "purchase_success",
+              "timestamp": null,
+              "page": ""
+            }
+          ],
+          "recommendation": null,
+          "developer_details": {
+            "session": {
+              "session_id": "20df6d0e-d4e3-5e93-ae0f-9e64680dd6cd",
+              "visitor_id": "unknown",
+              "created_at": "2026-05-07T16:11:44.544588Z",
+              "started_at": "2026-05-07T16:11:44.522489Z",
+              "ended_at": "2026-05-07T16:11:44.522489Z",
+              "device_type": "desktop",
+              "event_count": 6,
+              "page_views": 4,
+              "cart_value": null,
+              "session_state": "CONVERTED",
+              "has_purchase_success": true,
+              "business_outcome": "converted",
+              "prediction": {
+                "predicted_class": "converted",
+                "predicted_label": 0,
+                "ml_predicted_class": "abandoned",
+                "business_outcome": "converted",
+                "prediction_overridden": true,
+                "override_reason": "session_state is CONVERTED",
+                "abandonment_probability": 0.4757,
+                "model_name": "xgboost",
+                "model_version": "xgboost-synthetic-mvp",
+                "threshold": 0.5,
+                "confidence": 0.5243
+              },
+              "diagnosis": null,
+              "recommendation_status": null
+            },
+            "shap_values": {
+              "order_total": -0.23669570684432983,
+              "active_time_ms": 0.7097497582435608,
+              "max_scroll_pct": -0.22365914285182953,
+              "mouse_distance": 0.400219202041626,
+              "time_on_page_sec": 0.2909861207008362,
+              "direction_changes": -0.5040181875228882,
+              "avg_price_in_session": -0.3476879298686981,
+              "session_duration_sec": 0.248071551322937,
+              "price_hesitation_score": -0.2925325930118561,
+              "mongolian_trust_barrier": 0.3625599443912506
+            }
+          }
+        }
+      },
+      "failures": [],
+      "result": "PASS"
+    },
+    "audit_uc3_price_sensitive_abandonment": {
+      "send": {
+        "original_session_id": "audit_uc3_price_sensitive_abandonment",
+        "canonical_session_id": "1df12141-e7f8-5b26-b150-53b602e9f8ef",
+        "events": [
+          {
+            "event_type": "page_view",
+            "status": 200,
+            "body": {
+              "status": "ok",
+              "id": 15,
+              "tier": "T1",
+              "received_fields": [
+                "event_id",
+                "visitor_id",
+                "session_id",
+                "tenant_id",
+                "event_type",
+                "url",
+                "referrer",
+                "timestamp",
+                "ip",
+                "user_agent",
+                "path",
+                "page_load_ms",
+                "device_type",
+                "language",
+                "timezone",
+                "time_on_page_sec",
+                "max_scroll_pct",
+                "click_count",
+                "active_time_ms",
+                "is_logged_in",
+                "product_id",
+                "product_name",
+                "category",
+                "price",
+                "quantity",
+                "cart_total",
+                "cart_item_count",
+                "page_url"
+              ],
+              "payload_field_count": 18
+            }
+          },
+          {
+            "event_type": "product_view",
+            "status": 200,
+            "body": {
+              "status": "ok",
+              "id": 16,
+              "tier": "T1",
+              "received_fields": [
+                "event_id",
+                "visitor_id",
+                "session_id",
+                "tenant_id",
+                "event_type",
+                "url",
+                "referrer",
+                "timestamp",
+                "ip",
+                "user_agent",
+                "path",
+                "page_load_ms",
+                "device_type",
+                "language",
+                "timezone",
+                "time_on_page_sec",
+                "max_scroll_pct",
+                "click_count",
+                "active_time_ms",
+                "is_logged_in",
+                "product_id",
+                "product_name",
+                "category",
+                "price",
+                "quantity",
+                "cart_total",
+                "cart_item_count",
+                "page_url"
+              ],
+              "payload_field_count": 18
+            }
+          },
+          {
+            "event_type": "add_to_cart",
+            "status": 200,
+            "body": {
+              "status": "ok",
+              "id": 17,
+              "tier": "T1",
+              "received_fields": [
+                "event_id",
+                "visitor_id",
+                "session_id",
+                "tenant_id",
+                "event_type",
+                "url",
+                "referrer",
+                "timestamp",
+                "ip",
+                "user_agent",
+                "path",
+                "page_load_ms",
+                "device_type",
+                "language",
+                "timezone",
+                "time_on_page_sec",
+                "max_scroll_pct",
+                "click_count",
+                "active_time_ms",
+                "is_logged_in",
+                "product_id",
+                "product_name",
+                "category",
+                "price",
+                "quantity",
+                "cart_total",
+                "cart_item_count",
+                "page_url"
+              ],
+              "payload_field_count": 18
+            }
+          },
+          {
+            "event_type": "cart_view",
+            "status": 200,
+            "body": {
+              "status": "ok",
+              "id": 18,
+              "tier": "T1",
+              "received_fields": [
+                "event_id",
+                "visitor_id",
+                "session_id",
+                "tenant_id",
+                "event_type",
+                "url",
+                "referrer",
+                "timestamp",
+                "ip",
+                "user_agent",
+                "path",
+                "page_load_ms",
+                "device_type",
+                "language",
+                "timezone",
+                "time_on_page_sec",
+                "max_scroll_pct",
+                "click_count",
+                "active_time_ms",
+                "tab_hidden_ms",
+                "copy_count",
+                "is_logged_in",
+                "product_id",
+                "product_name",
+                "category",
+                "price",
+                "quantity",
+                "cart_total",
+                "cart_item_count",
+                "discount",
+                "shipping_cost",
+                "page_url"
+              ],
+              "payload_field_count": 22
+            }
+          },
+          {
+            "event_type": "checkout_start",
+            "status": 200,
+            "body": {
+              "status": "ok",
+              "id": 19,
+              "tier": "T1",
+              "received_fields": [
+                "event_id",
+                "visitor_id",
+                "session_id",
+                "tenant_id",
+                "event_type",
+                "url",
+                "referrer",
+                "timestamp",
+                "ip",
+                "user_agent",
+                "path",
+                "page_load_ms",
+                "device_type",
+                "language",
+                "timezone",
+                "time_on_page_sec",
+                "max_scroll_pct",
+                "click_count",
+                "active_time_ms",
+                "is_logged_in",
+                "outbound_click",
+                "checkout_step_detected",
+                "product_id",
+                "product_name",
+                "category",
+                "price",
+                "quantity",
+                "coupon_entered",
+                "cart_total",
+                "cart_item_count",
+                "checkout_step",
+                "discount",
+                "shipping_cost",
+                "discount_code",
+                "page_url"
+              ],
+              "payload_field_count": 25
+            }
+          },
+          {
+            "event_type": "cart_view",
+            "status": 200,
+            "body": {
+              "status": "ok",
+              "id": 20,
+              "tier": "T1",
+              "received_fields": [
+                "event_id",
+                "visitor_id",
+                "session_id",
+                "tenant_id",
+                "event_type",
+                "url",
+                "referrer",
+                "timestamp",
+                "ip",
+                "user_agent",
+                "path",
+                "page_load_ms",
+                "device_type",
+                "language",
+                "timezone",
+                "time_on_page_sec",
+                "max_scroll_pct",
+                "click_count",
+                "active_time_ms",
+                "tab_hidden_ms",
+                "copy_count",
+                "is_logged_in",
+                "product_id",
+                "product_name",
+                "category",
+                "price",
+                "quantity",
+                "cart_total",
+                "cart_item_count",
+                "shipping_cost",
+                "page_url",
+                "cart_churn_count"
+              ],
+              "payload_field_count": 22
+            }
+          },
+          {
+            "event_type": "checkout_start",
+            "status": 200,
+            "body": {
+              "status": "ok",
+              "id": 21,
+              "tier": "T1",
+              "received_fields": [
+                "event_id",
+                "visitor_id",
+                "session_id",
+                "tenant_id",
+                "event_type",
+                "url",
+                "referrer",
+                "timestamp",
+                "ip",
+                "user_agent",
+                "path",
+                "page_load_ms",
+                "device_type",
+                "language",
+                "timezone",
+                "time_on_page_sec",
+                "max_scroll_pct",
+                "click_count",
+                "active_time_ms",
+                "is_logged_in",
+                "outbound_click",
+                "checkout_step_detected",
+                "product_id",
+                "product_name",
+                "category",
+                "price",
+                "quantity",
+                "coupon_entered",
+                "cart_total",
+                "cart_item_count",
+                "checkout_step",
+                "discount",
+                "shipping_cost",
+                "discount_code",
+                "page_url"
+              ],
+              "payload_field_count": 25
+            }
+          },
+          {
+            "event_type": "abandon_checkout",
+            "status": 200,
+            "body": {
+              "status": "ok",
+              "id": 22,
+              "tier": "T1",
+              "received_fields": [
+                "event_id",
+                "visitor_id",
+                "session_id",
+                "tenant_id",
+                "event_type",
+                "url",
+                "referrer",
+                "timestamp",
+                "ip",
+                "user_agent",
+                "path",
+                "page_load_ms",
+                "device_type",
+                "language",
+                "timezone",
+                "time_on_page_sec",
+                "max_scroll_pct",
+                "click_count",
+                "active_time_ms",
+                "is_logged_in",
+                "product_id",
+                "product_name",
+                "category",
+                "price",
+                "quantity",
+                "cart_total",
+                "cart_item_count",
+                "shipping_cost",
+                "page_url",
+                "cart_churn_count",
+                "end_reason"
+              ],
+              "payload_field_count": 21
+            }
+          }
+        ],
+        "flush_original": {
+          "status": 404,
+          "body": {
+            "detail": "session not found in Redis"
+          }
+        },
+        "flush_canonical": {
+          "status": 404,
+          "body": {
+            "detail": "session not found in Redis"
+          }
+        }
+      },
+      "dashboard_detail": {
+        "status": 200,
+        "body": {
+          "session_id": "1df12141-e7f8-5b26-b150-53b602e9f8ef",
+          "organization_id": "00000000-0000-0000-0000-000000000001",
+          "tenant_id": 1,
+          "visitor_id": "unknown",
+          "started_at": "2026-05-07T16:11:45.690801Z",
+          "ended_at": "2026-05-07T16:11:45.690801Z",
+          "device_type": "desktop",
+          "event_count": 8,
+          "page_views": 1,
+          "session_state": "ABANDONED",
+          "has_purchase_success": false,
+          "prediction": {
+            "predicted_class": "abandoned",
+            "predicted_label": 1,
+            "ml_predicted_class": "abandoned",
+            "business_outcome": "abandoned",
+            "prediction_overridden": false,
+            "override_reason": "",
+            "abandonment_probability": 0.6411,
+            "model_name": "xgboost",
+            "model_version": "xgboost-synthetic-mvp",
+            "threshold": 0.5,
+            "confidence": 0.6411
+          },
+          "diagnosis": {
+            "id": 2,
+            "scores": {
+              "S1": 0.35,
+              "S2": 0.11,
+              "S3": 0.2333,
+              "S4": 0.0,
+              "S5": 0.9,
+              "S6": 0.25,
+              "S7": 0.8
+            },
+            "dominant_reason": "S5",
+            "reason_label": "Price sensitivity",
+            "explanation": "The visitor shows price sensitivity through coupon usage, high cart value, or explicit price hesitation.",
+            "severity": "high"
+          },
+          "top_features": [
+            {
+              "value": 0.0,
+              "feature": "direction_changes",
+              "importance": -0.5257347822189331
+            },
+            {
+              "value": 268000.0,
+              "feature": "active_time_ms",
+              "importance": 0.4779850244522095
+            },
+            {
+              "value": 0.0,
+              "feature": "mouse_distance",
+              "importance": 0.41792023181915283
+            },
+            {
+              "value": 890000.0,
+              "feature": "cart_value",
+              "importance": 0.41398003697395325
+            },
+            {
+              "value": 0.75,
+              "feature": "frustration_index",
+              "importance": 0.36620235443115234
+            },
+            {
+              "value": 5.0,
+              "feature": "cart_churn_count",
+              "importance": 0.35048845410346985
+            },
+            {
+              "value": 0.0,
+              "feature": "avg_price_in_session",
+              "importance": -0.30596378445625305
+            },
+            {
+              "value": 0.0,
+              "feature": "max_scroll_pct",
+              "importance": -0.25751611590385437
+            }
+          ],
+          "events": [
+            {
+              "id": "1",
+              "type": "page_view",
+              "timestamp": null,
+              "page": ""
+            },
+            {
+              "id": "2",
+              "type": "product_view",
+              "timestamp": null,
+              "page": ""
+            },
+            {
+              "id": "3",
+              "type": "add_to_cart",
+              "timestamp": null,
+              "page": ""
+            },
+            {
+              "id": "4",
+              "type": "cart_view",
+              "timestamp": null,
+              "page": ""
+            },
+            {
+              "id": "5",
+              "type": "checkout_start",
+              "timestamp": null,
+              "page": ""
+            },
+            {
+              "id": "6",
+              "type": "cart_view",
+              "timestamp": null,
+              "page": ""
+            },
+            {
+              "id": "7",
+              "type": "checkout_start",
+              "timestamp": null,
+              "page": ""
+            },
+            {
+              "id": "8",
+              "type": "abandon_checkout",
+              "timestamp": null,
+              "page": ""
+            }
+          ],
+          "recommendation": {
+            "id": 2,
+            "title": "Fix price sensitivity",
+            "summary": "The session is most strongly explained by S5 - Price sensitivity. Review the evidence, remove the strongest visible barrier, and measure conversion rate after the change.",
+            "body": "The session is most strongly explained by S5 - Price sensitivity. Review the evidence, remove the strongest visible barrier, and measure conversion rate after the change.",
+            "reason_code": "S5",
+            "reason_label": "Price sensitivity",
+            "priority": "medium",
+            "effort": "medium",
+            "expected_impact": "Lower cart abandonment and improve checkout conversion.",
+            "evidence": [
+              "Dominant reason is S5 (Price sensitivity).",
+              "Abandonment probability is 0.64."
+            ],
+            "action_steps": [
+              "Inspect the checkout/cart step related to the dominant reason.",
+              "Make one focused UX or messaging change.",
+              "Compare abandonment rate before and after the change."
+            ],
+            "warning": "Generated by fallback rule because Gemini API is not configured or did not return valid JSON.",
+            "source": "fallback",
+            "status": "new",
+            "created_at": "2026-05-07T16:11:45.734428Z",
+            "session_id": "1df12141-e7f8-5b26-b150-53b602e9f8ef"
+          },
+          "developer_details": {
+            "session": {
+              "session_id": "1df12141-e7f8-5b26-b150-53b602e9f8ef",
+              "visitor_id": "unknown",
+              "created_at": "2026-05-07T16:11:45.710512Z",
+              "started_at": "2026-05-07T16:11:45.690801Z",
+              "ended_at": "2026-05-07T16:11:45.690801Z",
+              "device_type": "desktop",
+              "event_count": 8,
+              "page_views": 1,
+              "cart_value": null,
+              "session_state": "ABANDONED",
+              "has_purchase_success": false,
+              "business_outcome": "abandoned",
+              "prediction": {
+                "predicted_class": "abandoned",
+                "predicted_label": 1,
+                "ml_predicted_class": "abandoned",
+                "business_outcome": "abandoned",
+                "prediction_overridden": false,
+                "override_reason": "",
+                "abandonment_probability": 0.6411,
+                "model_name": "xgboost",
+                "model_version": "xgboost-synthetic-mvp",
+                "threshold": 0.5,
+                "confidence": 0.6411
+              },
+              "diagnosis": {
+                "id": 2,
+                "scores": {
+                  "S1": 0.35,
+                  "S2": 0.11,
+                  "S3": 0.2333,
+                  "S4": 0.0,
+                  "S5": 0.9,
+                  "S6": 0.25,
+                  "S7": 0.8
+                },
+                "dominant_reason": "S5",
+                "reason_label": "Price sensitivity",
+                "explanation": "The visitor shows price sensitivity through coupon usage, high cart value, or explicit price hesitation.",
+                "severity": "high"
+              },
+              "recommendation_status": "new"
+            },
+            "shap_values": {
+              "cart_value": 0.41398003697395325,
+              "mouse_speed": -0.18098844587802887,
+              "active_time_ms": 0.4779850244522095,
+              "max_scroll_pct": -0.25751611590385437,
+              "mouse_distance": 0.41792023181915283,
+              "cart_churn_count": 0.35048845410346985,
+              "time_on_page_sec": 0.1861276775598526,
+              "direction_changes": -0.5257347822189331,
+              "frustration_index": 0.36620235443115234,
+              "avg_price_in_session": -0.30596378445625305
+            }
+          }
+        }
+      },
+      "failures": [],
+      "result": "PASS"
+    }
+  },
+  "recommendation_status_update": {
+    "recommendation_id": 1,
+    "transitions": [
+      {
+        "requested": "in_progress",
+        "status": 200,
+        "body": {
+          "id": 1,
+          "title": "Fix technical friction",
+          "summary": "The session is most strongly explained by S2 - Technical friction. Review the evidence, remove the strongest visible barrier, and measure conversion rate after the change.",
+          "body": "The session is most strongly explained by S2 - Technical friction. Review the evidence, remove the strongest visible barrier, and measure conversion rate after the change.",
+          "reason_code": "S2",
+          "reason_label": "Technical friction",
+          "priority": "medium",
+          "effort": "medium",
+          "expected_impact": "Lower cart abandonment and improve checkout conversion.",
+          "evidence": [
+            "Dominant reason is S2 (Technical friction).",
+            "Abandonment probability is 0.70."
+          ],
+          "action_steps": [
+            "Inspect the checkout/cart step related to the dominant reason.",
+            "Make one focused UX or messaging change.",
+            "Compare abandonment rate before and after the change."
+          ],
+          "warning": "Generated by fallback rule because Gemini API is not configured or did not return valid JSON.",
+          "source": "fallback",
+          "status": "in_progress",
+          "created_at": "2026-05-07T16:11:42.913207Z",
+          "session_id": "ab892586-560d-5dcd-9bff-59751b8bbf79"
+        }
+      },
+      {
+        "requested": "done",
+        "status": 200,
+        "body": {
+          "id": 1,
+          "title": "Fix technical friction",
+          "summary": "The session is most strongly explained by S2 - Technical friction. Review the evidence, remove the strongest visible barrier, and measure conversion rate after the change.",
+          "body": "The session is most strongly explained by S2 - Technical friction. Review the evidence, remove the strongest visible barrier, and measure conversion rate after the change.",
+          "reason_code": "S2",
+          "reason_label": "Technical friction",
+          "priority": "medium",
+          "effort": "medium",
+          "expected_impact": "Lower cart abandonment and improve checkout conversion.",
+          "evidence": [
+            "Dominant reason is S2 (Technical friction).",
+            "Abandonment probability is 0.70."
+          ],
+          "action_steps": [
+            "Inspect the checkout/cart step related to the dominant reason.",
+            "Make one focused UX or messaging change.",
+            "Compare abandonment rate before and after the change."
+          ],
+          "warning": "Generated by fallback rule because Gemini API is not configured or did not return valid JSON.",
+          "source": "fallback",
+          "status": "done",
+          "created_at": "2026-05-07T16:11:42.913207Z",
+          "session_id": "ab892586-560d-5dcd-9bff-59751b8bbf79"
+        }
+      },
+      {
+        "requested": "dismissed",
+        "status": 200,
+        "body": {
+          "id": 1,
+          "title": "Fix technical friction",
+          "summary": "The session is most strongly explained by S2 - Technical friction. Review the evidence, remove the strongest visible barrier, and measure conversion rate after the change.",
+          "body": "The session is most strongly explained by S2 - Technical friction. Review the evidence, remove the strongest visible barrier, and measure conversion rate after the change.",
+          "reason_code": "S2",
+          "reason_label": "Technical friction",
+          "priority": "medium",
+          "effort": "medium",
+          "expected_impact": "Lower cart abandonment and improve checkout conversion.",
+          "evidence": [
+            "Dominant reason is S2 (Technical friction).",
+            "Abandonment probability is 0.70."
+          ],
+          "action_steps": [
+            "Inspect the checkout/cart step related to the dominant reason.",
+            "Make one focused UX or messaging change.",
+            "Compare abandonment rate before and after the change."
+          ],
+          "warning": "Generated by fallback rule because Gemini API is not configured or did not return valid JSON.",
+          "source": "fallback",
+          "status": "dismissed",
+          "created_at": "2026-05-07T16:11:42.913207Z",
+          "session_id": "ab892586-560d-5dcd-9bff-59751b8bbf79"
+        }
+      }
+    ],
+    "persisted": true
+  },
+  "dashboard_overview": [
+    200,
+    {
+      "summary": {
+        "total_sessions": 3,
+        "abandoned_sessions": 2,
+        "converted_sessions": 1,
+        "abandonment_rate": 0.6667,
+        "conversion_rate": 0.3333,
+        "high_risk_sessions": 2,
+        "average_abandonment_probability": 0.6053,
+        "active_recommendations": 1
+      },
+      "model": {
+        "active_model": "xgboost",
+        "model_version": "xgboost-synthetic-mvp",
+        "threshold": 0.5,
+        "dataset_type": "synthetic_mvp"
+      },
+      "top_reason": {
+        "score": "S5",
+        "label": "Price sensitivity",
+        "value": 0.4998,
+        "explanation": "The visitor shows price sensitivity through coupon usage, high cart value, or explicit price hesitation."
+      },
+      "latest_recommendation": {
+        "id": 2,
+        "title": "Fix price sensitivity",
+        "summary": "The session is most strongly explained by S5 - Price sensitivity. Review the evidence, remove the strongest visible barrier, and measure conversion rate after the change.",
+        "body": "The session is most strongly explained by S5 - Price sensitivity. Review the evidence, remove the strongest visible barrier, and measure conversion rate after the change.",
+        "reason_code": "S5",
+        "reason_label": "Price sensitivity",
+        "priority": "medium",
+        "effort": "medium",
+        "expected_impact": "Lower cart abandonment and improve checkout conversion.",
+        "evidence": [
+          "Dominant reason is S5 (Price sensitivity).",
+          "Abandonment probability is 0.64."
+        ],
+        "action_steps": [
+          "Inspect the checkout/cart step related to the dominant reason.",
+          "Make one focused UX or messaging change.",
+          "Compare abandonment rate before and after the change."
+        ],
+        "warning": "Generated by fallback rule because Gemini API is not configured or did not return valid JSON.",
+        "source": "fallback",
+        "status": "new",
+        "created_at": "2026-05-07T16:11:45.734428Z",
+        "session_id": "1df12141-e7f8-5b26-b150-53b602e9f8ef"
+      },
+      "trend": [
+        {
+          "date": "2026-05-01",
+          "sessions": 0,
+          "abandoned": 0,
+          "converted": 0,
+          "abandonment_rate": 0.0
+        },
+        {
+          "date": "2026-05-02",
+          "sessions": 0,
+          "abandoned": 0,
+          "converted": 0,
+          "abandonment_rate": 0.0
+        },
+        {
+          "date": "2026-05-03",
+          "sessions": 0,
+          "abandoned": 0,
+          "converted": 0,
+          "abandonment_rate": 0.0
+        },
+        {
+          "date": "2026-05-04",
+          "sessions": 0,
+          "abandoned": 0,
+          "converted": 0,
+          "abandonment_rate": 0.0
+        },
+        {
+          "date": "2026-05-05",
+          "sessions": 0,
+          "abandoned": 0,
+          "converted": 0,
+          "abandonment_rate": 0.0
+        },
+        {
+          "date": "2026-05-06",
+          "sessions": 0,
+          "abandoned": 0,
+          "converted": 0,
+          "abandonment_rate": 0.0
+        },
+        {
+          "date": "2026-05-07",
+          "sessions": 3,
+          "abandoned": 2,
+          "converted": 1,
+          "abandonment_rate": 0.6667
+        }
+      ],
+      "funnel": [
+        {
+          "step": "page_view",
+          "sessions": 3,
+          "drop_percent": 0.0
+        },
+        {
+          "step": "product_view",
+          "sessions": 3,
+          "drop_percent": 0.0
+        },
+        {
+          "step": "add_to_cart",
+          "sessions": 3,
+          "drop_percent": 0.0
+        },
+        {
+          "step": "cart_view",
+          "sessions": 3,
+          "drop_percent": 0.0
+        },
+        {
+          "step": "checkout_start",
+          "sessions": 3,
+          "drop_percent": 0.0
+        },
+        {
+          "step": "purchase_success",
+          "sessions": 1,
+          "drop_percent": 66.7
+        }
+      ],
+      "reasons": [
+        {
+          "code": "S1",
+          "label": "Psychological hesitation",
+          "average_score": 0.3937,
+          "dominant_sessions": 0,
+          "severity": "low",
+          "explanation": "The visitor shows hesitation signals such as tab switching, copying, long dwell time, or cart abandonment.",
+          "recommended_action": "Inspect the affected checkout step."
+        },
+        {
+          "code": "S2",
+          "label": "Technical friction",
+          "average_score": 0.4475,
+          "dominant_sessions": 1,
+          "severity": "low",
+          "explanation": "The session contains technical friction such as rage clicks, JavaScript errors, slow page load, or form friction.",
+          "recommended_action": "Inspect the affected checkout step."
+        },
+        {
+          "code": "S3",
+          "label": "Trust issue",
+          "average_score": 0.2666,
+          "dominant_sessions": 0,
+          "severity": "low",
+          "explanation": "The visitor shows trust barriers such as guest checkout, weak payment confidence, or product availability concerns.",
+          "recommended_action": "Inspect the affected checkout step."
+        },
+        {
+          "code": "S4",
+          "label": "Mobile usability issue",
+          "average_score": 0.3358,
+          "dominant_sessions": 0,
+          "severity": "low",
+          "explanation": "The session is mobile-heavy and contains mobile usability friction.",
+          "recommended_action": "Inspect the affected checkout step."
+        },
+        {
+          "code": "S5",
+          "label": "Price sensitivity",
+          "average_score": 0.4998,
+          "dominant_sessions": 1,
+          "severity": "low",
+          "explanation": "The visitor shows price sensitivity through coupon usage, high cart value, or explicit price hesitation.",
+          "recommended_action": "Inspect the affected checkout step."
+        },
+        {
+          "code": "S6",
+          "label": "Indecision/navigation disorder",
+          "average_score": 0.3084,
+          "dominant_sessions": 0,
+          "severity": "low",
+          "explanation": "The visitor loops through products, cart edits, search, filters, or back navigation without committing.",
+          "recommended_action": "Inspect the affected checkout step."
+        },
+        {
+          "code": "S7",
+          "label": "External influence/referral effect",
+          "average_score": 0.73,
+          "dominant_sessions": 0,
+          "severity": "medium",
+          "explanation": "The session is affected by external referrers, social traffic, outbound clicks, or unload behavior.",
+          "recommended_action": "Inspect the affected checkout step."
+        }
+      ],
+      "recent_sessions": [
+        {
+          "session_id": "1df12141-e7f8-5b26-b150-53b602e9f8ef",
+          "visitor_id": "unknown",
+          "created_at": "2026-05-07T16:11:45.710512Z",
+          "started_at": "2026-05-07T16:11:45.690801Z",
+          "ended_at": "2026-05-07T16:11:45.690801Z",
+          "device_type": "desktop",
+          "event_count": 8,
+          "page_views": 1,
+          "cart_value": null,
+          "session_state": "ABANDONED",
+          "has_purchase_success": false,
+          "business_outcome": "abandoned",
+          "prediction": {
+            "predicted_class": "abandoned",
+            "predicted_label": 1,
+            "ml_predicted_class": "abandoned",
+            "business_outcome": "abandoned",
+            "prediction_overridden": false,
+            "override_reason": "",
+            "abandonment_probability": 0.6411,
+            "model_name": "xgboost",
+            "model_version": "xgboost-synthetic-mvp",
+            "threshold": 0.5,
+            "confidence": 0.6411
+          },
+          "diagnosis": {
+            "id": 2,
+            "scores": {
+              "S1": 0.35,
+              "S2": 0.11,
+              "S3": 0.2333,
+              "S4": 0.0,
+              "S5": 0.9,
+              "S6": 0.25,
+              "S7": 0.8
+            },
+            "dominant_reason": "S5",
+            "reason_label": "Price sensitivity",
+            "explanation": "The visitor shows price sensitivity through coupon usage, high cart value, or explicit price hesitation.",
+            "severity": "high"
+          },
+          "recommendation_status": "new"
+        },
+        {
+          "session_id": "20df6d0e-d4e3-5e93-ae0f-9e64680dd6cd",
+          "visitor_id": "unknown",
+          "created_at": "2026-05-07T16:11:44.544588Z",
+          "started_at": "2026-05-07T16:11:44.522489Z",
+          "ended_at": "2026-05-07T16:11:44.522489Z",
+          "device_type": "desktop",
+          "event_count": 6,
+          "page_views": 4,
+          "cart_value": null,
+          "session_state": "CONVERTED",
+          "has_purchase_success": true,
+          "business_outcome": "converted",
+          "prediction": {
+            "predicted_class": "converted",
+            "predicted_label": 0,
+            "ml_predicted_class": "abandoned",
+            "business_outcome": "converted",
+            "prediction_overridden": true,
+            "override_reason": "session_state is CONVERTED",
+            "abandonment_probability": 0.4757,
+            "model_name": "xgboost",
+            "model_version": "xgboost-synthetic-mvp",
+            "threshold": 0.5,
+            "confidence": 0.5243
+          },
+          "diagnosis": null,
+          "recommendation_status": null
+        },
+        {
+          "session_id": "ab892586-560d-5dcd-9bff-59751b8bbf79",
+          "visitor_id": "unknown",
+          "created_at": "2026-05-07T16:11:42.869634Z",
+          "started_at": "2026-05-07T16:11:42.795449Z",
+          "ended_at": "2026-05-07T16:11:42.795449Z",
+          "device_type": "mobile",
+          "event_count": 8,
+          "page_views": 4,
+          "cart_value": null,
+          "session_state": "ABANDONED",
+          "has_purchase_success": false,
+          "business_outcome": "abandoned",
+          "prediction": {
+            "predicted_class": "abandoned",
+            "predicted_label": 1,
+            "ml_predicted_class": "abandoned",
+            "business_outcome": "abandoned",
+            "prediction_overridden": false,
+            "override_reason": "",
+            "abandonment_probability": 0.6992,
+            "model_name": "xgboost",
+            "model_version": "xgboost-synthetic-mvp",
+            "threshold": 0.5,
+            "confidence": 0.6992
+          },
+          "diagnosis": {
+            "id": 1,
+            "scores": {
+              "S1": 0.4375,
+              "S2": 0.785,
+              "S3": 0.3,
+              "S4": 0.6717,
+              "S5": 0.0996,
+              "S6": 0.3667,
+              "S7": 0.66
+            },
+            "dominant_reason": "S2",
+            "reason_label": "Technical friction",
+            "explanation": "The session contains technical friction such as rage clicks, JavaScript errors, slow page load, or form friction.",
+            "severity": "high"
+          },
+          "recommendation_status": "dismissed"
+        }
+      ]
+    }
+  ],
+  "dashboard_sessions": [
+    200,
+    {
+      "count": 3,
+      "next": null,
+      "previous": null,
+      "results": [
+        {
+          "session_id": "1df12141-e7f8-5b26-b150-53b602e9f8ef",
+          "visitor_id": "unknown",
+          "created_at": "2026-05-07T16:11:45.710512Z",
+          "started_at": "2026-05-07T16:11:45.690801Z",
+          "ended_at": "2026-05-07T16:11:45.690801Z",
+          "device_type": "desktop",
+          "event_count": 8,
+          "page_views": 1,
+          "cart_value": null,
+          "session_state": "ABANDONED",
+          "has_purchase_success": false,
+          "business_outcome": "abandoned",
+          "prediction": {
+            "predicted_class": "abandoned",
+            "predicted_label": 1,
+            "ml_predicted_class": "abandoned",
+            "business_outcome": "abandoned",
+            "prediction_overridden": false,
+            "override_reason": "",
+            "abandonment_probability": 0.6411,
+            "model_name": "xgboost",
+            "model_version": "xgboost-synthetic-mvp",
+            "threshold": 0.5,
+            "confidence": 0.6411
+          },
+          "diagnosis": {
+            "id": 2,
+            "scores": {
+              "S1": 0.35,
+              "S2": 0.11,
+              "S3": 0.2333,
+              "S4": 0.0,
+              "S5": 0.9,
+              "S6": 0.25,
+              "S7": 0.8
+            },
+            "dominant_reason": "S5",
+            "reason_label": "Price sensitivity",
+            "explanation": "The visitor shows price sensitivity through coupon usage, high cart value, or explicit price hesitation.",
+            "severity": "high"
+          },
+          "recommendation_status": "new"
+        },
+        {
+          "session_id": "20df6d0e-d4e3-5e93-ae0f-9e64680dd6cd",
+          "visitor_id": "unknown",
+          "created_at": "2026-05-07T16:11:44.544588Z",
+          "started_at": "2026-05-07T16:11:44.522489Z",
+          "ended_at": "2026-05-07T16:11:44.522489Z",
+          "device_type": "desktop",
+          "event_count": 6,
+          "page_views": 4,
+          "cart_value": null,
+          "session_state": "CONVERTED",
+          "has_purchase_success": true,
+          "business_outcome": "converted",
+          "prediction": {
+            "predicted_class": "converted",
+            "predicted_label": 0,
+            "ml_predicted_class": "abandoned",
+            "business_outcome": "converted",
+            "prediction_overridden": true,
+            "override_reason": "session_state is CONVERTED",
+            "abandonment_probability": 0.4757,
+            "model_name": "xgboost",
+            "model_version": "xgboost-synthetic-mvp",
+            "threshold": 0.5,
+            "confidence": 0.5243
+          },
+          "diagnosis": null,
+          "recommendation_status": null
+        },
+        {
+          "session_id": "ab892586-560d-5dcd-9bff-59751b8bbf79",
+          "visitor_id": "unknown",
+          "created_at": "2026-05-07T16:11:42.869634Z",
+          "started_at": "2026-05-07T16:11:42.795449Z",
+          "ended_at": "2026-05-07T16:11:42.795449Z",
+          "device_type": "mobile",
+          "event_count": 8,
+          "page_views": 4,
+          "cart_value": null,
+          "session_state": "ABANDONED",
+          "has_purchase_success": false,
+          "business_outcome": "abandoned",
+          "prediction": {
+            "predicted_class": "abandoned",
+            "predicted_label": 1,
+            "ml_predicted_class": "abandoned",
+            "business_outcome": "abandoned",
+            "prediction_overridden": false,
+            "override_reason": "",
+            "abandonment_probability": 0.6992,
+            "model_name": "xgboost",
+            "model_version": "xgboost-synthetic-mvp",
+            "threshold": 0.5,
+            "confidence": 0.6992
+          },
+          "diagnosis": {
+            "id": 1,
+            "scores": {
+              "S1": 0.4375,
+              "S2": 0.785,
+              "S3": 0.3,
+              "S4": 0.6717,
+              "S5": 0.0996,
+              "S6": 0.3667,
+              "S7": 0.66
+            },
+            "dominant_reason": "S2",
+            "reason_label": "Technical friction",
+            "explanation": "The session contains technical friction such as rage clicks, JavaScript errors, slow page load, or form friction.",
+            "severity": "high"
+          },
+          "recommendation_status": "dismissed"
+        }
+      ]
+    }
+  ],
+  "observer_stats": [
+    200,
+    {
+      "total_events": 22,
+      "unique_sessions": 3,
+      "unique_visitors": 3,
+      "event_types": {
+        "checkout_start": 4,
+        "cart_view": 4,
+        "page_view": 3,
+        "add_to_cart": 3,
+        "product_view": 3,
+        "abandon_checkout": 2,
+        "checkout_error": 2,
+        "purchase_success": 1
+      },
+      "top_urls": [
+        {
+          "url": "http://localhost:3000/audit/audit_uc3_price_sensitive_abandonment",
+          "count": 8
+        },
+        {
+          "url": "http://localhost:3000/audit/audit_uc1_abandoned_technical",
+          "count": 8
+        },
+        {
+          "url": "http://localhost:3000/audit/audit_uc2_converted_purchase",
+          "count": 6
+        }
+      ],
+      "hourly": [
+        {
+          "hour": "2026-05-07T16:00:00+00:00",
+          "count": 22
+        }
+      ]
+    }
+  ],
+  "ml_status": [
+    200,
+    {
+      "status": "ok",
+      "overall_status": "ok",
+      "model_version": "xgboost-synthetic-mvp",
+      "model_variant": "full",
+      "feature_count": 38,
+      "shap_enabled": true,
+      "uptime": "0h 1m 36s",
+      "environment": "local",
+      "postgres": {
+        "status": "ok",
+        "label": "Pool ready",
+        "details": "host: postgres; port: 5432; db: cartdb"
+      },
+      "kafka": {
+        "status": "ok",
+        "label": "Reachable",
+        "details": "bootstrap: kafka:9092; in=feature_ready; out=prediction_done; out_v2=prediction_done_v2; dlq=prediction_dlq"
+      },
+      "minio": {
+        "status": "ok",
+        "label": "File-based model loading",
+        "details": "endpoint: local filesystem; variant: full"
+      },
+      "consumer": {
+        "status": "ok",
+        "label": "Running"
+      },
+      "producer": {
+        "status": "ok",
+        "label": "Running"
+      },
+      "pool": {
+        "status": "ok",
+        "label": "Initialized"
+      },
+      "model": {
+        "status": "ok",
+        "label": "Loaded",
+        "name": "xgboost",
+        "version": "xgboost-synthetic-mvp",
+        "variant": "full",
+        "threshold": 0.38999999999999996,
+        "feature_count": 38,
+        "feature_names": [
+          "page_load_ms",
+          "time_on_page_sec",
+          "max_scroll_pct",
+          "scroll_up_count",
+          "click_count",
+          "active_time_ms",
+          "tab_hidden_count",
+          "copy_count",
+          "form_fields_count",
+          "form_fields_touched",
+          "bounce",
+          "session_duration_sec",
+          "is_logged_in",
+          "selected_quantity",
+          "rage_click",
+          "outbound_click",
+          "checkout_step_detected",
+          "js_error",
+          "page_view_count",
+          "back_navigation",
+          "coupon_entered",
+          "cart_value",
+          "cart_item_count",
+          "checkout_step",
+          "order_total",
+          "is_sale",
+          "cart_churn_count",
+          "page_views",
+          "is_mobile",
+          "frustration_index",
+          "commitment_depth",
+          "price_hesitation_score",
+          "mongolian_trust_barrier",
+          "avg_price_in_session",
+          "dist_product_count",
+          "mouse_distance",
+          "mouse_speed",
+          "direction_changes"
+        ],
+        "shap_enabled": true,
+        "lstm_status": "future_work_disabled"
+      },
+      "connections": {
+        "kafka": {
+          "status": "ok",
+          "checks": [
+            {
+              "host": "kafka",
+              "port": 9092,
+              "reachable": true
+            }
+          ],
+          "bootstrap": "kafka:9092",
+          "input_topic": "feature_ready",
+          "output_topic": "prediction_done",
+          "output_topic_v2": "prediction_done_v2",
+          "dlq_topic": "prediction_dlq"
+        },
+        "postgres": {
+          "status": "ok",
+          "pool_initialized": true,
+          "query_ok": true,
+          "details": "host: postgres; port: 5432; db: cartdb"
+        },
+        "producer": {
+          "status": "ok"
+        },
+        "consumer": {
+          "status": "ok"
+        },
+        "model_storage": {
+          "status": "ok",
+          "path": "/app/models/xgb_cart_abandonment.joblib"
+        }
+      },
+      "runtime": {
+        "stats": {
+          "messages_consumed": 3,
+          "feature_vectors_validated": 3,
+          "predictions_created": 3,
+          "predictions_persisted": 3,
+          "prediction_messages_published": 6,
+          "failures": 0,
+          "retries": 0,
+          "dlq_messages": 0,
+          "active_inferences": 0
+        },
+        "last_feature_vector": {
+          "received_at": "2026-05-07T16:11:45+00:00",
+          "topic": "feature_ready",
+          "partition": 0,
+          "offset": 2,
+          "session_id": "1df12141-e7f8-5b26-b150-53b602e9f8ef",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "visitor_id": null,
+          "feature_version": "1.0.0",
+          "computed_at": "2026-05-07T16:11:45.680895+00:00",
+          "window_seconds": null,
+          "feature_count": 76,
+          "feature_sample": {
+            "visitor_id": "",
+            "session_id": "",
+            "visit_count": 0,
+            "url": "http://localhost:3000/audit/audit_uc3_price_sensitive_abandonment",
+            "path": "/audit/audit_uc3_price_sensitive_abandonment",
+            "referrer": "https://instagram.com/audit-campaign",
+            "page_load_ms": 2200.0,
+            "device_type": "desktop",
+            "language": "mn",
+            "timezone": "Asia/Irkutsk",
+            "time_on_page_sec": 0.0,
+            "max_scroll_pct": 0.0,
+            "scroll_up_count": 0,
+            "click_count": 0,
+            "active_time_ms": 268000.0,
+            "tab_hidden_count": 0,
+            "tab_hidden_ms": 18000.0,
+            "copy_count": 2
+          }
+        },
+        "last_prediction": {
+          "created_at": "2026-05-07T16:11:45.690801+00:00",
+          "session_id": "1df12141-e7f8-5b26-b150-53b602e9f8ef",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "visitor_id": null,
+          "feature_version": "1.0.0",
+          "model_name": "xgboost",
+          "model_version": "xgboost-synthetic-mvp",
+          "score": 0.6410980224609375,
+          "xgb_score": 0.6410980224609375,
+          "lstm_score": null,
+          "threshold": 0.38999999999999996,
+          "predicted_label": 1,
+          "predicted_class": "abandoned",
+          "top_features": [
+            {
+              "feature": "direction_changes",
+              "value": 0.0,
+              "importance": -0.5257347822189331
+            },
+            {
+              "feature": "active_time_ms",
+              "value": 268000.0,
+              "importance": 0.4779850244522095
+            },
+            {
+              "feature": "mouse_distance",
+              "value": 0.0,
+              "importance": 0.41792023181915283
+            },
+            {
+              "feature": "cart_value",
+              "value": 890000.0,
+              "importance": 0.41398003697395325
+            },
+            {
+              "feature": "frustration_index",
+              "value": 0.75,
+              "importance": 0.36620235443115234
+            },
+            {
+              "feature": "cart_churn_count",
+              "value": 5.0,
+              "importance": 0.35048845410346985
+            },
+            {
+              "feature": "avg_price_in_session",
+              "value": 0.0,
+              "importance": -0.30596378445625305
+            },
+            {
+              "feature": "max_scroll_pct",
+              "value": 0.0,
+              "importance": -0.25751611590385437
+            }
+          ]
+        },
+        "last_error": null,
+        "recent_predictions": [
+          {
+            "created_at": "2026-05-07T16:11:45.690801+00:00",
+            "session_id": "1df12141-e7f8-5b26-b150-53b602e9f8ef",
+            "tenant_id": "00000000-0000-0000-0000-000000000001",
+            "visitor_id": null,
+            "feature_version": "1.0.0",
+            "model_name": "xgboost",
+            "model_version": "xgboost-synthetic-mvp",
+            "score": 0.6410980224609375,
+            "xgb_score": 0.6410980224609375,
+            "lstm_score": null,
+            "threshold": 0.38999999999999996,
+            "predicted_label": 1,
+            "predicted_class": "abandoned",
+            "top_features": [
+              {
+                "feature": "direction_changes",
+                "value": 0.0,
+                "importance": -0.5257347822189331
+              },
+              {
+                "feature": "active_time_ms",
+                "value": 268000.0,
+                "importance": 0.4779850244522095
+              },
+              {
+                "feature": "mouse_distance",
+                "value": 0.0,
+                "importance": 0.41792023181915283
+              },
+              {
+                "feature": "cart_value",
+                "value": 890000.0,
+                "importance": 0.41398003697395325
+              },
+              {
+                "feature": "frustration_index",
+                "value": 0.75,
+                "importance": 0.36620235443115234
+              },
+              {
+                "feature": "cart_churn_count",
+                "value": 5.0,
+                "importance": 0.35048845410346985
+              },
+              {
+                "feature": "avg_price_in_session",
+                "value": 0.0,
+                "importance": -0.30596378445625305
+              },
+              {
+                "feature": "max_scroll_pct",
+                "value": 0.0,
+                "importance": -0.25751611590385437
+              }
+            ]
+          },
+          {
+            "created_at": "2026-05-07T16:11:44.522489+00:00",
+            "session_id": "20df6d0e-d4e3-5e93-ae0f-9e64680dd6cd",
+            "tenant_id": "00000000-0000-0000-0000-000000000001",
+            "visitor_id": null,
+            "feature_version": "1.0.0",
+            "model_name": "xgboost",
+            "model_version": "xgboost-synthetic-mvp",
+            "score": 0.4757483899593353,
+            "xgb_score": 0.4757483899593353,
+            "lstm_score": null,
+            "threshold": 0.38999999999999996,
+            "predicted_label": 1,
+            "predicted_class": "abandoned",
+            "top_features": [
+              {
+                "feature": "active_time_ms",
+                "value": 195000.0,
+                "importance": 0.7097497582435608
+              },
+              {
+                "feature": "direction_changes",
+                "value": 0.0,
+                "importance": -0.5040181875228882
+              },
+              {
+                "feature": "mouse_distance",
+                "value": 0.0,
+                "importance": 0.400219202041626
+              },
+              {
+                "feature": "mongolian_trust_barrier",
+                "value": 0.0,
+                "importance": 0.3625599443912506
+              },
+              {
+                "feature": "avg_price_in_session",
+                "value": 0.0,
+                "importance": -0.3476879298686981
+              },
+              {
+                "feature": "price_hesitation_score",
+                "value": 0.0,
+                "importance": -0.2925325930118561
+              },
+              {
+                "feature": "time_on_page_sec",
+                "value": 0.0,
+                "importance": 0.2909861207008362
+              },
+              {
+                "feature": "session_duration_sec",
+                "value": 1.250975,
+                "importance": 0.248071551322937
+              }
+            ]
+          },
+          {
+            "created_at": "2026-05-07T16:11:42.795449+00:00",
+            "session_id": "ab892586-560d-5dcd-9bff-59751b8bbf79",
+            "tenant_id": "00000000-0000-0000-0000-000000000001",
+            "visitor_id": null,
+            "feature_version": "1.0.0",
+            "model_name": "xgboost",
+            "model_version": "xgboost-synthetic-mvp",
+            "score": 0.699162483215332,
+            "xgb_score": 0.699162483215332,
+            "lstm_score": null,
+            "threshold": 0.38999999999999996,
+            "predicted_label": 1,
+            "predicted_class": "abandoned",
+            "top_features": [
+              {
+                "feature": "scroll_up_count",
+                "value": 8.0,
+                "importance": 0.6758560538291931
+              },
+              {
+                "feature": "active_time_ms",
+                "value": 268000.0,
+                "importance": 0.5328117609024048
+              },
+              {
+                "feature": "price_hesitation_score",
+                "value": 0.0,
+                "importance": -0.45472922921180725
+              },
+              {
+                "feature": "direction_changes",
+                "value": 0.0,
+                "importance": -0.44903162121772766
+              },
+              {
+                "feature": "frustration_index",
+                "value": 1.0,
+                "importance": 0.42496758699417114
+              },
+              {
+                "feature": "mouse_distance",
+                "value": 0.0,
+                "importance": 0.3816482424736023
+              },
+              {
+                "feature": "cart_churn_count",
+                "value": 4.0,
+                "importance": 0.29349416494369507
+              },
+              {
+                "feature": "avg_price_in_session",
+                "value": 0.0,
+                "importance": -0.2629966735839844
+              }
+            ]
+          }
+        ],
+        "recent_events": [
+          {
+            "at": "2026-05-07T16:11:45+00:00",
+            "level": "info",
+            "message": "Prediction published for session 1df12141-e7f8-5b26-b150-53b602e9f8ef score=0.641"
+          },
+          {
+            "at": "2026-05-07T16:11:45+00:00",
+            "level": "info",
+            "message": "Feature vector validated for session 1df12141-e7f8-5b26-b150-53b602e9f8ef"
+          },
+          {
+            "at": "2026-05-07T16:11:45+00:00",
+            "level": "info",
+            "message": "Kafka message received feature_ready:0:2"
+          },
+          {
+            "at": "2026-05-07T16:11:44+00:00",
+            "level": "info",
+            "message": "Prediction published for session 20df6d0e-d4e3-5e93-ae0f-9e64680dd6cd score=0.476"
+          },
+          {
+            "at": "2026-05-07T16:11:44+00:00",
+            "level": "info",
+            "message": "Feature vector validated for session 20df6d0e-d4e3-5e93-ae0f-9e64680dd6cd"
+          },
+          {
+            "at": "2026-05-07T16:11:44+00:00",
+            "level": "info",
+            "message": "Kafka message received feature_ready:0:1"
+          },
+          {
+            "at": "2026-05-07T16:11:42+00:00",
+            "level": "info",
+            "message": "Prediction published for session ab892586-560d-5dcd-9bff-59751b8bbf79 score=0.699"
+          },
+          {
+            "at": "2026-05-07T16:11:42+00:00",
+            "level": "info",
+            "message": "Feature vector validated for session ab892586-560d-5dcd-9bff-59751b8bbf79"
+          },
+          {
+            "at": "2026-05-07T16:11:42+00:00",
+            "level": "info",
+            "message": "Kafka message received feature_ready:0:0"
+          },
+          {
+            "at": "2026-05-07T16:10:10+00:00",
+            "level": "info",
+            "message": "startup: Kafka consumer started; service ready"
+          },
+          {
+            "at": "2026-05-07T16:10:10+00:00",
+            "level": "info",
+            "message": "startup: Kafka producer started"
+          },
+          {
+            "at": "2026-05-07T16:10:10+00:00",
+            "level": "info",
+            "message": "startup: PostgreSQL pool ready"
+          },
+          {
+            "at": "2026-05-07T16:10:10+00:00",
+            "level": "info",
+            "message": "startup: models loaded (version=xgboost-synthetic-mvp)"
+          },
+          {
+            "at": "2026-05-07T16:10:09+00:00",
+            "level": "info",
+            "message": "startup: loading models"
+          }
+        ]
+      },
+      "pipeline": [
+        {
+          "stage": "feature_ready input",
+          "status": "ok",
+          "from": "feature_service",
+          "to": "ml_service Kafka consumer",
+          "topic": "feature_ready",
+          "count": 3
+        },
+        {
+          "stage": "feature vector validation",
+          "status": "ok",
+          "from": "Kafka JSON payload",
+          "to": "FeatureVector schema",
+          "count": 3
+        },
+        {
+          "stage": "XGBoost inference",
+          "status": "ok",
+          "from": "38 model features",
+          "to": "abandonment probability + SHAP top features",
+          "count": 3
+        },
+        {
+          "stage": "PostgreSQL write",
+          "status": "ok",
+          "from": "PredictionOut",
+          "to": "predictions.predictions",
+          "count": 3
+        },
+        {
+          "stage": "Kafka prediction publish",
+          "status": "ok",
+          "from": "PredictionResult",
+          "to": "prediction_done, prediction_done_v2",
+          "count": 6
+        }
+      ],
+      "model_artifacts": {
+        "model_path": {
+          "path": "/app/models/xgb_cart_abandonment.joblib",
+          "exists": true,
+          "size_bytes": 160538,
+          "modified_at": "2026-05-06T16:24:28+00:00"
+        },
+        "directory": "/app/models",
+        "artifacts": {
+          "metrics_xgboost.json": {
+            "path": "/app/models/metrics_xgboost.json",
+            "exists": true,
+            "size_bytes": 1320,
+            "modified_at": "2026-05-06T16:24:28+00:00"
+          },
+          "confusion_matrix.json": {
+            "path": "/app/models/confusion_matrix.json",
+            "exists": true,
+            "size_bytes": 152,
+            "modified_at": "2026-05-06T16:24:28+00:00"
+          },
+          "classification_report.json": {
+            "path": "/app/models/classification_report.json",
+            "exists": true,
+            "size_bytes": 610,
+            "modified_at": "2026-05-06T16:24:28+00:00"
+          },
+          "dataset_metadata.json": {
+            "path": "/app/models/dataset_metadata.json",
+            "exists": true,
+            "size_bytes": 289,
+            "modified_at": "2026-05-06T16:24:28+00:00"
+          },
+          "feature_order.json": {
+            "path": "/app/models/feature_order.json",
+            "exists": true,
+            "size_bytes": 815,
+            "modified_at": "2026-05-06T16:24:28+00:00"
+          },
+          "metrics_baseline.json": {
+            "path": "/app/models/metrics_baseline.json",
+            "exists": true,
+            "size_bytes": 185,
+            "modified_at": "2026-04-23T05:00:14+00:00"
+          },
+          "metrics_extended.json": {
+            "path": "/app/models/metrics_extended.json",
+            "exists": true,
+            "size_bytes": 186,
+            "modified_at": "2026-04-23T05:00:14+00:00"
+          },
+          "metrics_full.json": {
+            "path": "/app/models/metrics_full.json",
+            "exists": true,
+            "size_bytes": 182,
+            "modified_at": "2026-04-23T05:00:15+00:00"
+          }
+        },
+        "metrics": {
+          "dataset": "data\\sessions.csv",
+          "model_version": "xgboost-synthetic-mvp",
+          "synthetic_dataset": true,
+          "split": {
+            "train": 720,
+            "validation": 240,
+            "test": 240,
+            "random_state": 42,
+            "stratified": true
+          },
+          "models": {
+            "majority": {
+              "accuracy": 0.5,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "roc_auc": 0.5,
+              "pr_auc": 0.5,
+              "threshold": 0.5,
+              "positive_support": 120,
+              "negative_support": 120
+            },
+            "logistic_regression": {
+              "accuracy": 0.8208333333333333,
+              "precision": 0.8468468468468469,
+              "recall": 0.7833333333333333,
+              "f1": 0.8138528138528138,
+              "roc_auc": 0.8436111111111111,
+              "pr_auc": 0.8223197580409277,
+              "threshold": 0.5,
+              "positive_support": 120,
+              "negative_support": 120
+            },
+            "xgboost": {
+              "accuracy": 0.825,
+              "precision": 0.8145161290322581,
+              "recall": 0.8416666666666667,
+              "f1": 0.8278688524590164,
+              "roc_auc": 0.8413194444444444,
+              "pr_auc": 0.7790402332350311,
+              "threshold": 0.38999999999999996,
+              "positive_support": 120,
+              "negative_support": 120
+            }
+          },
+          "threshold_tuning": {
+            "best_threshold": 0.38999999999999996,
+            "validation_f1": 0.7786885245901639
+          }
+        },
+        "confusion_matrix": {
+          "labels": [
+            "converted",
+            "abandoned"
+          ],
+          "matrix": [
+            [
+              97,
+              23
+            ],
+            [
+              19,
+              101
+            ]
+          ]
+        },
+        "confusion_summary": {
+          "tn": 97,
+          "fp": 23,
+          "fn": 19,
+          "tp": 101,
+          "total": 240,
+          "accuracy": 0.825
+        },
+        "classification_report": {
+          "0": {
+            "precision": 0.8362068965517241,
+            "recall": 0.8083333333333333,
+            "f1-score": 0.8220338983050848,
+            "support": 120.0
+          },
+          "1": {
+            "precision": 0.8145161290322581,
+            "recall": 0.8416666666666667,
+            "f1-score": 0.8278688524590164,
+            "support": 120.0
+          },
+          "accuracy": 0.825,
+          "macro avg": {
+            "precision": 0.8253615127919911,
+            "recall": 0.825,
+            "f1-score": 0.8249513753820505,
+            "support": 240.0
+          },
+          "weighted avg": {
+            "precision": 0.8253615127919911,
+            "recall": 0.825,
+            "f1-score": 0.8249513753820507,
+            "support": 240.0
+          }
+        },
+        "dataset_metadata": {
+          "rows": 1200,
+          "features": 38,
+          "positive_abandoned": 600,
+          "negative_converted": 600,
+          "label_definition": "1 = abandoned checkout/session, 0 = converted purchase_success",
+          "synthetic": true,
+          "future_leakage_guard": "Outcome columns are excluded from feature_order."
+        },
+        "feature_order": [
+          "page_load_ms",
+          "time_on_page_sec",
+          "max_scroll_pct",
+          "scroll_up_count",
+          "click_count",
+          "active_time_ms",
+          "tab_hidden_count",
+          "copy_count",
+          "form_fields_count",
+          "form_fields_touched",
+          "bounce",
+          "session_duration_sec",
+          "is_logged_in",
+          "selected_quantity",
+          "rage_click",
+          "outbound_click",
+          "checkout_step_detected",
+          "js_error",
+          "page_view_count",
+          "back_navigation",
+          "coupon_entered",
+          "cart_value",
+          "cart_item_count",
+          "checkout_step",
+          "order_total",
+          "is_sale",
+          "cart_churn_count",
+          "page_views",
+          "is_mobile",
+          "frustration_index",
+          "commitment_depth",
+          "price_hesitation_score",
+          "mongolian_trust_barrier",
+          "avg_price_in_session",
+          "dist_product_count",
+          "mouse_distance",
+          "mouse_speed",
+          "direction_changes"
+        ],
+        "variant_metrics": {
+          "baseline": {
+            "variant": "baseline",
+            "auc_roc": 0.5,
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "n_features": 9,
+            "n_train": 2,
+            "trained_at": "2026-04-23T05:00:14.464187"
+          },
+          "extended": {
+            "variant": "extended",
+            "auc_roc": 0.5,
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "n_features": 29,
+            "n_train": 2,
+            "trained_at": "2026-04-23T05:00:14.902646"
+          },
+          "full": {
+            "variant": "full",
+            "auc_roc": 0.5,
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "n_features": 75,
+            "n_train": 2,
+            "trained_at": "2026-04-23T05:00:15.520362"
+          }
+        }
+      },
+      "worker": "21f7d9f87ed3",
+      "timezone": "UTC",
+      "recent_events": [
+        {
+          "at": "2026-05-07T16:11:45+00:00",
+          "level": "info",
+          "message": "Prediction published for session 1df12141-e7f8-5b26-b150-53b602e9f8ef score=0.641"
+        },
+        {
+          "at": "2026-05-07T16:11:45+00:00",
+          "level": "info",
+          "message": "Feature vector validated for session 1df12141-e7f8-5b26-b150-53b602e9f8ef"
+        },
+        {
+          "at": "2026-05-07T16:11:45+00:00",
+          "level": "info",
+          "message": "Kafka message received feature_ready:0:2"
+        },
+        {
+          "at": "2026-05-07T16:11:44+00:00",
+          "level": "info",
+          "message": "Prediction published for session 20df6d0e-d4e3-5e93-ae0f-9e64680dd6cd score=0.476"
+        },
+        {
+          "at": "2026-05-07T16:11:44+00:00",
+          "level": "info",
+          "message": "Feature vector validated for session 20df6d0e-d4e3-5e93-ae0f-9e64680dd6cd"
+        },
+        {
+          "at": "2026-05-07T16:11:44+00:00",
+          "level": "info",
+          "message": "Kafka message received feature_ready:0:1"
+        },
+        {
+          "at": "2026-05-07T16:11:42+00:00",
+          "level": "info",
+          "message": "Prediction published for session ab892586-560d-5dcd-9bff-59751b8bbf79 score=0.699"
+        },
+        {
+          "at": "2026-05-07T16:11:42+00:00",
+          "level": "info",
+          "message": "Feature vector validated for session ab892586-560d-5dcd-9bff-59751b8bbf79"
+        },
+        {
+          "at": "2026-05-07T16:11:42+00:00",
+          "level": "info",
+          "message": "Kafka message received feature_ready:0:0"
+        },
+        {
+          "at": "2026-05-07T16:10:10+00:00",
+          "level": "info",
+          "message": "startup: Kafka consumer started; service ready"
+        },
+        {
+          "at": "2026-05-07T16:10:10+00:00",
+          "level": "info",
+          "message": "startup: Kafka producer started"
+        },
+        {
+          "at": "2026-05-07T16:10:10+00:00",
+          "level": "info",
+          "message": "startup: PostgreSQL pool ready"
+        },
+        {
+          "at": "2026-05-07T16:10:10+00:00",
+          "level": "info",
+          "message": "startup: models loaded (version=xgboost-synthetic-mvp)"
+        },
+        {
+          "at": "2026-05-07T16:10:09+00:00",
+          "level": "info",
+          "message": "startup: loading models"
+        }
+      ]
+    }
+  ],
+  "final_result": "PASS"
+}

@@ -1,0 +1,45 @@
+cart_analytic\src\components\editorial\AuthContext.tsx:43:  } catch {
+cart_analytic\src\lib\services\ablation.ts:23:export const MOCK_ABLATION: AblationSummary = {
+cart_analytic\src\lib\services\ablation.ts:47:      return MOCK_ABLATION;
+cart_analytic\src\components\editorial\TopAppBar.tsx:90:  if (process.env.NEXT_PUBLIC_MOCK_FALLBACK !== "true") return null;
+cart_analytic\src\components\editorial\TopAppBar.tsx:119:      } catch {
+cart_analytic\src\lib\services\analytics.ts:39:  } catch {
+cart_analytic\src\lib\services\analytics.ts:93:  } catch {
+cart_analytic\src\app\diagnosis\[id]\page.tsx:91:                      <span className="text-[0.6875rem] font-bold text-primary">{entry.dominantScore}</span>
+cart_analytic\src\lib\services\apiKeys.ts:5:const MOCK_KEYS: ApiKey[] = [
+cart_analytic\src\lib\services\apiKeys.ts:73:      return MOCK_KEYS;
+cart_analytic\src\lib\services\auth.ts:86:  } catch {
+cart_analytic\src\lib\services\dashboard-mvp.ts:186:const MOCK_OVERVIEW: DashboardOverview = {
+cart_analytic\src\lib\services\dashboard-mvp.ts:242:  if (isMockFallback()) return MOCK_OVERVIEW;
+cart_analytic\src\lib\services\dashboard-mvp.ts:250:      reasons: MOCK_OVERVIEW.reasons,
+cart_analytic\src\lib\services\dashboard-mvp.ts:251:      distribution: MOCK_OVERVIEW.reasons.map((r) => ({ code: r.code, label: r.label, sessions: r.dominant_sessions })),
+cart_analytic\src\lib\services\dashboard-mvp.ts:271:      results: MOCK_OVERVIEW.latest_recommendation ? [MOCK_OVERVIEW.latest_recommendation] : [],
+cart_analytic\src\lib\services\dashboard.ts:71:  } catch {
+cart_analytic\src\lib\services\dashboard.ts:97:  } catch {
+cart_analytic\src\lib\services\dashboard.ts:105:  } catch {
+cart_analytic\src\lib\services\dashboard.ts:115:  } catch {
+cart_analytic\src\lib\services\diagnosis.ts:12:  dominantScore: ScoreLabel;
+cart_analytic\src\lib\services\diagnosis.ts:41:    dominantScore: ((api.dominant_reason ?? api.dominant_score_key) as ScoreLabel) ?? dominantFromScores(api.scores),
+cart_analytic\src\lib\services\mlInsights.ts:48:const MOCK_INSIGHTS: MLInsights = {
+cart_analytic\src\lib\services\mlInsights.ts:98:  if (isMockFallback()) return MOCK_INSIGHTS;
+cart_analytic\src\lib\services\pipeline.ts:75:const MOCK_PIPELINE: PipelineMonitor = {
+cart_analytic\src\lib\services\pipeline.ts:126:  if (isMockFallback()) return MOCK_PIPELINE;
+cart_analytic\src\lib\services\predictions.ts:23:const MOCK_PREDICTIONS: Prediction[] = [
+cart_analytic\src\lib\services\predictions.ts:79:      return { count: MOCK_PREDICTIONS.length, next: null, previous: null, results: MOCK_PREDICTIONS };
+cart_analytic\src\lib\services\predictions.ts:91:        MOCK_PREDICTIONS.find((p) => p.session_id === sessionId) ?? {
+cart_analytic\src\lib\services\predictions.ts:92:          ...MOCK_PREDICTIONS[0]!,
+cart_analytic\src\lib\services\recommendations.ts:95:  } catch {
+cart_analytic\src\lib\services\settings.ts:17:const MOCK_STORE: StoreSettings = {
+cart_analytic\src\lib\services\settings.ts:29:const MOCK_TEAM: TeamMember[] = [
+cart_analytic\src\lib\services\settings.ts:41:      return MOCK_STORE;
+cart_analytic\src\lib\services\settings.ts:53:      return { ...MOCK_STORE, ...data };
+cart_analytic\src\lib\services\settings.ts:66:      return MOCK_TEAM;
+cart_analytic\src\lib\services\sessions.ts:22:  const dominantScore = dominantFromDiagnosis(api.diagnosis?.dominant_reason, api.diagnosis?.scores);
+cart_analytic\src\lib\services\sessions.ts:31:    dominantScore,
+cart_analytic\src\lib\services\sessions.ts:66:      dominantScore: session.dominantScore,
+cart_analytic\src\lib\services\tenants.ts:20:const MOCK_TENANTS: Tenant[] = [
+cart_analytic\src\lib\services\tenants.ts:27:const MOCK_SUMMARY: TenantSummary = { total: 1284, active: 1102, new_30d: 48 };
+cart_analytic\src\lib\services\tenants.ts:41:        ? MOCK_TENANTS.filter((t) => t.name.toLowerCase().includes(search) || t.email.toLowerCase().includes(search))
+cart_analytic\src\lib\services\tenants.ts:42:        : MOCK_TENANTS;
+cart_analytic\src\lib\services\tenants.ts:43:      return { count: results.length, next: null, previous: null, results, summary: MOCK_SUMMARY };
+cart_analytic\src\lib\services\tenants.ts:56:      return MOCK_TENANTS.find((t) => t.id === Number(id)) ?? MOCK_TENANTS[0]!;

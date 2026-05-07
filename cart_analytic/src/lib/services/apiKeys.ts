@@ -1,11 +1,67 @@
 import { apiClient, ApiError, isMockFallback } from "@/lib/api-client";
 import { API_ENDPOINTS } from "@/lib/api-config";
-import type { ApiKey } from "@/types/api";
+import type { ApiKey, ApiKeyEnvironment } from "@/types/api";
 
 const MOCK_KEYS: ApiKey[] = [
-  { id: 1, name: "Production Key", key_masked: "tk_full_••••••••a1b2", is_active: true, tier: "full", created_at: "2026-01-15" },
-  { id: 2, name: "Development Key", key_masked: "tk_smart_••••••••c3d4", is_active: false, tier: "smart", created_at: "2026-02-20" },
+  {
+    id: 1,
+    name: "Production storefront",
+    key_masked: "tk_full_••••••••a1b2",
+    is_active: true,
+    tier: "full",
+    environment: "production",
+    status: "active",
+    created_at: "2026-01-15",
+    last_used_at: "2026-05-07T08:14:00Z",
+  },
+  {
+    id: 2,
+    name: "Staging tracker",
+    key_masked: "tk_smart_••••••••c3d4",
+    is_active: true,
+    tier: "smart",
+    environment: "staging",
+    status: "active",
+    created_at: "2026-02-20",
+    last_used_at: "2026-05-06T11:02:00Z",
+  },
+  {
+    id: 3,
+    name: "Local dev",
+    key_masked: "tk_basic_••••••••e5f6",
+    is_active: false,
+    tier: "basic",
+    environment: "development",
+    status: "revoked",
+    created_at: "2026-03-04",
+    last_used_at: "2026-04-19T17:22:00Z",
+  },
 ];
+
+export type ApiKeyTier = "basic" | "smart" | "full";
+
+export type ApiKeyCreateInput = {
+  name?: string;
+  tier?: ApiKeyTier;
+  environment?: ApiKeyEnvironment;
+};
+
+export type GeneratedApiKey = ApiKey & {
+  key?: string;
+  raw_key?: string;
+  key_plain?: string;
+  observer_install_snippet?: string;
+  tenant_external_id?: string;
+};
+
+function normalizeCreateInput(input?: ApiKeyCreateInput | string): ApiKeyCreateInput {
+  if (typeof input === "string") return { name: input };
+  return input ?? {};
+}
+
+function buildMockSnippet(key: string, tenantExternalId: string): string {
+  return `<script src="http://localhost:8001/static/snippet/track.js?key=${key}" data-tenant-id="${tenantExternalId}" async></script>`;
+}
 
 export async function fetchApiKeys(): Promise<ApiKey[]> {
   try {
@@ -20,22 +76,33 @@ export async function fetchApiKeys(): Promise<ApiKey[]> {
   }
 }
 
-export async function generateApiKey(name?: string): Promise<ApiKey & { key_plain?: string }> {
+export async function generateApiKey(input?: ApiKeyCreateInput | string): Promise<GeneratedApiKey> {
+  const payload = normalizeCreateInput(input);
+  const name = payload.name?.trim() || "Storefront key";
+  const tier = payload.tier ?? "full";
+  const environment = payload.environment ?? "production";
+
   try {
-    const created = await apiClient.post<ApiKey & { key?: string; key_plain?: string }>(API_ENDPOINTS.apiKeys, { name: name ?? "New Key" });
-    return { ...created, key_plain: created.key_plain ?? created.key };
+    const created = await apiClient.post<GeneratedApiKey>(API_ENDPOINTS.apiKeys, { name, tier, environment });
+    return { ...created, key_plain: created.key_plain ?? created.key ?? created.raw_key };
   } catch (error) {
     if (error instanceof ApiError && isMockFallback()) {
       console.warn("[mock]", API_ENDPOINTS.apiKeys);
-      const plain = `tk_full_mock_${Math.random().toString(36).slice(2, 10)}`;
+      const plain = `tk_${tier}_mock_${Math.random().toString(36).slice(2, 12)}`;
+      const tenantExternalId = "00000000-0000-0000-0000-000000000001";
       return {
         id: Date.now(),
-        name: name ?? "New Key",
-        key_masked: `tk_full_••••••••${plain.slice(-8)}`,
+        name,
+        key_masked: `tk_${tier}_••••••••${plain.slice(-8)}`,
         key_plain: plain,
+        observer_install_snippet: buildMockSnippet(plain, tenantExternalId),
+        tenant_external_id: tenantExternalId,
         is_active: true,
-        tier: "full",
+        tier,
+        environment,
+        status: "active",
         created_at: new Date().toISOString().slice(0, 10),
+        last_used_at: null,
       };
     }
     throw error;

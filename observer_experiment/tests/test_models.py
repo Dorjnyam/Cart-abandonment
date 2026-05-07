@@ -45,6 +45,12 @@ def test_event_id_is_core_key():
     )
 
 
+def test_tenant_id_is_core_key():
+    assert "tenant_id" in CORE_DB_KEYS, (
+        "tenant_id must survive tier filtering so Session can route events to the tenant"
+    )
+
+
 # ── filter_payload_for_tier ────────────────────────────────────────────────
 
 def test_event_id_survives_t3_filter():
@@ -58,6 +64,18 @@ def test_event_id_survives_t3_filter():
     assert result["event_id"] == "evt_123"
 
 
+def test_tenant_id_survives_t3_filter():
+    tenant_id = "00000000-0000-0000-0000-000000000001"
+    data = {
+        "tenant_id": tenant_id,
+        "visitor_id": "v1",
+        "session_id": "s1",
+        "event_type": "page_view",
+    }
+    result = filter_payload_for_tier(data, "T3")
+    assert result["tenant_id"] == tenant_id
+
+
 def test_t1_field_stripped_in_t3():
     data = {"visitor_id": "v1", "cart_value": 50.0, "cart_item_count": 3}
     result = filter_payload_for_tier(data, "T3")
@@ -69,6 +87,53 @@ def test_t1_field_allowed_in_t1():
     data = {"visitor_id": "v1", "cart_value": 50.0}
     result = filter_payload_for_tier(data, "T1")
     assert result["cart_value"] == 50.0
+
+
+def test_checkout_error_preserves_error_type_and_step():
+    result = filter_payload_for_tier(
+        {
+            "visitor_id": "v1",
+            "event_type": "checkout_error",
+            "checkout_step": "payment",
+            "error_type": "payment_failed",
+        },
+        "T1",
+    )
+    assert result["checkout_step"] == "payment"
+    assert result["error_type"] == "payment_failed"
+
+
+def test_purchase_success_preserves_order_fields():
+    result = filter_payload_for_tier(
+        {
+            "visitor_id": "v1",
+            "event_type": "purchase_success",
+            "order_id": "order-1",
+            "payment_method": "card",
+            "cart_total": 250.0,
+        },
+        "T1",
+    )
+    assert result["order_id"] == "order-1"
+    assert result["payment_method"] == "card"
+    assert result["cart_total"] == 250.0
+
+
+def test_price_sensitive_fields_and_unknown_t1_are_preserved():
+    result = filter_payload_for_tier(
+        {
+            "visitor_id": "v1",
+            "shipping_cost": 25.0,
+            "discount": 0,
+            "cart_total": 425.0,
+            "coupon_failed": True,
+        },
+        "T1",
+    )
+    assert result["shipping_cost"] == 25.0
+    assert result["discount"] == 0
+    assert result["cart_total"] == 425.0
+    assert result["coupon_failed"] is True
 
 
 def test_t2_extra_allowed_in_t2():
@@ -125,14 +190,17 @@ def test_ca_user_unknown_field_dropped():
 # ── EventPayload construction ──────────────────────────────────────────────
 
 def test_basic_payload_creation():
+    tenant_id = "00000000-0000-0000-0000-000000000001"
     p = EventPayload(
         visitor_id="vis_abc",
         session_id="sess_12345678",
+        tenant_id=tenant_id,
         event_type="page_view",
         url="https://example.com",
         tier="T3",
     )
     assert p.visitor_id == "vis_abc"
+    assert p.tenant_id == tenant_id
     assert p.tier == "T3"
 
 
