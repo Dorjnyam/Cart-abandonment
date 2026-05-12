@@ -322,7 +322,7 @@ function AdminContent() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
-      {/* Header */}
+      {/* Header хэсэг */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-3">
           <span className="flex size-9 items-center justify-center rounded-xl border border-outline-variant/[0.09] bg-surface-container-lowest">
@@ -339,7 +339,7 @@ function AdminContent() {
         </div>
       </div>
 
-      {/* Tab nav */}
+      {/* Tab navigation хэсэг */}
       <div
         className="inline-flex rounded-lg border border-outline-variant/[0.09] bg-surface-container-lowest p-0.5"
         role="tablist"
@@ -363,7 +363,7 @@ function AdminContent() {
         ))}
       </div>
 
-      {/* Tab content */}
+      {/* Tab content хэсэг */}
       <div className="rounded-xl border border-outline-variant/[0.09] bg-surface-container-lowest p-5">
         {tab === "health"  && <PipelineHealthTab />}
         {tab === "metrics" && <ModelMetricsTab />}

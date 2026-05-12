@@ -194,12 +194,12 @@ function SettingsInner() {
     router.replace(`/settings?${params.toString()}`);
   }
 
-  // Profile / store
+  // Profile болон store
   const [store, setStore] = useState<StoreSettings>({ name: "", domain: "", plan: "", timezone: "" });
   const [storeLoading, setStoreLoading] = useState(false);
   const [storeSaving, setStoreSaving] = useState(false);
 
-  // Team
+  // Team хэсэг
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [membersLoading, setMembersLoading] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -207,7 +207,7 @@ function SettingsInner() {
   const [inviteRole, setInviteRole] = useState("member");
   const [inviting, setInviting] = useState(false);
 
-  // API keys
+  // API key хэсэг
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [keysLoading, setKeysLoading] = useState(false);
   const [generatingKey, setGeneratingKey] = useState(false);
@@ -257,7 +257,7 @@ function SettingsInner() {
     if (tab === "keys") void loadKeys();
   }, [tab, loadStore, loadMembers, loadKeys]);
 
-  // Always load profile shallow info for the header
+  // Header-т хэрэгтэй profile-ийн товч мэдээллийг үргэлж ачаална.
   useEffect(() => {
     void loadStore();
   }, [loadStore]);

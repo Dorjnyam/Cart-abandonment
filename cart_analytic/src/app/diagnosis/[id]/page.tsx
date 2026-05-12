@@ -50,7 +50,7 @@ export default function DiagnosisDetailPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* S1-S7 scores */}
+            {/* S1-S7 оноонууд */}
             <section className="lg:col-span-4 bg-surface-container-lowest p-6 rounded-xl">
               <h3 className="font-bold text-on-surface mb-4">S1-S7 оноо</h3>
               {entry ? (
@@ -79,7 +79,7 @@ export default function DiagnosisDetailPage() {
               </div>
             </section>
 
-            {/* Feature values */}
+            {/* Feature утгууд */}
             <section className="lg:col-span-5 bg-surface-container-lowest p-6 rounded-xl">
               <h3 className="font-bold text-on-surface mb-4">Feature утгууд</h3>
               {entry?.scores ? (
@@ -122,7 +122,7 @@ export default function DiagnosisDetailPage() {
               )}
             </section>
 
-            {/* Recommendation */}
+            {/* Recommendation хэсэг */}
             <section className="lg:col-span-3 bg-surface-container-lowest p-6 rounded-xl">
               <h3 className="font-bold text-on-surface mb-4">Зөвлөмж</h3>
               <p className="text-sm text-on-surface-variant leading-relaxed">

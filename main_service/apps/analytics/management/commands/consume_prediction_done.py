@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import signal
+import threading
 import time
 from typing import Any, Dict
 
@@ -52,6 +53,19 @@ def _set_consumer_ready(topic: str, group_id: str, ready: bool, reason: str = ""
         logger.warning("Could not update prediction consumer readiness marker: %s", exc)
 
 
+def _start_readiness_heartbeat(topic: str, group_id: str) -> threading.Thread:
+    interval_seconds = int(os.getenv("PREDICTION_CONSUMER_HEARTBEAT_SECONDS", "60"))
+
+    def _heartbeat() -> None:
+        while not _shutdown:
+            _set_consumer_ready(topic, group_id, True)
+            time.sleep(interval_seconds)
+
+    thread = threading.Thread(target=_heartbeat, name="prediction-consumer-readiness", daemon=True)
+    thread.start()
+    return thread
+
+
 class Command(BaseCommand):
     help = "Consume prediction_done Kafka topic and dispatch Celery tasks with manual offset commit."
 
@@ -100,6 +114,8 @@ class Command(BaseCommand):
             _set_consumer_ready(topic, group_id, False, "topic metadata unavailable")
             raise CommandError(f"Kafka topic {topic!r} has no partition metadata after startup wait.")
 
+        _start_readiness_heartbeat(topic, group_id)
+
         try:
             for message in consumer:
                 if _shutdown:
@@ -138,6 +154,8 @@ class Command(BaseCommand):
                     continue
 
                 try:
+                    # prediction_done боловсруулалт idempotent байх ёстой.
+                    # handle_prediction_payload нь update_or_create ашигладаг тул Kafka replay duplicate мөр үүсгэхгүй.
                     handle_prediction_payload(payload)
                     consumer.commit()
                 except Exception as exc:

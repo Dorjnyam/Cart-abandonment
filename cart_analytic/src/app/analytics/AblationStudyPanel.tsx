@@ -59,7 +59,7 @@ export default function AblationStudyPanel() {
 
   return (
     <div className="space-y-6">
-      {/* Date range picker */}
+      {/* Огнооны range picker */}
       <div className="flex flex-wrap items-center gap-3">
         <label className="text-xs font-semibold text-on-surface-variant">Эхлэх огноо</label>
         <input
@@ -85,7 +85,7 @@ export default function AblationStudyPanel() {
         </button>
       </div>
 
-      {/* Comparison table */}
+      {/* Харьцуулалтын хүснэгт */}
       <div className="overflow-x-auto rounded-xl border border-outline-variant/10 shadow-card">
         <table className="w-full text-[0.8125rem] min-w-[640px]">
           <thead>
@@ -133,7 +133,7 @@ export default function AblationStudyPanel() {
         </table>
       </div>
 
-      {/* Bar chart */}
+      {/* Bar chart хэсэг */}
       <div className="rounded-xl border border-outline-variant/10 bg-surface-container-lowest p-5 shadow-card">
         <h4 className="text-sm font-bold text-on-surface mb-4">Загварын итгэлийн харьцуулалт</h4>
         <ResponsiveContainer width="100%" height={200}>
@@ -153,7 +153,7 @@ export default function AblationStudyPanel() {
         </ResponsiveContainer>
       </div>
 
-      {/* Summary delta */}
+      {/* Нэгтгэсэн delta */}
       {data.comparison ? (
         <div className="flex flex-wrap gap-4">
           <div className="rounded-xl border border-outline-variant/10 bg-surface-container-lowest px-5 py-4 shadow-sm">

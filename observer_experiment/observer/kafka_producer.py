@@ -84,8 +84,9 @@ async def publish(event: dict[str, Any]) -> bool:
     """
     Publish one event dict to ``raw_events``.
 
-    Returns True on success, False if Kafka is unavailable or send fails.
-    Never raises — Observer is "dumb fast"; Kafka failure must not block /events.
+    Амжилттай бол True, Kafka unavailable эсвэл send fail бол False.
+    Exception гадагш шидэхгүй: Observer-ийн DB evidence write амжилттай болсон тохиолдолд
+    Kafka failure нь хэрэглэгчийн `/track` response-г эвдэхгүй, харин log дээр үлдэнэ.
     """
     if _producer is None:
         return False

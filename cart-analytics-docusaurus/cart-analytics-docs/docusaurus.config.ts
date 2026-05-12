@@ -3,13 +3,12 @@ import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
-  title: 'Cart Analytics Docs',
-  tagline: 'Системийн үйлчилгээний техникийн баримт бичиг',
+  title: 'Сагс орхилтын шинжилгээ',
+  tagline: 'Дипломын ажлын MVP системийн Монгол баримт бичиг',
   favicon: 'img/favicon.ico',
   url: 'https://docs.cartanalytics.mn',
   baseUrl: '/',
   onBrokenLinks: 'warn',
-  onBrokenMarkdownLinks: 'warn',
   future: {
     faster: {
       rspackBundler: false,
@@ -20,7 +19,7 @@ const config: Config = {
       mdxCrossCompilerCache: false,
     },
   },
-  i18n: { defaultLocale: 'en', locales: ['en'] },
+  i18n: { defaultLocale: 'mn', locales: ['mn'] },
   presets: [
     [
       'classic',
@@ -36,16 +35,17 @@ const config: Config = {
   ],
   themeConfig: {
     navbar: {
-      title: '📚 Cart Analytics Docs',
+      title: 'Сагс орхилтын шинжилгээ',
       items: [
-        { type: 'docSidebar', sidebarId: 'overviewSidebar', position: 'left', label: '🗺️ Тойм' },
-        { type: 'docSidebar', sidebarId: 'webSidebar', position: 'left', label: '🌐 Web Apps' },
-        { type: 'docSidebar', sidebarId: 'servicesSidebar', position: 'left', label: '⚙️ Services' },
+        { type: 'docSidebar', sidebarId: 'thesisSidebar', position: 'left', label: 'Thesis MVP' },
+        { type: 'docSidebar', sidebarId: 'overviewSidebar', position: 'left', label: 'Legacy overview' },
+        { type: 'docSidebar', sidebarId: 'webSidebar', position: 'left', label: 'Web apps' },
+        { type: 'docSidebar', sidebarId: 'servicesSidebar', position: 'left', label: 'Services' },
       ],
     },
     footer: {
       style: 'dark',
-      copyright: `Copyright © ${new Date().getFullYear()} Cart Analytics.`,
+      copyright: `Copyright © ${new Date().getFullYear()} Cart Analytics Thesis MVP.`,
     },
     prism: {
       theme: prismThemes.github,

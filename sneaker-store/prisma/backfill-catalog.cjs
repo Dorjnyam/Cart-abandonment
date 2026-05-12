@@ -6,10 +6,10 @@ const path = require("path");
 const root = path.join(__dirname, "..");
 try {
   require(path.join(root, "node_modules", "dotenv")).config({ path: path.join(root, ".env.local") });
-} catch (_) {}
+} catch {}
 try {
   require(path.join(root, "node_modules", "dotenv")).config({ path: path.join(root, ".env") });
-} catch (_) {}
+} catch {}
 
 const { PrismaClient } = require("@prisma/client");
 const { PrismaPg } = require("@prisma/adapter-pg");

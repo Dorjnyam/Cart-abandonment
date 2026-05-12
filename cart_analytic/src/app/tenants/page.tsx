@@ -58,7 +58,7 @@ function TenantsContent() {
 
   return (
     <div className="p-4 sm:p-8 max-w-7xl mx-auto">
-      {/* Stats */}
+      {/* Stats хэсэг */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-10">
         {[
           { label: "Нийт Tenant", value: total.toLocaleString(), badge: null },
@@ -84,7 +84,7 @@ function TenantsContent() {
         ))}
       </div>
 
-      {/* Table */}
+      {/* Хүснэгт */}
       <div className="bg-surface-container-lowest rounded-xl overflow-hidden border border-outline-variant/10 shadow-card">
         <div className="px-6 py-4 bg-surface-container-low flex justify-between items-center gap-4 flex-wrap">
           <form onSubmit={handleSearch} className="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant/15 rounded-lg px-3 py-2">
@@ -172,7 +172,7 @@ function TenantsContent() {
           </table>
         </div>
 
-        {/* Pagination */}
+        {/* Pagination хэсэг */}
         <div className="px-6 py-4 bg-surface-container-low flex items-center justify-between gap-4">
           <p className="text-xs text-on-surface-variant font-medium">
             Хуудас {page} / {totalPages}

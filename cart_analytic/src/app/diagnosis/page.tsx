@@ -123,7 +123,7 @@ export default function DiagnosisPage() {
   return (
     <EditorialShell activeNav="diagnosis" title="Why Customers Abandon" subtitle="Canonical S1–S7 reason analysis">
       <div className="mx-auto max-w-[1400px] px-6 py-8 sm:px-8 lg:px-10">
-        {/* Header */}
+        {/* Header хэсэг */}
         <header className="page-enter">
           <p className="text-[10.5px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant/70">
             Diagnosis · canonical S1–S7 reasoning
@@ -165,7 +165,7 @@ export default function DiagnosisPage() {
           </div>
         ) : null}
 
-        {/* Top: Formula + Top reason summary */}
+        {/* Дээд хэсэг: formula ба top reason summary */}
         <div className="mt-6 grid gap-4 lg:grid-cols-12 stagger-children">
           <SectionCard
             className="lg:col-span-7"
@@ -254,7 +254,7 @@ export default function DiagnosisPage() {
           </SectionCard>
         </div>
 
-        {/* Chart */}
+        {/* Chart хэсэг */}
         <SectionCard
           className="mt-4"
           title="S1–S7 average scores across diagnosed sessions"
@@ -311,7 +311,7 @@ export default function DiagnosisPage() {
           )}
         </SectionCard>
 
-        {/* Reason cards */}
+        {/* Reason card-ууд */}
         <section className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3 stagger-children">
           {reasons.map((reason) => {
             const code = reason.code as ReasonCode;

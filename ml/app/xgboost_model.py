@@ -31,6 +31,8 @@ class XGBoostModel:
         self.model_loaded: bool = False
 
     def load(self, model_path: str | None = None) -> None:
+        # Model artifact дотор feature_order байх ёстой.
+        # Энэ order нь сургалтын dataset-ийн column order-той таарахгүй бол inference буруу болно.
         if xgb is None:
             raise RuntimeError("xgboost is not installed; install ml/requirements.txt before loading the model")
         path = Path(model_path or settings.model_path_xgboost)
@@ -81,6 +83,8 @@ class XGBoostModel:
         self.model_loaded = False
 
     def _feature_array(self, features: dict[str, Any]) -> np.ndarray:
+        # Payload-д дутсан feature-г 0.0 болгож нөхнө. Энэ нь partial feature_ready message дээр crash хийхгүй.
+        # Гэхдээ model feature_order-ийг өөрчлөхгүй, зөвхөн trained order-р numpy row үүсгэнэ.
         encoded: dict[str, Any] = dict(features)
         for field, val in encoded.items():
             if isinstance(val, bool):
@@ -121,6 +125,7 @@ class XGBoostModel:
                 logger.warning("SHAP computation failed, skipping: %s", exc)
 
         if shap_dict:
+            # top_features нь explanatory support; causal proof гэж overclaim хийхгүй.
             top_n = settings.shap_top_n
             shap_dict = dict(
                 sorted(shap_dict.items(), key=lambda x: abs(x[1]), reverse=True)[:top_n]

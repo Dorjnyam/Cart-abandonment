@@ -130,7 +130,7 @@ class FeatureComputer:
         return features
 
     def _compute_sync(self, session: SessionEnriched) -> dict[str, Any]:
-        """CPU-bound feature computation — runs in a thread pool via asyncio.to_thread."""
+        """CPU-bound feature computation; asyncio.to_thread-оор event loop-оос тусгаарлаж ажиллуулна."""
         af = session.aggregated_fields
         evs = session.event_sequence or []
         evs = evs[:MAX_EVENTS_PER_SESSION]
@@ -144,10 +144,11 @@ class FeatureComputer:
         evs = normalized_evs
         af_map = af.model_dump()
 
-        # Start with raw passthrough values from aggregated_fields
+        # Raw passthrough feature-үүд нь Observer/Session-оос ирсэн contract талбарууд.
+        # Дараах computed feature groups нь raw утгыг overwrite хийхгүй, тусдаа feature namespace үүсгэнэ.
         features: dict[str, Any] = extract_raw(af_map)
 
-        # Computed features → their own dedicated fields (do NOT overwrite raw fields)
+        # Behavioral/commerce/trust feature groups. Label/outcome талбарыг энд feature vector-т оруулахгүй.
         features["frustration_index"] = frustration_index(af_map)
         features["commitment_depth"] = commitment_depth(af_map)
         features["price_hesitation_score"] = price_hesitation_score(af_map)
@@ -172,7 +173,8 @@ class FeatureComputer:
         features["mouse_speed"] = mouse["mouse_speed"]
         features["direction_changes"] = mouse["direction_changes"]
 
-        # Cart abandonment signal: items in cart but session ended without purchase
+        # Leakage prevention: session_state/has_purchase_success нь business metadata хэлбэрээр тусдаа дамжина.
+        # cart_abandonment_signal нь сургалтын feature_order-д байсан deterministic signal тул contract-г хадгална.
         features["cart_abandonment_signal"] = (
             int(af_map.get("cart_item_count", 0) or 0) > 0
             and not bool(af_map.get("is_order_success", False))
@@ -208,6 +210,7 @@ class FeatureComputer:
             elif field in af_map:
                 payload[field] = _coerce_value_for_field(field, af_map[field])
 
+        # Missing/NaN/Inf утгыг 0 default болгоно. Ингэснээр ML service тогтвортой feature vector авна.
         payload = _sanitize_payload(payload)
 
         if len(payload) != EXPECTED_FEATURE_COUNT:
@@ -223,6 +226,7 @@ class FeatureComputer:
             features=FeatureSet(**payload),
             computed_at=datetime.now(timezone.utc),
             window_seconds=session.window_seconds,
+            # Эдгээр metadata нь ML feature_order-д орохгүй; Main service UC2 converted guard хийхэд ашиглана.
             session_state=session.session_state,
             has_purchase_success=session.has_purchase_success,
             has_checkout_start=session.has_checkout_start,

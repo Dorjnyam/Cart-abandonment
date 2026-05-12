@@ -289,7 +289,7 @@ export default function RecommendationsPage() {
 
         <div className="editorial-rule mt-6" />
 
-        {/* Stats */}
+        {/* Stats хэсэг */}
         <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5 stagger-children">
           <MetricCell label="Total" value={data?.stats?.total ?? 0} hint="Active items" />
           <MetricCell label="New" value={data?.stats?.new ?? 0} hint="Awaiting review" />
@@ -304,7 +304,7 @@ export default function RecommendationsPage() {
           </div>
         ) : null}
 
-        {/* Board */}
+        {/* Board хэсэг */}
         {loading ? (
           <div className="mt-6 grid gap-4 lg:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (

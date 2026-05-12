@@ -3,6 +3,8 @@ import { API_TIMEOUT_MS } from "@/lib/constants";
 import { toastBridge } from "@/lib/toastBridge";
 
 export function isMockFallback(): boolean {
+  // Mock fallback нь зөвхөн frontend development-д зориулагдсан.
+  // Normal thesis/demo mode-д fake өгөгдлийг бодит мэт харуулахгүй.
   return process.env.NEXT_PUBLIC_MOCK_FALLBACK === "true";
 }
 
@@ -111,7 +113,7 @@ export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T
 
   const url = `${cfg.baseUrl}${path}`;
 
-  // Pre-flight: refresh token if expired
+  // Token хугацаа дуусах гэж байвал API хүсэлтээс өмнө шинэчилнэ.
   let currentToken = cfg.jwtToken;
   if (currentToken && isTokenExpired(currentToken)) {
     const refreshed = await refreshAccessToken();
@@ -139,7 +141,7 @@ export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T
     throw new ApiError("Network error while contacting API.", 0, "NETWORK_ERROR", error);
   }
 
-  // Handle 401 — attempt one token refresh + retry
+  // 401 үед token нэг удаа шинэчлээд хүсэлтийг дахин оролдоно.
   if (response.status === 401) {
     const refreshed = await refreshAccessToken();
     if (refreshed) {
@@ -165,7 +167,7 @@ export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T
     toastBridge.show("Серверийн алдаа. Дараа дахин оролдоно уу.", "error");
   }
 
-  // 204 No Content — nothing to parse
+  // 204 No Content үед parse хийх body байхгүй.
   if (response.status === 204) {
     return null as unknown as T;
   }

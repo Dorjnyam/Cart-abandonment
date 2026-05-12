@@ -7,7 +7,10 @@ export const RISK_THRESHOLDS = {
 export const MODEL_VARIANTS = ["baseline", "extended", "full"] as const;
 export type ModelVariant = typeof MODEL_VARIANTS[number];
 
-export const SCORE_LABELS: Record<string, string> = {
+export const SCORE_ORDER = ["S1", "S2", "S3", "S4", "S5", "S6", "S7"] as const;
+export type ReasonCode = typeof SCORE_ORDER[number];
+
+export const REASON_LABELS: Record<ReasonCode, string> = {
   S1: "Psychological hesitation",
   S2: "Technical friction",
   S3: "Trust issue",
@@ -16,6 +19,18 @@ export const SCORE_LABELS: Record<string, string> = {
   S6: "Indecision/navigation disorder",
   S7: "External influence/referral effect",
 };
+
+export const SCORE_LABELS = REASON_LABELS;
+
+export const DASHBOARD_LABELS = {
+  totalSessions: "Нийт сесс",
+  abandonmentRate: "Сагс орхилтын хувь",
+  convertedPurchases: "Амжилттай худалдан авалт",
+  dominantReason: "Давамгай шалтгаан",
+  recommendation: "Зөвлөмж",
+  modelVersion: "Загварын хувилбар",
+  predictionProbability: "Таамаглалын магадлал",
+} as const;
 
 export const DEFAULT_PAGE_SIZE = 20;
 

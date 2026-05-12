@@ -200,7 +200,7 @@ export default function MLInsightsPage() {
       right={right}
     >
       <div className="mx-auto max-w-[1480px] space-y-6 px-5 py-6 sm:px-7 page-enter">
-        {/* Header */}
+        {/* Header хэсэг */}
         <header className="flex flex-wrap items-end justify-between gap-4">
           <div className="space-y-1.5">
             <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant/80">
@@ -230,7 +230,7 @@ export default function MLInsightsPage() {
           </div>
         ) : (
           <>
-            {/* Model meta strip */}
+            {/* Model meta мөр */}
             <section className="tile rounded-[8px]">
               <div className="grid grid-cols-2 gap-x-6 gap-y-4 px-5 py-4 sm:grid-cols-3 lg:grid-cols-6">
                 <Field label="Model" value={`${data.model.model_name} · ${data.model.model_version}`} />
@@ -252,7 +252,7 @@ export default function MLInsightsPage() {
               </div>
             </section>
 
-            {/* KPI grid */}
+            {/* KPI grid хэсэг */}
             <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
               <MetricBlock label="Accuracy"  value={fmtPct(data.metrics.accuracy)}  helper="overall classification" emphasis />
               <MetricBlock label="Precision" value={fmtPct(data.metrics.precision)} helper="of predicted abandons" />
@@ -262,7 +262,7 @@ export default function MLInsightsPage() {
               <MetricBlock label="Log loss"  value={data.metrics.log_loss ? data.metrics.log_loss.toFixed(3) : "—"} helper="cross-entropy" />
             </section>
 
-            {/* Distribution + Confusion */}
+            {/* Distribution ба Confusion */}
             <div className="grid gap-4 lg:grid-cols-5">
               <SectionCard
                 className="lg:col-span-3"
@@ -337,7 +337,7 @@ export default function MLInsightsPage() {
               </SectionCard>
             </div>
 
-            {/* Feature contributions */}
+            {/* Feature contribution-ууд */}
             <SectionCard
               title="Top features & SHAP contributions"
               hint="Ranked by gain importance · sign and direction from mean SHAP across the holdout set."
@@ -393,7 +393,7 @@ export default function MLInsightsPage() {
               </div>
             </SectionCard>
 
-            {/* Feature legend / explanation */}
+            {/* Feature legend ба тайлбар */}
             <p className="text-[11px] text-on-surface-variant max-w-3xl">
               <span className="font-semibold text-on-surface">Reading the table.</span>{" "}
               Importance reflects how much each feature contributes to splits. Mean SHAP captures the average

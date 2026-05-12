@@ -1,0 +1,461 @@
+Baseline cleanup test run - 2026-05-08T01:32:26.5335980+08:00
+
+===== docker compose config --quiet =====
+
+
+===== main_service pytest =====
+.............................                                            [100%]
+============================== warnings summary ===============================
+main_service\settings.py:280
+  C:\Users\dell\Downloads\Diplom\codebase\main_service\main_service\settings.py:280: UserWarning: DUCKDB_PATH not set; using a local project file. Mount a persistent volume in production.
+    warnings.warn(
+
+apps/analytics/tests.py::AnalyticsSmokeTests::test_cross_tenant_isolation
+apps/analytics/tests.py::AnalyticsSmokeTests::test_dashboard_integration_uses_real_observer_snippet_path
+apps/analytics/tests.py::AnalyticsSmokeTests::test_dashboard_overview_returns_business_contract
+apps/analytics/tests.py::AnalyticsSmokeTests::test_dashboard_recommendation_status_patch
+apps/analytics/tests.py::AnalyticsSmokeTests::test_dashboard_session_detail_returns_prediction_diagnosis_recommendation
+apps/analytics/tests.py::AnalyticsSmokeTests::test_recommendation_viewed_transition
+  C:\Users\dell\anaconda3\Lib\site-packages\jwt\api_jwt.py:147: InsecureKeyLengthWarning: The HMAC key is 27 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+    return self._jws.encode(
+
+apps/analytics/tests.py::AnalyticsSmokeTests::test_cross_tenant_isolation
+apps/analytics/tests.py::AnalyticsSmokeTests::test_dashboard_integration_uses_real_observer_snippet_path
+apps/analytics/tests.py::AnalyticsSmokeTests::test_dashboard_overview_returns_business_contract
+apps/analytics/tests.py::AnalyticsSmokeTests::test_dashboard_recommendation_status_patch
+apps/analytics/tests.py::AnalyticsSmokeTests::test_dashboard_session_detail_returns_prediction_diagnosis_recommendation
+apps/analytics/tests.py::AnalyticsSmokeTests::test_recommendation_viewed_transition
+  C:\Users\dell\anaconda3\Lib\site-packages\jwt\api_jwt.py:365: InsecureKeyLengthWarning: The HMAC key is 27 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+    decoded = self.decode_complete(
+
+apps/analytics/tests.py::AnalyticsSmokeTests::test_duplicate_prediction_not_doubled
+  C:\Users\dell\anaconda3\Lib\site-packages\pydantic\_internal\_generate_schema.py:391: UserWarning: <built-in function any> is not a Python type (it may be an instance of an object), Pydantic will allow any object with no validation since we cannot even enforce that the input is an instance of the given type. To get rid of this error wrap the type with `pydantic.SkipValidation`.
+    warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+29 passed, 14 warnings in 30.44s
+
+
+===== observer pytest =====
+....................................................                     [100%]
+============================== warnings summary ===============================
+..\..\..\..\AppData\Roaming\Python\Python312\site-packages\_pytest\config\__init__.py:1448
+  C:\Users\dell\AppData\Roaming\Python\Python312\site-packages\_pytest\config\__init__.py:1448: PytestConfigWarning: Unknown config option: asyncio_default_fixture_loop_scope
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+tests/test_ingest.py::test_t3_event_returns_200
+  C:\Users\dell\anaconda3\Lib\site-packages\starlette\formparsers.py:12: PendingDeprecationWarning: Please use `import python_multipart` instead.
+    import multipart
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+52 passed, 2 warnings in 2.26s
+
+
+===== session pytest =====
+.......................                                                  [100%]
+23 passed in 1.23s
+
+
+===== feature pytest =====
+..............                                                           [100%]
+14 passed in 2.32s
+
+
+===== ml pytest =====
+........                                                                 [100%]
+8 passed in 5.75s
+
+
+===== dashboard lint =====
+
+> cart_analytic@0.1.0 lint
+> eslint
+
+
+
+===== dashboard build =====
+
+> cart_analytic@0.1.0 build
+> next build
+
+^ Next.js 16.2.1 (Turbopack)
+
+  Creating an optimized production build ...
+? Compiled successfully in 8.1s
+  Running TypeScript ...
+  Finished TypeScript in 9.8s ...
+  Collecting page data using 15 workers ...
+  Generating static pages using 15 workers (0/22) ...
+  Generating static pages using 15 workers (5/22) 
+  Generating static pages using 15 workers (10/22) 
+  Generating static pages using 15 workers (16/22) 
+? Generating static pages using 15 workers (22/22) in 1257ms
+  Finalizing page optimization ...
+
+Route (app)
+- 0 /
++ 0 /_not-found
++ 0 /admin
++ 0 /analytics
++ 0 /dashboard
++ 0 /diagnosis
++ ? /diagnosis/[id]
++ 0 /diagnostics
++ 0 /forgot-password
++ 0 /installation
++ 0 /login
++ 0 /ml-insights
++ 0 /overview
++ 0 /pipeline
++ 0 /profile
++ 0 /recommendations
++ 0 /reset-password
++ 0 /sessions
++ ? /sessions/[id]
++ 0 /settings
++ 0 /setup
++ 0 /signup
++ 0 /tenants
+L ? /tenants/[id]
+
+
+0  (Static)   prerendered as static content
+?  (Dynamic)  server-rendered on demand
+
+
+
+===== demo lint =====
+
+> sneaker-store@0.1.0 lint
+> eslint
+
+
+C:\Users\dell\Downloads\Diplom\codebase\sneaker-store\prisma\backfill-catalog.cjs
+   9:10  warning  '_' is defined but never used  @typescript-eslint/no-unused-vars
+  12:10  warning  '_' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\dell\Downloads\Diplom\codebase\sneaker-store\prisma\seed.cjs
+  5:10  warning  '_' is defined but never used  @typescript-eslint/no-unused-vars
+  8:10  warning  '_' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\dell\Downloads\Diplom\codebase\sneaker-store\public\tracker.js
+  34:14  warning  '_e' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\dell\Downloads\Diplom\codebase\sneaker-store\src\app\admin\layout.tsx
+  16:7  warning  A font-display parameter is missing (adding `&display=optional` is recommended). See: https://nextjs.org/docs/messages/google-font-display                       @next/next/google-font-display
+  16:7  warning  Custom fonts not added in `pages/_document.js` will only load for a single page. This is discouraged. See: https://nextjs.org/docs/messages/no-page-custom-font  @next/next/no-page-custom-font
+
+C:\Users\dell\Downloads\Diplom\codebase\sneaker-store\src\app\login\page.tsx
+  13:7  warning  A font-display parameter is missing (adding `&display=optional` is recommended). See: https://nextjs.org/docs/messages/google-font-display                       @next/next/google-font-display
+  13:7  warning  Custom fonts not added in `pages/_document.js` will only load for a single page. This is discouraged. See: https://nextjs.org/docs/messages/no-page-custom-font  @next/next/no-page-custom-font
+
+? 9 problems (0 errors, 9 warnings)
+
+
+
+===== demo build =====
+
+> sneaker-store@0.1.0 build
+> next build
+
+^ Next.js 16.1.6 (Turbopack)
+
+  Creating an optimized production build ...
+? Compiled successfully in 4.8s
+  Running TypeScript ...
+  Collecting page data using 15 workers ...
+  Generating static pages using 15 workers (0/26) ...
+  Generating static pages using 15 workers (6/26) 
+  Generating static pages using 15 workers (12/26) 
+  Generating static pages using 15 workers (19/26) 
+? Generating static pages using 15 workers (26/26) in 671.0ms
+  Finalizing page optimization ...
+
+Route (app)
+- ? /
++ 0 /_not-found
++ ? /account
++ ? /admin
++ ? /admin/analytics
++ ? /admin/coupons
++ ? /admin/orders
++ ? /admin/products
++ ? /admin/products/[id]/edit
++ ? /admin/products/new
++ ? /admin/taxonomy
++ ? /api/admin/catalog-options
++ ? /api/admin/coupons
++ ? /api/admin/metrics
++ ? /api/admin/products
++ ? /api/admin/products/[id]
++ ? /api/admin/taxonomy/[resource]
++ ? /api/admin/taxonomy/[resource]/[id]
++ ? /api/admin/upload
++ ? /api/auth/[...nextauth]
++ ? /api/auth/password-reset/confirm
++ ? /api/auth/password-reset/request
++ ? /api/auth/verify-email
++ ? /api/cart
++ ? /api/orders
++ ? /api/orders/[id]/cancel
++ ? /api/orders/[id]/refund
++ ? /api/orders/[id]/status
++ ? /api/products
++ ? /api/products/[id]
++ ? /api/register
++ ? /api/wishlist
++ 0 /cart
++ 0 /checkout
++ 0 /login
++ ? /order/[id]
++ 0 /privacy
++ ? /products
++ ? /products/[id]
++ 0 /register
++ 0 /reset-password
++ 0 /returns
++ ? /search
++ 0 /shipping
+L 0 /terms
+
+
+0  (Static)   prerendered as static content
+?  (Dynamic)  server-rendered on demand
+
+
+
+
+===== CURRENT BASELINE 2026-05-08T01:39:19.6816602+08:00 :: docker compose config --quiet =====
+[exit_code=0]
+
+
+===== CURRENT BASELINE 2026-05-08T01:39:20.6042347+08:00 :: main_service pytest =====
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . .                                                                                         [ 1 0 0 % ]  
+ = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =   w a r n i n g s   s u m m a r y   = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =  
+ m a i n _ s e r v i c e \ s e t t i n g s . p y : 2 8 0  
+     C : \ U s e r s \ d e l l \ D o w n l o a d s \ D i p l o m \ c o d e b a s e \ m a i n _ s e r v i c e \ m a i n _ s e r v i c e \ s e t t i n g s . p y : 2 8 0 :   U s e r W a r n i n g :   D U C K D B _ P A T H   n o t   s e t ;   u s i n g   a   l o c a l   p r o j e c t   f i l e .   M o u n t   a   p e r s i s t e n t   v o l u m e   i n   p r o d u c t i o n .  
+         w a r n i n g s . w a r n (  
+  
+ a p p s / a n a l y t i c s / t e s t s . p y : : A n a l y t i c s S m o k e T e s t s : : t e s t _ c r o s s _ t e n a n t _ i s o l a t i o n  
+ a p p s / a n a l y t i c s / t e s t s . p y : : A n a l y t i c s S m o k e T e s t s : : t e s t _ d a s h b o a r d _ i n t e g r a t i o n _ u s e s _ r e a l _ o b s e r v e r _ s n i p p e t _ p a t h  
+ a p p s / a n a l y t i c s / t e s t s . p y : : A n a l y t i c s S m o k e T e s t s : : t e s t _ d a s h b o a r d _ o v e r v i e w _ r e t u r n s _ b u s i n e s s _ c o n t r a c t  
+ a p p s / a n a l y t i c s / t e s t s . p y : : A n a l y t i c s S m o k e T e s t s : : t e s t _ d a s h b o a r d _ r e c o m m e n d a t i o n _ s t a t u s _ p a t c h  
+ a p p s / a n a l y t i c s / t e s t s . p y : : A n a l y t i c s S m o k e T e s t s : : t e s t _ d a s h b o a r d _ s e s s i o n _ d e t a i l _ r e t u r n s _ p r e d i c t i o n _ d i a g n o s i s _ r e c o m m e n d a t i o n  
+ a p p s / a n a l y t i c s / t e s t s . p y : : A n a l y t i c s S m o k e T e s t s : : t e s t _ r e c o m m e n d a t i o n _ v i e w e d _ t r a n s i t i o n  
+     C : \ U s e r s \ d e l l \ a n a c o n d a 3 \ L i b \ s i t e - p a c k a g e s \ j w t \ a p i _ j w t . p y : 1 4 7 :   I n s e c u r e K e y L e n g t h W a r n i n g :   T h e   H M A C   k e y   i s   2 7   b y t e s   l o n g ,   w h i c h   i s   b e l o w   t h e   m i n i m u m   r e c o m m e n d e d   l e n g t h   o f   3 2   b y t e s   f o r   S H A 2 5 6 .   S e e   R F C   7 5 1 8   S e c t i o n   3 . 2 .  
+         r e t u r n   s e l f . _ j w s . e n c o d e (  
+  
+ a p p s / a n a l y t i c s / t e s t s . p y : : A n a l y t i c s S m o k e T e s t s : : t e s t _ c r o s s _ t e n a n t _ i s o l a t i o n  
+ a p p s / a n a l y t i c s / t e s t s . p y : : A n a l y t i c s S m o k e T e s t s : : t e s t _ d a s h b o a r d _ i n t e g r a t i o n _ u s e s _ r e a l _ o b s e r v e r _ s n i p p e t _ p a t h  
+ a p p s / a n a l y t i c s / t e s t s . p y : : A n a l y t i c s S m o k e T e s t s : : t e s t _ d a s h b o a r d _ o v e r v i e w _ r e t u r n s _ b u s i n e s s _ c o n t r a c t  
+ a p p s / a n a l y t i c s / t e s t s . p y : : A n a l y t i c s S m o k e T e s t s : : t e s t _ d a s h b o a r d _ r e c o m m e n d a t i o n _ s t a t u s _ p a t c h  
+ a p p s / a n a l y t i c s / t e s t s . p y : : A n a l y t i c s S m o k e T e s t s : : t e s t _ d a s h b o a r d _ s e s s i o n _ d e t a i l _ r e t u r n s _ p r e d i c t i o n _ d i a g n o s i s _ r e c o m m e n d a t i o n  
+ a p p s / a n a l y t i c s / t e s t s . p y : : A n a l y t i c s S m o k e T e s t s : : t e s t _ r e c o m m e n d a t i o n _ v i e w e d _ t r a n s i t i o n  
+     C : \ U s e r s \ d e l l \ a n a c o n d a 3 \ L i b \ s i t e - p a c k a g e s \ j w t \ a p i _ j w t . p y : 3 6 5 :   I n s e c u r e K e y L e n g t h W a r n i n g :   T h e   H M A C   k e y   i s   2 7   b y t e s   l o n g ,   w h i c h   i s   b e l o w   t h e   m i n i m u m   r e c o m m e n d e d   l e n g t h   o f   3 2   b y t e s   f o r   S H A 2 5 6 .   S e e   R F C   7 5 1 8   S e c t i o n   3 . 2 .  
+         d e c o d e d   =   s e l f . d e c o d e _ c o m p l e t e (  
+  
+ a p p s / a n a l y t i c s / t e s t s . p y : : A n a l y t i c s S m o k e T e s t s : : t e s t _ d u p l i c a t e _ p r e d i c t i o n _ n o t _ d o u b l e d  
+     C : \ U s e r s \ d e l l \ a n a c o n d a 3 \ L i b \ s i t e - p a c k a g e s \ p y d a n t i c \ _ i n t e r n a l \ _ g e n e r a t e _ s c h e m a . p y : 3 9 1 :   U s e r W a r n i n g :   < b u i l t - i n   f u n c t i o n   a n y >   i s   n o t   a   P y t h o n   t y p e   ( i t   m a y   b e   a n   i n s t a n c e   o f   a n   o b j e c t ) ,   P y d a n t i c   w i l l   a l l o w   a n y   o b j e c t   w i t h   n o   v a l i d a t i o n   s i n c e   w e   c a n n o t   e v e n   e n f o r c e   t h a t   t h e   i n p u t   i s   a n   i n s t a n c e   o f   t h e   g i v e n   t y p e .   T o   g e t   r i d   o f   t h i s   e r r o r   w r a p   t h e   t y p e   w i t h   ` p y d a n t i c . S k i p V a l i d a t i o n ` .  
+         w a r n (  
+  
+ - -   D o c s :   h t t p s : / / d o c s . p y t e s t . o r g / e n / s t a b l e / h o w - t o / c a p t u r e - w a r n i n g s . h t m l  
+ 2 9   p a s s e d ,   1 4   w a r n i n g s   i n   3 5 . 4 7 s  
+ [exit_code=0]
+
+
+===== CURRENT BASELINE 2026-05-08T01:39:59.7040695+08:00 :: observer pytest =====
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .                                           [ 1 0 0 % ]  
+ = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =   w a r n i n g s   s u m m a r y   = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =  
+ . . \ . . \ . . \ . . \ A p p D a t a \ R o a m i n g \ P y t h o n \ P y t h o n 3 1 2 \ s i t e - p a c k a g e s \ _ p y t e s t \ c o n f i g \ _ _ i n i t _ _ . p y : 1 4 4 8  
+     C : \ U s e r s \ d e l l \ A p p D a t a \ R o a m i n g \ P y t h o n \ P y t h o n 3 1 2 \ s i t e - p a c k a g e s \ _ p y t e s t \ c o n f i g \ _ _ i n i t _ _ . p y : 1 4 4 8 :   P y t e s t C o n f i g W a r n i n g :   U n k n o w n   c o n f i g   o p t i o n :   a s y n c i o _ d e f a u l t _ f i x t u r e _ l o o p _ s c o p e  
+      
+         s e l f . _ w a r n _ o r _ f a i l _ i f _ s t r i c t ( f " U n k n o w n   c o n f i g   o p t i o n :   { k e y } \ n " )  
+  
+ t e s t s / t e s t _ i n g e s t . p y : : t e s t _ t 3 _ e v e n t _ r e t u r n s _ 2 0 0  
+     C : \ U s e r s \ d e l l \ a n a c o n d a 3 \ L i b \ s i t e - p a c k a g e s \ s t a r l e t t e \ f o r m p a r s e r s . p y : 1 2 :   P e n d i n g D e p r e c a t i o n W a r n i n g :   P l e a s e   u s e   ` i m p o r t   p y t h o n _ m u l t i p a r t `   i n s t e a d .  
+         i m p o r t   m u l t i p a r t  
+  
+ - -   D o c s :   h t t p s : / / d o c s . p y t e s t . o r g / e n / s t a b l e / h o w - t o / c a p t u r e - w a r n i n g s . h t m l  
+ 5 2   p a s s e d ,   2   w a r n i n g s   i n   2 . 1 9 s  
+ [exit_code=0]
+
+
+===== CURRENT BASELINE 2026-05-08T01:40:03.9751046+08:00 :: session pytest =====
+. . . . . . . . . . . . . . . . . . . . . . .                                                                                                     [ 1 0 0 % ]  
+ 2 3   p a s s e d   i n   1 . 1 4 s  
+ [exit_code=0]
+
+
+===== CURRENT BASELINE 2026-05-08T01:40:07.3089686+08:00 :: feature pytest =====
+. . . . . . . . . . . . . .                                                                                                                       [ 1 0 0 % ]  
+ 1 4   p a s s e d   i n   1 . 6 9 s  
+ [exit_code=0]
+
+
+===== CURRENT BASELINE 2026-05-08T01:40:10.6784185+08:00 :: ml pytest =====
+. . . . . . . .                                                                                                                                   [ 1 0 0 % ]  
+ 8   p a s s e d   i n   5 . 1 1 s  
+ [exit_code=0]
+
+
+===== CURRENT BASELINE 2026-05-08T01:40:17.9802720+08:00 :: dashboard lint =====
+ 
+ >   c a r t _ a n a l y t i c @ 0 . 1 . 0   l i n t  
+ >   e s l i n t  
+  
+ [exit_code=0]
+
+
+===== CURRENT BASELINE 2026-05-08T01:40:32.9280730+08:00 :: dashboard build =====
+ 
+ >   c a r t _ a n a l y t i c @ 0 . 1 . 0   b u i l d  
+ >   n e x t   b u i l d  
+  
+ ²%  N e x t . j s   1 6 . 2 . 1   ( T u r b o p a c k )  
+  
+     C r e a t i n g   a n   o p t i m i z e d   p r o d u c t i o n   b u i l d   . . .  
+ '  C o m p i l e d   s u c c e s s f u l l y   i n   6 . 2 s  
+     R u n n i n g   T y p e S c r i p t   . . .  
+     F i n i s h e d   T y p e S c r i p t   i n   1 2 . 0 s   . . .  
+     C o l l e c t i n g   p a g e   d a t a   u s i n g   1 5   w o r k e r s   . . .  
+     G e n e r a t i n g   s t a t i c   p a g e s   u s i n g   1 5   w o r k e r s   ( 0 / 2 2 )   . . .  
+     G e n e r a t i n g   s t a t i c   p a g e s   u s i n g   1 5   w o r k e r s   ( 5 / 2 2 )    
+     G e n e r a t i n g   s t a t i c   p a g e s   u s i n g   1 5   w o r k e r s   ( 1 0 / 2 2 )    
+     G e n e r a t i n g   s t a t i c   p a g e s   u s i n g   1 5   w o r k e r s   ( 1 6 / 2 2 )    
+ '  G e n e r a t i n g   s t a t i c   p a g e s   u s i n g   1 5   w o r k e r s   ( 2 2 / 2 2 )   i n   1 3 5 9 m s  
+     F i n a l i z i n g   p a g e   o p t i m i z a t i o n   . . .  
+  
+ R o u t e   ( a p p )  
+ %  Ë%  /  
+ %  Ë%  / _ n o t - f o u n d  
+ %  Ë%  / a d m i n  
+ %  Ë%  / a n a l y t i c s  
+ %  Ë%  / d a s h b o a r d  
+ %  Ë%  / d i a g n o s i s  
+ %  ’  / d i a g n o s i s / [ i d ]  
+ %  Ë%  / d i a g n o s t i c s  
+ %  Ë%  / f o r g o t - p a s s w o r d  
+ %  Ë%  / i n s t a l l a t i o n  
+ %  Ë%  / l o g i n  
+ %  Ë%  / m l - i n s i g h t s  
+ %  Ë%  / o v e r v i e w  
+ %  Ë%  / p i p e l i n e  
+ %  Ë%  / p r o f i l e  
+ %  Ë%  / r e c o m m e n d a t i o n s  
+ %  Ë%  / r e s e t - p a s s w o r d  
+ %  Ë%  / s e s s i o n s  
+ %  ’  / s e s s i o n s / [ i d ]  
+ %  Ë%  / s e t t i n g s  
+ %  Ë%  / s e t u p  
+ %  Ë%  / s i g n u p  
+ %  Ë%  / t e n a n t s  
+ %  ’  / t e n a n t s / [ i d ]  
+  
+  
+ Ë%    ( S t a t i c )       p r e r e n d e r e d   a s   s t a t i c   c o n t e n t  
+ ’    ( D y n a m i c )     s e r v e r - r e n d e r e d   o n   d e m a n d  
+  
+ [exit_code=0]
+
+
+===== CURRENT BASELINE 2026-05-08T01:40:57.6773153+08:00 :: demo lint =====
+ 
+ >   s n e a k e r - s t o r e @ 0 . 1 . 0   l i n t  
+ >   e s l i n t  
+  
+  
+ C : \ U s e r s \ d e l l \ D o w n l o a d s \ D i p l o m \ c o d e b a s e \ s n e a k e r - s t o r e \ p r i s m a \ b a c k f i l l - c a t a l o g . c j s  
+       9 : 1 0     w a r n i n g     ' _ '   i s   d e f i n e d   b u t   n e v e r   u s e d     @ t y p e s c r i p t - e s l i n t / n o - u n u s e d - v a r s  
+     1 2 : 1 0     w a r n i n g     ' _ '   i s   d e f i n e d   b u t   n e v e r   u s e d     @ t y p e s c r i p t - e s l i n t / n o - u n u s e d - v a r s  
+  
+ C : \ U s e r s \ d e l l \ D o w n l o a d s \ D i p l o m \ c o d e b a s e \ s n e a k e r - s t o r e \ p r i s m a \ s e e d . c j s  
+     5 : 1 0     w a r n i n g     ' _ '   i s   d e f i n e d   b u t   n e v e r   u s e d     @ t y p e s c r i p t - e s l i n t / n o - u n u s e d - v a r s  
+     8 : 1 0     w a r n i n g     ' _ '   i s   d e f i n e d   b u t   n e v e r   u s e d     @ t y p e s c r i p t - e s l i n t / n o - u n u s e d - v a r s  
+  
+ C : \ U s e r s \ d e l l \ D o w n l o a d s \ D i p l o m \ c o d e b a s e \ s n e a k e r - s t o r e \ p u b l i c \ t r a c k e r . j s  
+     3 4 : 1 4     w a r n i n g     ' _ e '   i s   d e f i n e d   b u t   n e v e r   u s e d     @ t y p e s c r i p t - e s l i n t / n o - u n u s e d - v a r s  
+  
+ C : \ U s e r s \ d e l l \ D o w n l o a d s \ D i p l o m \ c o d e b a s e \ s n e a k e r - s t o r e \ s r c \ a p p \ a d m i n \ l a y o u t . t s x  
+     1 6 : 7     w a r n i n g     A   f o n t - d i s p l a y   p a r a m e t e r   i s   m i s s i n g   ( a d d i n g   ` & d i s p l a y = o p t i o n a l `   i s   r e c o m m e n d e d ) .   S e e :   h t t p s : / / n e x t j s . o r g / d o c s / m e s s a g e s / g o o g l e - f o n t - d i s p l a y                                               @ n e x t / n e x t / g o o g l e - f o n t - d i s p l a y  
+     1 6 : 7     w a r n i n g     C u s t o m   f o n t s   n o t   a d d e d   i n   ` p a g e s / _ d o c u m e n t . j s `   w i l l   o n l y   l o a d   f o r   a   s i n g l e   p a g e .   T h i s   i s   d i s c o u r a g e d .   S e e :   h t t p s : / / n e x t j s . o r g / d o c s / m e s s a g e s / n o - p a g e - c u s t o m - f o n t     @ n e x t / n e x t / n o - p a g e - c u s t o m - f o n t  
+  
+ C : \ U s e r s \ d e l l \ D o w n l o a d s \ D i p l o m \ c o d e b a s e \ s n e a k e r - s t o r e \ s r c \ a p p \ l o g i n \ p a g e . t s x  
+     1 3 : 7     w a r n i n g     A   f o n t - d i s p l a y   p a r a m e t e r   i s   m i s s i n g   ( a d d i n g   ` & d i s p l a y = o p t i o n a l `   i s   r e c o m m e n d e d ) .   S e e :   h t t p s : / / n e x t j s . o r g / d o c s / m e s s a g e s / g o o g l e - f o n t - d i s p l a y                                               @ n e x t / n e x t / g o o g l e - f o n t - d i s p l a y  
+     1 3 : 7     w a r n i n g     C u s t o m   f o n t s   n o t   a d d e d   i n   ` p a g e s / _ d o c u m e n t . j s `   w i l l   o n l y   l o a d   f o r   a   s i n g l e   p a g e .   T h i s   i s   d i s c o u r a g e d .   S e e :   h t t p s : / / n e x t j s . o r g / d o c s / m e s s a g e s / n o - p a g e - c u s t o m - f o n t     @ n e x t / n e x t / n o - p a g e - c u s t o m - f o n t  
+  
+ '  9   p r o b l e m s   ( 0   e r r o r s ,   9   w a r n i n g s )  
+  
+ [exit_code=0]
+
+
+===== CURRENT BASELINE 2026-05-08T01:41:12.2663291+08:00 :: demo build =====
+ 
+ >   s n e a k e r - s t o r e @ 0 . 1 . 0   b u i l d  
+ >   n e x t   b u i l d  
+  
+ ²%  N e x t . j s   1 6 . 1 . 6   ( T u r b o p a c k )  
+  
+     C r e a t i n g   a n   o p t i m i z e d   p r o d u c t i o n   b u i l d   . . .  
+ '  C o m p i l e d   s u c c e s s f u l l y   i n   6 . 3 s  
+     R u n n i n g   T y p e S c r i p t   . . .  
+     C o l l e c t i n g   p a g e   d a t a   u s i n g   1 5   w o r k e r s   . . .  
+     G e n e r a t i n g   s t a t i c   p a g e s   u s i n g   1 5   w o r k e r s   ( 0 / 2 6 )   . . .  
+     G e n e r a t i n g   s t a t i c   p a g e s   u s i n g   1 5   w o r k e r s   ( 6 / 2 6 )    
+     G e n e r a t i n g   s t a t i c   p a g e s   u s i n g   1 5   w o r k e r s   ( 1 2 / 2 6 )    
+     G e n e r a t i n g   s t a t i c   p a g e s   u s i n g   1 5   w o r k e r s   ( 1 9 / 2 6 )    
+ '  G e n e r a t i n g   s t a t i c   p a g e s   u s i n g   1 5   w o r k e r s   ( 2 6 / 2 6 )   i n   6 5 9 . 8 m s  
+     F i n a l i z i n g   p a g e   o p t i m i z a t i o n   . . .  
+  
+ R o u t e   ( a p p )  
+ %  ’  /  
+ %  Ë%  / _ n o t - f o u n d  
+ %  ’  / a c c o u n t  
+ %  ’  / a d m i n  
+ %  ’  / a d m i n / a n a l y t i c s  
+ %  ’  / a d m i n / c o u p o n s  
+ %  ’  / a d m i n / o r d e r s  
+ %  ’  / a d m i n / p r o d u c t s  
+ %  ’  / a d m i n / p r o d u c t s / [ i d ] / e d i t  
+ %  ’  / a d m i n / p r o d u c t s / n e w  
+ %  ’  / a d m i n / t a x o n o m y  
+ %  ’  / a p i / a d m i n / c a t a l o g - o p t i o n s  
+ %  ’  / a p i / a d m i n / c o u p o n s  
+ %  ’  / a p i / a d m i n / m e t r i c s  
+ %  ’  / a p i / a d m i n / p r o d u c t s  
+ %  ’  / a p i / a d m i n / p r o d u c t s / [ i d ]  
+ %  ’  / a p i / a d m i n / t a x o n o m y / [ r e s o u r c e ]  
+ %  ’  / a p i / a d m i n / t a x o n o m y / [ r e s o u r c e ] / [ i d ]  
+ %  ’  / a p i / a d m i n / u p l o a d  
+ %  ’  / a p i / a u t h / [ . . . n e x t a u t h ]  
+ %  ’  / a p i / a u t h / p a s s w o r d - r e s e t / c o n f i r m  
+ %  ’  / a p i / a u t h / p a s s w o r d - r e s e t / r e q u e s t  
+ %  ’  / a p i / a u t h / v e r i f y - e m a i l  
+ %  ’  / a p i / c a r t  
+ %  ’  / a p i / o r d e r s  
+ %  ’  / a p i / o r d e r s / [ i d ] / c a n c e l  
+ %  ’  / a p i / o r d e r s / [ i d ] / r e f u n d  
+ %  ’  / a p i / o r d e r s / [ i d ] / s t a t u s  
+ %  ’  / a p i / p r o d u c t s  
+ %  ’  / a p i / p r o d u c t s / [ i d ]  
+ %  ’  / a p i / r e g i s t e r  
+ %  ’  / a p i / w i s h l i s t  
+ %  Ë%  / c a r t  
+ %  Ë%  / c h e c k o u t  
+ %  Ë%  / l o g i n  
+ %  ’  / o r d e r / [ i d ]  
+ %  Ë%  / p r i v a c y  
+ %  ’  / p r o d u c t s  
+ %  ’  / p r o d u c t s / [ i d ]  
+ %  Ë%  / r e g i s t e r  
+ %  Ë%  / r e s e t - p a s s w o r d  
+ %  Ë%  / r e t u r n s  
+ %  ’  / s e a r c h  
+ %  Ë%  / s h i p p i n g  
+ %  Ë%  / t e r m s  
+  
+  
+ Ë%    ( S t a t i c )       p r e r e n d e r e d   a s   s t a t i c   c o n t e n t  
+ ’    ( D y n a m i c )     s e r v e r - r e n d e r e d   o n   d e m a n d  
+  
+ [exit_code=0]

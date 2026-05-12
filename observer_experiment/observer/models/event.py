@@ -184,6 +184,8 @@ def filter_payload_for_tier(data: dict[str, Any], tier: str) -> dict[str, Any]:
             result[k] = v
             continue
         if tier == "T1":
+            # T1/full demo key дээр unknown extra талбарыг JSONB-д хадгална.
+            # Энэ нь шинэ commerce evidence талбар нэмэгдэхэд downstream pipeline шууд эвдрэхээс хамгаална.
             result[k] = v
 
     return result

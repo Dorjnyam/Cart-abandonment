@@ -11,11 +11,11 @@ export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 export const API_ENDPOINTS = {
-  // Auth
+  // Auth endpoint-ууд
   login:             "/api/auth/login/",
   logout:            "/api/auth/logout/",
   refresh:           "/api/auth/token/refresh/",
-  // Dashboard
+  // Dashboard endpoint-ууд
   overview:          "/api/dashboard/overview/",
   dashboardTrends:   "/api/dashboard/trends/",
   dashboardReasons:  "/api/dashboard/reasons/",
@@ -26,49 +26,49 @@ export const API_ENDPOINTS = {
   dashboardIntegration: "/api/dashboard/integration/",
   scores:            "/api/analytics/scores/",
   abandonmentRate:   "/api/analytics/abandonment-rate/",
-  // Sessions
+  // Session endpoint-ууд
   sessions:          "/api/sessions/",
   sessionDetail:     (id: string) => `/api/sessions/${id}/`,
-  // Predictions
+  // Prediction endpoint-ууд
   predictions:       "/api/predictions/",
   predictionDetail:  (id: string) => `/api/predictions/${id}/`,
-  // Ablation study
+  // Ablation study endpoint-ууд
   ablationSummary:   "/api/ablation/summary/",
-  // SHAP
+  // SHAP endpoint-ууд
   featureImportance: "/api/analytics/feature-importance/",
-  // Recommendations
+  // Recommendation endpoint-ууд
   recommendations:   "/api/analytics/recommendation/",
   recommendationImplement: (id: number | string) => `/api/analytics/recommendation/${id}/implement/`,
-  // Export
+  // Export endpoint-ууд
   exportTrigger:     "/api/export/",
-  // Health
+  // Health endpoint хэсэг
   health:            "/api/health/",
-  // Auth extras
+  // Auth нэмэлт endpoint-ууд
   register:          "/api/auth/register/",
   forgotPassword:    "/api/auth/password/reset/",
   resetPassword:     "/api/auth/password/reset/confirm/",
   changePassword:    "/api/auth/password/change/",
   profile:           "/api/auth/profile/",
-  // Tenants
+  // Tenant endpoint-ууд
   tenants:           "/api/tenants/",
   tenantDetail:      (id: string) => `/api/tenants/${id}/`,
-  // Diagnosis
+  // Diagnosis endpoint-ууд
   diagnosis:         "/api/diagnosis/",
   diagnosisDetail:   (id: string) => `/api/diagnosis/${id}/`,
-  // Analytics history
+  // Analytics history endpoint-ууд
   analyticsHistory:  "/api/analytics/history/",
-  // API Keys
+  // API key endpoint-ууд
   apiKeys:           "/api/settings/api-keys/",
   apiKeyDetail:      (id: number | string) => `/api/settings/api-keys/${id}/`,
-  // Store settings
+  // Store settings endpoint-ууд
   storeSettings:     "/api/settings/store/",
-  // Team
+  // Team endpoint-ууд
   teamMembers:       "/api/settings/team/",
   teamMemberDetail:  (id: number | string) => `/api/settings/team/${id}/`,
   teamInvite:        "/api/settings/team/invite/",
-  // Pipeline monitor
+  // Pipeline monitor endpoint-ууд
   pipelineMonitor:   "/api/pipeline/monitor/",
-  // ML Insights
+  // ML insights endpoint-ууд
   mlInsights:        "/api/ml/insights/",
 } as const;
 
@@ -82,7 +82,7 @@ function parseAuthMode(value: string | undefined): ApiAuthMode {
 function getStoredToken(): string | undefined {
   if (typeof window === "undefined") return undefined;
   try {
-    // Access token refreshed via refresh flow takes priority
+    // Refresh flow-оор шинэчлэгдсэн access token түрүүлж ашиглагдана.
     const direct = localStorage.getItem("access_token");
     if (direct) return direct;
     const stored = localStorage.getItem("cart_analytic_ui_session");

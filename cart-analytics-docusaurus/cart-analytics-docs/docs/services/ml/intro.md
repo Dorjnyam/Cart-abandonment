@@ -1,42 +1,32 @@
 ---
 id: intro
-title: ML Prediction Service — Тойм
+title: ML Prediction Service тойм
 sidebar_label: Тойм
 ---
 
 # ML Prediction Service
 
-| | |
+|  |  |
 |---|---|
 | **Port** | 8004 |
-| **Технологи** | Python 3.11/3.12, FastAPI, asyncpg, aiokafka, XGBoost, PyTorch (LSTM), SHAP |
+| **Технологи** | Python 3.11, FastAPI, aiokafka, XGBoost, optional SHAP support |
 | **Төрөл** | Kafka consumer/producer + REST API |
-| **Хийдэг зүйл** | Feature vector-ийг XGBoost + LSTM ensemble-ээр cart abandonment магадлал тооцоолж, PostgreSQL-д хадгалж, prediction_done_v2 topic руу нийтэлдэг |
+| **Хийдэг зүйл** | `feature_ready` payload авч XGBoost abandonment probability тооцоолж, `prediction_done` topic руу нийтэлдэг |
 
 ## Дата урсгал
 
 ```mermaid
 graph TD
     FEA["Feature Service"] -->|"Kafka: feature_ready"| CONS["consumer.py"]
-    CONS --> PIPE["pipeline.py
-XGBoost + SHAP
-+ optional LSTM"]
-    PIPE --> DB["db.py
-INSERT predictions"]
-    PIPE --> PROD["producer.py
-Kafka output"]
-    DB --> PG[("PostgreSQL
-predictions")]
-    PROD -->|"prediction_done"| K1[["Kafka (legacy)"]]
-    PROD -->|"prediction_done_v2"| K2[["Kafka (v2)"]]
+    CONS --> PIPE["pipeline.py\nXGBoost active\nLSTM disabled"]
+    PIPE --> DB["db.py\nINSERT predictions"]
+    PIPE --> PROD["producer.py\nKafka output"]
+    DB --> PG[("PostgreSQL\npredictions")]
+    PROD -->|"prediction_done"| KAFKA[["Kafka"]]
 ```
 
-## Model Ensemble
+## Active model
 
-```
-Final Score = 0.7 × XGBoost Score + 0.3 × LSTM Score
-```
+MVP active inference нь XGBoost-only. `PredictionPipeline.lstm_loaded` false буцаадаг бөгөөд `lstm_score=null`, `ensemble_method=xgb_only` contract хадгалагдана.
 
-- **XGBoost:** Tabular feature-д хурдан inference, SHAP-тай нийцтэй
-- **LSTM:** Event sequence data-д зориулсан — 4-аас доош event байвал алгасна
-- **LSTM байхгүй бол:** XGBoost-only mode (graceful degradation)
+LSTM code нь future work-д үлдсэн. Энэ MVP дээр LSTM training/evaluation artifact байхгүй тул active model гэж тайлбарлахгүй.

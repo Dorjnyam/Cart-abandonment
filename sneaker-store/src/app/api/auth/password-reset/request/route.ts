@@ -19,7 +19,6 @@ export async function POST(request: Request) {
     },
   });
 
-  // In this phase we return token for local demo/testing.
+  // Энэ шатанд local demo/testing-д зориулж token буцаана.
   return NextResponse.json({ ok: true, token });
 }
-

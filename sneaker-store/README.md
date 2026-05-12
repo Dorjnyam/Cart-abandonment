@@ -247,7 +247,7 @@ npm run prisma:generate
 npm run prisma:seed
 ```
 
-This clears related tables and inserts products from [`src/data/products.json`](src/data/products.json) with full taxonomy and **ProductSize** rows.
+This clears related tables and inserts the 500-product catalog from [`sneaker_store_500_products.json`](sneaker_store_500_products.json) with full taxonomy and **ProductSize** rows. The seed converts `priceUsd` to integer Mongolian tögrög using a fixed `3500 MNT/USD` rate, applies `discountPercent` to `salePrice`, and assigns remote Pexels sneaker image URLs that are allowed by [`next.config.ts`](next.config.ts).
 
 ### If upgrading from an older schema
 

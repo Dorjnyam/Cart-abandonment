@@ -52,7 +52,7 @@ export default function EditorialShell({
   activeNav: NavKey;
   title: string;
   subtitle?: string;
-  /** Override auto breadcrumbs (title + subtitle). */
+  /** Автомат breadcrumb-ийн title, subtitle-ийг гараар солино. */
   breadcrumbs?: { label: string; href?: string }[];
   children: ReactNode;
   right?: ReactNode;

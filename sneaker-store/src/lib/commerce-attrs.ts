@@ -1,4 +1,4 @@
-/** Build HTML data-ca-* props for Observer T1 (tk_full_) delegated click tracking. */
+/** Observer T1 (tk_full_) delegated click tracking-д зориулсан HTML data-ca-* props үүсгэнэ. */
 
 export type CommerceAttrsInput = {
   ca: string;
@@ -20,7 +20,7 @@ export type CommerceAttrsInput = {
   cartCount?: number;
 };
 
-/** Returns plain object to spread onto a JSX intrinsic (e.g. button). */
+/** JSX intrinsic дээр spread хийх plain object буцаана (жишээ нь button). */
 export function commerceAttrs(p: CommerceAttrsInput): Record<string, string | number> {
   const out: Record<string, string | number> = { "data-ca": p.ca };
   if (p.id != null && p.id !== "") out["data-ca-id"] = p.id;

@@ -47,7 +47,7 @@ export default function ProfilePage() {
     <EditorialShell activeNav="settings" title="Профайл" subtitle="Хувийн мэдээлэл">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 space-y-8">
 
-        {/* Section 1: Profile info */}
+        {/* 1-р хэсэг: profile мэдээлэл */}
         <section className="rounded-xl border border-outline-variant/10 bg-surface-container-lowest p-6 shadow-card space-y-5">
           <div className="flex items-center gap-4">
             <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary text-xl font-bold">
@@ -113,7 +113,7 @@ export default function ProfilePage() {
           </form>
         </section>
 
-        {/* Section 2: Change password */}
+        {/* 2-р хэсэг: password солих */}
         <section className="rounded-xl border border-outline-variant/10 bg-surface-container-lowest p-6 shadow-card space-y-5">
           <h3 className="text-base font-bold text-on-surface">Нууц үг солих</h3>
 

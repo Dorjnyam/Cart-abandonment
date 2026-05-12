@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   description: "Refined analytics for cart abandonment, ML risk scoring, and recovery recommendations.",
 };
 
-/* Restore theme before first paint to avoid flash. Default = light. */
+/* Theme-г first paint-ээс өмнө сэргээж flash үүсгэхгүй. Анхны утга нь light. */
 const themeScript = `
 (function(){
   var stored = localStorage.getItem('cart_analytic_theme');
@@ -55,7 +55,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: theme script must run before paint */}
+        {/* Theme script нь first paint-ээс өмнө ажиллах шаардлагатай. */}
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className="font-body antialiased">

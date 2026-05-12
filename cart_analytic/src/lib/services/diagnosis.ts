@@ -1,5 +1,6 @@
 import { apiRequest, ApiError, isMockFallback } from "@/lib/api-client";
 import { API_ENDPOINTS } from "@/lib/api-config";
+import { SCORE_ORDER } from "@/lib/constants";
 import type { PaginatedResponse, ScoreLabel } from "@/types/api";
 
 export type DiagnosisRisk = "high" | "medium" | "low";
@@ -45,9 +46,8 @@ function mapApiEntry(api: ApiDiagnosisEntry): DiagnosisEntry {
 }
 
 function dominantFromScores(scores?: Record<string, number>): ScoreLabel {
-  const labels: ScoreLabel[] = ["S1", "S2", "S3", "S4", "S5", "S6", "S7"];
-  if (!scores) return labels[0];
-  return labels.reduce((best, key) => ((scores[key] ?? 0) > (scores[best] ?? 0) ? key : best), labels[0]);
+  if (!scores) return SCORE_ORDER[0];
+  return SCORE_ORDER.reduce((best, key) => ((scores[key] ?? 0) > (scores[best] ?? 0) ? key : best), SCORE_ORDER[0]);
 }
 
 export type DiagnosisFilters = {

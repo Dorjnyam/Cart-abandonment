@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
-/** Backup `sendPurchase` on confirmation page (deduped) if checkout navigation interrupted the snippet. */
+/** Checkout navigation snippet-ийг тасалдуулсан бол confirmation page дээр backup `sendPurchase` илгээнэ (deduped). */
 export default function OrderObserverPurchase({
   orderId,
   orderTotal,

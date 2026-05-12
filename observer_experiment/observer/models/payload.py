@@ -38,6 +38,8 @@ _UUID_RE = re.compile(
 class EventPayload(BaseModel):
     """Validated representation of one inbound event."""
 
+    # extra="allow" нь demo/defense үед гарч болох шинэ commerce талбаруудыг шууд унагахгүй.
+    # Tier filter зөвшөөрсөн талбарууд payload JSONB-д хадгалагдаж downstream evidence болж үлдэнэ.
     model_config = {"extra": "allow", "populate_by_name": True}
 
     # ── Core DB columns (always expected) ──────────────────────────────────
@@ -128,7 +130,8 @@ class EventPayload(BaseModel):
             return values
         tier = values.get("tier")
         if tier and isinstance(tier, str):
-            # filter_payload_for_tier keeps CORE_DB_KEYS + tier-allowed payload keys
+            # filter_payload_for_tier нь CORE_DB_KEYS болон тухайн API key tier-д зөвшөөрсөн payload-г үлдээнэ.
+            # Demo full key (T1) нь thesis evidence-д хэрэгтэй commerce талбаруудыг хадгална.
             filtered = filter_payload_for_tier(values, tier)
             # Re-attach tier and server-injected fields that filter strips
             filtered["tier"] = tier
@@ -181,8 +184,10 @@ class EventPayload(BaseModel):
 
     def to_ingest_dict(self) -> dict[str, Any]:
         """
-        Dump back to a plain dict for save_event() and Kafka publish.
-        Excludes None values; converts datetime → ISO string for JSON safety.
+        save_event() болон Kafka publish-д зориулж plain dict болгоно.
+
+        None утгыг хасаж, datetime-г ISO string болгоно. Энэ нь raw_events JSONB болон Kafka JSON
+        contract хоёрт нэг ижил payload ашиглах нөхцөл болно.
         """
         out: dict[str, Any] = {}
         for field, value in self.model_dump(exclude_none=True).items():

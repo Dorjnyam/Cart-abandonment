@@ -58,6 +58,8 @@ def _decimal(value: float) -> Decimal:
 
 
 def _recommendation_text(scoring: dict[str, Any], probability: float, predicted_class: str) -> str:
+    # Gemini ажиллахгүй үед deterministic fallback JSON буцаана.
+    # Ингэснээр recommendation contract тасрахгүй, dashboard хоосон/эвдэрсэн payload авахгүй.
     payload = generate_structured_recommendation(
         dominant_reason=scoring["dominant_reason"],
         reason_label=scoring["reason_label"],
@@ -100,6 +102,15 @@ def should_create_abandonment_diagnosis(
     payload: dict[str, Any],
     raw_events: list[dict[str, Any]] | None = None,
 ) -> tuple[bool, str]:
+    """
+    Худалдан авалт амжилттай дууссан сесс дээр abandoned оношлогоо үүсгэхээс хамгаална.
+
+    Бизнесийн дүрэм:
+    - purchase_success/order_success үйлдэл байгаа бол session_id доторх бизнесийн үр дүн converted.
+    - CONVERTED төлөв нь terminal төлөв тул ML abandoned гэж таамагласан ч diagnosis/recommendation үүсгэхгүй.
+    - Override reason-г хадгалж dashboard дээр ML conflict-ийг ил тод тайлбарлах боломжтой байлгана.
+    """
+
     session_state = str(payload.get("session_state") or "").upper()
     has_purchase_success = _truthy(payload.get("has_purchase_success"))
     event_payload = dict(payload)
@@ -122,6 +133,8 @@ def should_create_abandonment_diagnosis(
 
 
 def _business_session_state(payload: dict[str, Any]) -> str:
+    # Prediction payload дахь бизнес metadata нь ML score-оос өндөр эрхтэй.
+    # UC2 дээр purchase_success байгаа тул predicted_class=abandoned байсан ч session_state=CONVERTED хэвээр үлдэнэ.
     if _truthy(payload.get("has_purchase_success")):
         return "CONVERTED"
     event_types = _extract_raw_event_types(payload)
@@ -134,7 +147,14 @@ def _business_session_state(payload: dict[str, Any]) -> str:
 
 
 def handle_prediction_payload(payload: dict[str, Any]) -> dict[str, Any]:
-    """Persist canonical ML output and create/update S1-S7 diagnosis + recommendation."""
+    """
+    prediction_done payload-г idempotent байдлаар хадгалж, abandoned сесс дээр S1-S7 оношлогоо үүсгэнэ.
+
+    Contract:
+    - Session, PredictionResult, Diagnosis, Recommendation нь session_id + tenant дээр update_or_create ашиглана.
+    - Давтан Kafka delivery ирсэн ч duplicate diagnosis/recommendation үүсэхгүй.
+    - Converted сесс дээр өмнөх abandoned diagnosis байвал устгаж бизнесийн үнэн төлөвийг хамгаална.
+    """
 
     session_id = str(payload["session_id"])
     tenant = _resolve_tenant(payload.get("tenant_id"), payload.get("organization_id"))
@@ -172,6 +192,7 @@ def handle_prediction_payload(payload: dict[str, Any]) -> dict[str, Any]:
     scoring: dict[str, Any] | None = None
     recommendation_text = ""
     if should_diagnose:
+        # dominant_reason = argmax(S1..S7). Энэ calculation нь thesis S1-S7 canonical scorer дээр төвлөрсөн.
         scoring = calculate_s1_s7(features)
         recommendation_text = _recommendation_text(scoring, probability, predicted_class)
 
@@ -221,6 +242,8 @@ def handle_prediction_payload(payload: dict[str, Any]) -> dict[str, Any]:
         )
 
         if not should_diagnose:
+            # Converted сесс дээр abandoned оношлогоо үлдэхээс хамгаалж хуучин diagnosis-г цэвэрлэнэ.
+            # PredictionResult-г үлдээдэг нь ML conflict override-г dashboard дээр шалгах evidence болдог.
             Diagnosis.objects.filter(tenant=tenant, session_id=session_id).delete()
             return {
                 "status": "ok",
@@ -264,6 +287,8 @@ def handle_prediction_payload(payload: dict[str, Any]) -> dict[str, Any]:
             defaults={
                 "text_mn": recommendation_text,
                 "dominant_score": _decimal(scoring["dominant_score"]),
+                # Recommendation status дахин ирсэн prediction_done дээр CREATED болж reset хийх одоогийн contract.
+                # Хэрэглэгчийн status update flow-г тусдаа dashboard endpoint удирдана.
                 "status": Recommendation.Status.CREATED,
             },
         )

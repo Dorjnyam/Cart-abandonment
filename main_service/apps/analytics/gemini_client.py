@@ -15,7 +15,7 @@ STATIC_FALLBACK = (
 
 
 def generate_recommendation(scores: dict, session_context: dict) -> str:
-    """Generate a short recommendation via Gemini, with a deterministic fallback."""
+    """Gemini боломжгүй үед deterministic fallback-тэй богино зөвлөмж үүсгэнэ."""
 
     dominant = session_context.get("dominant_reason") or scores.get("dominant_key") or "S1"
     api_key = getattr(settings, "GEMINI_API_KEY", "") or ""
@@ -48,6 +48,8 @@ def fallback_structured_recommendation(
     top_features: list[dict[str, Any]] | None = None,
     events: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
+    # Gemini API key байхгүй, timeout болох, эсвэл invalid JSON буцаах үед энэ fallback хэрэглэгдэнэ.
+    # Fallback нь fake insight биш; зөвхөн S1-S7 score болон probability contract дээр тулгуурласан deterministic текст.
     evidence = [
         f"Dominant reason is {dominant_reason} ({reason_label}).",
         f"Abandonment probability is {probability:.2f}.",
@@ -91,7 +93,7 @@ def generate_structured_recommendation(
     cart_summary: dict[str, Any] | None = None,
     device_info: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Return recommendation JSON for dashboard cards. Falls back deterministically."""
+    """Dashboard card-д зориулсан recommendation JSON буцаана; Gemini амжилтгүй бол fallback хэрэглэнэ."""
 
     fallback = fallback_structured_recommendation(
         dominant_reason=dominant_reason,

@@ -14,7 +14,7 @@ export function CopyButton({ text }: { text: string }) {
           setDone(true);
           window.setTimeout(() => setDone(false), 2000);
         } catch {
-          /* ignore */
+          /* Алдааг зориуд үл тооно. */
         }
       }}
       className="inline-flex items-center gap-1 rounded-md border border-white/10 bg-white/5 px-2 py-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-white hover:bg-white/10"

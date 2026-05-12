@@ -1,13 +1,13 @@
 import { timingSafeEqual } from "crypto";
 
-/** Stable JWT/database-free id for env-based admin (must not collide with real User ids). */
+/** Env дээр суурилсан admin-д зориулсан тогтвортой JWT/database-free id; бодит User id-тай давхцах ёсгүй. */
 export const ENV_ADMIN_USER_ID = "clenvadminstatic00";
 
 export function isEnvAdminConfigured(): boolean {
   return Boolean(process.env.ADMIN_EMAIL?.trim() && process.env.ADMIN_PASSWORD);
 }
 
-/** Constant-time compare when lengths match; avoids leaking length via timingSafeEqual throw. */
+/** Урт таарах үед constant-time харьцуулж, timingSafeEqual throw-оор урт ил гарахаас сэргийлнэ. */
 export function verifyEnvAdminCredentials(email: string, password: string): boolean {
   const wantEmail = process.env.ADMIN_EMAIL?.trim();
   const wantPassword = process.env.ADMIN_PASSWORD ?? "";

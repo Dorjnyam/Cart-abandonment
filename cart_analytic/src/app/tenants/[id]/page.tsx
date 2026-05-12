@@ -63,7 +63,7 @@ function TenantDetailContent() {
         Тenants жагсаалт руу буцах
       </button>
 
-      {/* Header card */}
+      {/* Header card хэсэг */}
       <div className="rounded-xl border border-outline-variant/10 bg-surface-container-lowest p-6 shadow-card space-y-4">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-4 min-w-0">
@@ -91,7 +91,7 @@ function TenantDetailContent() {
         </div>
       </div>
 
-      {/* Stats */}
+      {/* Stats хэсэг */}
       <div className="grid grid-cols-3 gap-4">
         {stats.map((s) => (
           <div key={s.label} className="rounded-xl border border-outline-variant/10 bg-surface-container-lowest p-4 shadow-sm text-center">
@@ -101,7 +101,7 @@ function TenantDetailContent() {
         ))}
       </div>
 
-      {/* API keys placeholder */}
+      {/* API keys placeholder хэсэг */}
       <div className="rounded-xl border border-outline-variant/10 bg-surface-container-lowest p-6 shadow-card space-y-3">
         <h3 className="text-sm font-bold text-on-surface">API Түлхүүрүүд</h3>
         <div className="rounded-lg border border-outline-variant/10 bg-surface-container-low px-4 py-3 font-mono text-sm text-on-surface-variant">
@@ -110,7 +110,7 @@ function TenantDetailContent() {
         <p className="text-xs text-on-surface-variant">Бүтэн түлхүүрийг харахын тулд тухайн tenant-ийн API Key хуудасруу очно уу.</p>
       </div>
 
-      {/* Toggle button */}
+      {/* Toggle товч */}
       <div className="flex justify-end">
         <button
           type="button"

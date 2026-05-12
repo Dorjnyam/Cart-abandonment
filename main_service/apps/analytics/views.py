@@ -1,11 +1,14 @@
 import json
 import os
-from datetime import timedelta
+import socket
+import time
+from datetime import datetime, timedelta, timezone as datetime_timezone
 
+import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import connections
-from django.db.models import Avg, Count, Q
+from django.db.models import Avg, Count, Q, Sum
 from django.db.models.functions import Greatest
 from django.utils import timezone
 from rest_framework import status
@@ -802,17 +805,47 @@ class DashboardRecommendationStatusView(APIView):
         return Response(_recommendation_payload(rec, rec.diagnosis))
 
 
-def _last_observer_events(limit: int = 10) -> list[dict]:
+def _observer_tenant_predicate(tenant=None) -> tuple[str, list[str]]:
+    if tenant is None:
+        return "", []
+    tenant_external_id = str(getattr(tenant, "external_id", "") or "")
+    if not tenant_external_id:
+        return "", []
+
+    predicate = "((payload ->> 'tenant_id') = %s OR (payload ->> 'tenantExternalId') = %s)"
+    params = [tenant_external_id, tenant_external_id]
+
+    default_tenant_ids = {
+        value
+        for value in (
+            os.getenv("SESSION_DEFAULT_TENANT_ID"),
+            os.getenv("DEMO_TENANT_EXTERNAL_ID"),
+            "00000000-0000-0000-0000-000000000001",
+        )
+        if value
+    }
+    if tenant_external_id in default_tenant_ids:
+        predicate = (
+            f"({predicate} OR (COALESCE(payload ->> 'tenant_id', '') = '' "
+            "AND COALESCE(payload ->> 'tenantExternalId', '') = ''))"
+        )
+    return predicate, params
+
+
+def _last_observer_events(limit: int = 10, tenant=None) -> list[dict]:
+    tenant_predicate, tenant_params = _observer_tenant_predicate(tenant)
+    where_sql = f"WHERE {tenant_predicate}" if tenant_predicate else ""
     try:
         with connections["observer"].cursor() as cursor:
             cursor.execute(
-                """
+                f"""
                 SELECT session_id, event_type, created_at
                 FROM raw_events
+                {where_sql}
                 ORDER BY created_at DESC
                 LIMIT %s
                 """,
-                [limit],
+                [*tenant_params, limit],
             )
             rows = cursor.fetchall()
     except Exception:
@@ -825,6 +858,377 @@ def _last_observer_events(limit: int = 10) -> list[dict]:
         }
         for row in rows
     ]
+
+
+def _iso(value) -> str:
+    if value is None:
+        return ""
+    if hasattr(value, "isoformat"):
+        return value.isoformat()
+    return str(value)
+
+
+def _service_base_url(env_name: str, docker_host: str, port: int) -> str:
+    configured = os.getenv(env_name)
+    if configured:
+        return configured.rstrip("/")
+    bootstrap = getattr(settings, "KAFKA_BOOTSTRAP_SERVERS", "")
+    docker_like = os.getenv("DB_HOST") == "postgres" or "kafka:" in bootstrap
+    host = docker_host if docker_like else "localhost"
+    return f"http://{host}:{port}"
+
+
+def _health_from_http(status_code: int, payload: dict) -> str:
+    reported = str(payload.get("status") or payload.get("ready") or "").lower()
+    if 200 <= status_code < 300:
+        if reported in {"degraded", "warn", "warning", "not_ready", "false"}:
+            return "degraded"
+        return "healthy"
+    if status_code in {207, 429, 500, 502, 503, 504}:
+        return "degraded"
+    return "down"
+
+
+def _http_service_status(
+    *,
+    service_id: str,
+    name: str,
+    base_url: str,
+    health_path: str = "/health",
+    version_key: str | None = None,
+) -> dict:
+    url = f"{base_url.rstrip('/')}{health_path}"
+    try:
+        response = requests.get(url, timeout=1.5)
+        try:
+            payload = response.json() if response.content else {}
+        except ValueError:
+            payload = {}
+        latency_ms = int(response.elapsed.total_seconds() * 1000)
+        health = _health_from_http(response.status_code, payload)
+        reported = payload.get("status") or payload.get("service") or f"HTTP {response.status_code}"
+        return {
+            "id": service_id,
+            "name": name,
+            "category": "service",
+            "health": health,
+            "latency_p95_ms": latency_ms,
+            "version": payload.get(version_key) if version_key else None,
+            "url": base_url,
+            "last_heartbeat": "now" if health in {"healthy", "degraded"} else "unreachable",
+            "detail": str(reported),
+        }
+    except requests.RequestException as exc:
+        return {
+            "id": service_id,
+            "name": name,
+            "category": "service",
+            "health": "down",
+            "url": base_url,
+            "last_heartbeat": "unreachable",
+            "detail": f"unreachable: {exc.__class__.__name__}",
+        }
+
+
+def _postgres_status() -> dict:
+    started = time.monotonic()
+    try:
+        from django.db import connection
+        with connection.cursor() as cur:
+            cur.execute("SELECT 1")
+        return {
+            "id": "postgres",
+            "name": "Postgres",
+            "category": "infra",
+            "health": "healthy",
+            "latency_p95_ms": int((time.monotonic() - started) * 1000),
+            "last_heartbeat": "now",
+            "detail": "default database reachable",
+        }
+    except Exception as exc:
+        return {
+            "id": "postgres",
+            "name": "Postgres",
+            "category": "infra",
+            "health": "down",
+            "last_heartbeat": "unreachable",
+            "detail": f"failed: {exc.__class__.__name__}",
+        }
+
+
+def _redis_status() -> tuple[dict, dict | None]:
+    started = time.monotonic()
+    ready_payload = None
+    try:
+        import redis as _redis
+        client = _redis.Redis.from_url(settings.REDIS_URL, socket_connect_timeout=1, socket_timeout=1)
+        client.ping()
+        raw_ready = client.get("main:prediction_done_consumer:ready")
+        if raw_ready:
+            try:
+                ready_payload = json.loads(raw_ready.decode("utf-8") if isinstance(raw_ready, bytes) else raw_ready)
+            except (TypeError, ValueError):
+                ready_payload = {"ready": False, "reason": "invalid readiness payload"}
+        info = {}
+        try:
+            info = client.info(section="server")
+        except Exception:
+            info = {}
+        return {
+            "id": "redis",
+            "name": "Redis",
+            "category": "infra",
+            "health": "healthy",
+            "latency_p95_ms": int((time.monotonic() - started) * 1000),
+            "version": info.get("redis_version"),
+            "last_heartbeat": "now",
+            "detail": "ping ok",
+        }, ready_payload
+    except Exception as exc:
+        return {
+            "id": "redis",
+            "name": "Redis",
+            "category": "infra",
+            "health": "down",
+            "last_heartbeat": "unreachable",
+            "detail": f"failed: {exc.__class__.__name__}",
+        }, None
+
+
+def _parse_kafka_targets() -> list[tuple[str, int]]:
+    targets = []
+    bootstrap = getattr(settings, "KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
+    for item in str(bootstrap).split(","):
+        item = item.strip().replace("PLAINTEXT://", "")
+        if not item:
+            continue
+        host, _, port_text = item.rpartition(":")
+        if not host:
+            host = item
+            port_text = "9092"
+        try:
+            targets.append((host, int(port_text)))
+        except ValueError:
+            continue
+    return targets or [("localhost", 9092)]
+
+
+def _kafka_status() -> dict:
+    started = time.monotonic()
+    errors = []
+    for host, port in _parse_kafka_targets():
+        try:
+            with socket.create_connection((host, port), timeout=1):
+                return {
+                    "id": "kafka",
+                    "name": "Kafka",
+                    "category": "infra",
+                    "health": "healthy",
+                    "latency_p95_ms": int((time.monotonic() - started) * 1000),
+                    "last_heartbeat": "now",
+                    "detail": f"reachable at {host}:{port}",
+                }
+        except OSError as exc:
+            errors.append(f"{host}:{port} {exc.__class__.__name__}")
+    return {
+        "id": "kafka",
+        "name": "Kafka",
+        "category": "infra",
+        "health": "down",
+        "last_heartbeat": "unreachable",
+        "detail": "; ".join(errors) or "no bootstrap targets",
+    }
+
+
+def _duckdb_status() -> dict:
+    try:
+        import duckdb
+        path = getattr(settings, "DUCKDB_PATH", "")
+        if path and (path == ":memory:" or os.path.exists(path)):
+            con = duckdb.connect(path, read_only=path != ":memory:")
+            con.execute("SELECT 1").fetchone()
+            con.close()
+            return {
+                "id": "duckdb",
+                "name": "DuckDB",
+                "category": "infra",
+                "health": "healthy",
+                "last_heartbeat": "now",
+                "detail": "analytics store reachable",
+            }
+        return {
+            "id": "duckdb",
+            "name": "DuckDB",
+            "category": "infra",
+            "health": "unknown",
+            "last_heartbeat": "not initialized",
+            "detail": "analytics store not initialized",
+        }
+    except Exception as exc:
+        return {
+            "id": "duckdb",
+            "name": "DuckDB",
+            "category": "infra",
+            "health": "degraded",
+            "last_heartbeat": "unreachable",
+            "detail": f"failed: {exc.__class__.__name__}",
+        }
+
+
+def _main_consumer_status(ready_payload: dict | None) -> dict:
+    health = "unknown"
+    detail = "readiness heartbeat missing"
+    last_heartbeat = "unknown"
+    if ready_payload:
+        is_ready = bool(ready_payload.get("ready"))
+        health = "healthy" if is_ready else "degraded"
+        detail = "prediction_done consumer ready" if is_ready else f"not ready: {ready_payload.get('reason', '')}"
+        updated_at = ready_payload.get("updated_at")
+        if updated_at:
+            try:
+                last_heartbeat = datetime.fromtimestamp(float(updated_at), tz=datetime_timezone.utc).isoformat()
+            except (TypeError, ValueError, OSError):
+                last_heartbeat = "invalid heartbeat"
+    return {
+        "id": "main",
+        "name": "Main Consumer",
+        "category": "service",
+        "health": health,
+        "url": "http://main_service:8000" if os.getenv("DB_HOST") == "postgres" else "http://localhost:8000",
+        "last_heartbeat": last_heartbeat,
+        "detail": detail,
+    }
+
+
+def _observer_event_count_since(since, tenant=None) -> int:
+    tenant_predicate, tenant_params = _observer_tenant_predicate(tenant)
+    extra_sql = f" AND {tenant_predicate}" if tenant_predicate else ""
+    try:
+        with connections["observer"].cursor() as cursor:
+            cursor.execute(
+                f"SELECT COUNT(*) FROM raw_events WHERE created_at >= %s{extra_sql}",
+                [since, *tenant_params],
+            )
+            row = cursor.fetchone()
+            return int(row[0] or 0)
+    except Exception:
+        return 0
+
+
+class PipelineMonitorView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        tenant = resolve_tenant_for_user(request)
+        if not tenant:
+            return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
+
+        now = timezone.now()
+        since = now - timedelta(hours=24)
+
+        redis_status, consumer_ready = _redis_status()
+        services = [
+            _http_service_status(
+                service_id="observer",
+                name="Observer",
+                base_url=_service_base_url("OBSERVER_INTERNAL_URL", "observer", 8001),
+            ),
+            _http_service_status(
+                service_id="session",
+                name="Session Service",
+                base_url=_service_base_url("SESSION_SERVICE_INTERNAL_URL", "session_service", 8002),
+            ),
+            _http_service_status(
+                service_id="feature",
+                name="Feature Service",
+                base_url=_service_base_url("FEATURE_SERVICE_INTERNAL_URL", "feature_service", 8003),
+            ),
+            _http_service_status(
+                service_id="ml",
+                name="ML Service",
+                base_url=_service_base_url("ML_SERVICE_INTERNAL_URL", "ml_service", 8004),
+                version_key="model_version",
+            ),
+            _main_consumer_status(consumer_ready),
+        ]
+        infra = [_kafka_status(), _postgres_status(), redis_status, _duckdb_status()]
+
+        prediction_qs = (
+            PredictionResult.objects.filter(tenant=tenant)
+            .select_related("session")
+            .order_by("-predicted_at", "-created_at")
+        )
+        latest_predictions = []
+        latest_features = []
+        for item in prediction_qs[:10]:
+            created = item.predicted_at or item.created_at
+            session_id = item.session.session_id
+            shap_values = item.shap_values if isinstance(item.shap_values, (dict, list)) else {}
+            latest_predictions.append({
+                "session_id": session_id,
+                "prediction": item.predicted_class,
+                "abandonment_probability": float(item.abandonment_probability if item.abandonment_probability is not None else item.prediction_score),
+                "model_version": item.model_version or item.model_variant,
+                "created_at": _iso(created),
+            })
+            latest_features.append({
+                "session_id": session_id,
+                "features_count": len(shap_values),
+                "produced_at": _iso(created),
+            })
+
+        latest_sessions = [
+            {
+                "session_id": item.session_id,
+                "visitor_id": item.visitor_id,
+                "started_at": _iso(item.started_at),
+                "events": item.event_count,
+                "status": item.session_state.lower() if item.session_state else "unknown",
+            }
+            for item in Session.objects.filter(tenant=tenant).order_by("-started_at", "-created_at")[:10]
+        ]
+
+        failed_diagnoses = Diagnosis.objects.filter(
+            tenant=tenant,
+            status=Diagnosis.Status.FAILED,
+            created_at__gte=since,
+        ).order_by("-created_at")
+        recent_failures = [
+            {
+                "service": "main",
+                "message": f"Diagnosis failed for session {item.session_id}",
+                "occurred_at": _iso(item.created_at),
+            }
+            for item in failed_diagnoses[:10]
+        ]
+        for item in [*services, *infra]:
+            if item["health"] in {"down", "degraded"} and len(recent_failures) < 10:
+                recent_failures.append({
+                    "service": item["id"],
+                    "message": item.get("detail") or f"{item['name']} is {item['health']}",
+                    "occurred_at": _iso(now),
+                })
+
+        sessions_24h = Session.objects.filter(tenant=tenant, created_at__gte=since).count()
+        predictions_24h = PredictionResult.objects.filter(tenant=tenant, created_at__gte=since).count()
+        return Response({
+            "refreshed_at": _iso(now),
+            "services": services,
+            "infra": infra,
+            "throughput": {
+                "events_24h": _observer_event_count_since(since, tenant),
+                "sessions_24h": sessions_24h,
+                "features_24h": predictions_24h,
+                "predictions_24h": predictions_24h,
+                "failures_24h": failed_diagnoses.count(),
+                "consumer_lag": 0 if consumer_ready and consumer_ready.get("ready") else 1,
+            },
+            "latest_events": _last_observer_events(limit=10, tenant=tenant),
+            "latest_sessions": latest_sessions,
+            "latest_features": latest_features,
+            "latest_predictions": latest_predictions,
+            "recent_failures": recent_failures,
+        })
 
 
 class DashboardIntegrationView(APIView):
@@ -853,7 +1257,7 @@ class DashboardIntegrationView(APIView):
             },
             "demo_shop": {"url": "http://localhost:3000"},
             "dashboard": {"url": "http://localhost:3001"},
-            "last_events": _last_observer_events(limit=10),
+            "last_events": _last_observer_events(limit=10, tenant=tenant),
         })
 
 
@@ -1095,6 +1499,140 @@ class FeatureImportanceView(APIView):
         return Response({"features": features[:top_n], "model_variant": variant or "all"})
 
 
+def _prediction_row(item) -> dict:
+    return {
+        "session_id": item.session.session_id,
+        "visitor_id": item.session.visitor_id,
+        "model_variant": item.model_variant,
+        "abandonment_probability": item.abandonment_probability,
+        "prediction": item.predicted_class,
+        "confidence": item.confidence,
+        "shap_values": item.shap_values,
+        "model_version": item.model_version,
+        "predicted_at": item.predicted_at,
+    }
+
+
+def _label_to_abandoned(value) -> bool | None:
+    normalized = str(value or "").strip().lower()
+    if normalized in {"abandon", "abandoned", "abandonment", "true", "1"}:
+        return True
+    if normalized in {"convert", "converted", "purchase", "purchased", "false", "0"}:
+        return False
+    return None
+
+
+def _model_metrics(qs) -> dict:
+    tp = tn = fp = fn = 0
+    for item in qs:
+        predicted = _label_to_abandoned(item.predicted_class)
+        actual = _label_to_abandoned(getattr(item, "business_outcome", None))
+        if predicted is None or actual is None:
+            continue
+        if predicted and actual:
+            tp += 1
+        elif not predicted and not actual:
+            tn += 1
+        elif predicted and not actual:
+            fp += 1
+        else:
+            fn += 1
+
+    total = tp + tn + fp + fn
+    precision = tp / (tp + fp) if (tp + fp) else 0.0
+    recall = tp / (tp + fn) if (tp + fn) else 0.0
+    return {
+        "accuracy": round((tp + tn) / total, 4) if total else 0.0,
+        "precision": round(precision, 4),
+        "recall": round(recall, 4),
+        "f1": round((2 * precision * recall) / (precision + recall), 4) if (precision + recall) else 0.0,
+        "roc_auc": None,
+        "log_loss": None,
+        "confusion_matrix": {
+            "true_positive": tp,
+            "true_negative": tn,
+            "false_positive": fp,
+            "false_negative": fn,
+        },
+    }
+
+
+def _probability_distribution(qs) -> list[dict]:
+    buckets = [{"bucket": f"{i / 10:.1f}-{(i + 1) / 10:.1f}", "count": 0} for i in range(10)]
+    for item in qs:
+        value = item.abandonment_probability
+        if value is None:
+            value = item.prediction_score
+        try:
+            probability = max(0.0, min(1.0, float(value)))
+        except (TypeError, ValueError):
+            continue
+        index = min(9, int(probability * 10))
+        buckets[index]["count"] += 1
+    return buckets
+
+
+def _feature_contributions(qs, limit: int = 12) -> list[dict]:
+    values: dict[str, list[float]] = {}
+    for shap in qs.order_by("-created_at").values_list("shap_values", flat=True)[:10_000]:
+        if not isinstance(shap, dict):
+            continue
+        for key, value in shap.items():
+            try:
+                values.setdefault(str(key), []).append(float(value))
+            except (TypeError, ValueError):
+                continue
+
+    rows = []
+    for feature, samples in values.items():
+        if not samples:
+            continue
+        mean_signed = sum(samples) / len(samples)
+        mean_abs = sum(abs(v) for v in samples) / len(samples)
+        if mean_signed > 0.001:
+            direction = "increases"
+        elif mean_signed < -0.001:
+            direction = "decreases"
+        else:
+            direction = "mixed"
+        rows.append({
+            "feature": feature,
+            "importance": round(mean_abs, 6),
+            "shap_mean": round(mean_signed, 6),
+            "direction": direction,
+        })
+    rows.sort(key=lambda row: row["importance"], reverse=True)
+    return rows[:limit]
+
+
+class MLInsightsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        tenant = resolve_tenant_for_user(request)
+        if not tenant:
+            return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
+
+        qs = PredictionResult.objects.filter(tenant=tenant).select_related("session")
+        latest = qs.order_by("-predicted_at", "-created_at").first()
+        trained_at = latest.predicted_at or latest.created_at if latest else timezone.now()
+        return Response({
+            "refreshed_at": _iso(timezone.now()),
+            "model": {
+                "model_name": "xgboost",
+                "model_version": (latest.model_version if latest and latest.model_version else MODEL_VERSION),
+                "variant": (latest.model_variant if latest else "full"),
+                "trained_at": _iso(trained_at),
+                "threshold": MODEL_THRESHOLD,
+                "dataset": "main_service_predictions",
+                "prediction_count": qs.count(),
+            },
+            "metrics": _model_metrics(qs),
+            "probability_distribution": _probability_distribution(qs),
+            "feature_contributions": _feature_contributions(qs),
+        })
+
+
 # ---------------------------------------------------------------------------
 # Predictions list
 # ---------------------------------------------------------------------------
@@ -1130,21 +1668,26 @@ class PredictionsListView(APIView):
         paginator = _std_paginator(request)
         page = paginator.paginate_queryset(qs, request)
 
-        data = [
-            {
-                "session_id": item.session.session_id,
-                "visitor_id": item.session.visitor_id,
-                "model_variant": item.model_variant,
-                "abandonment_probability": item.abandonment_probability,
-                "prediction": item.predicted_class,
-                "confidence": item.confidence,
-                "shap_values": item.shap_values,
-                "model_version": item.model_version,
-                "predicted_at": item.predicted_at,
-            }
-            for item in page
-        ]
+        data = [_prediction_row(item) for item in page]
         return paginator.get_paginated_response(data)
+
+
+class PredictionDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, session_id: str):
+        tenant = resolve_tenant_for_user(request)
+        if not tenant:
+            return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
+
+        item = (
+            PredictionResult.objects.filter(tenant=tenant, session__session_id=session_id)
+            .select_related("session")
+            .first()
+        )
+        if not item:
+            return Response({"detail": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(_prediction_row(item))
 
 
 # ---------------------------------------------------------------------------

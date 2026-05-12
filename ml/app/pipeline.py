@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 def _maybe_download_models() -> None:
-    """Download the XGBoost model from MinIO when configured."""
+    """MinIO тохиргоотой үед active XGBoost model artifact-г татна."""
 
     if not settings.minio_endpoint:
         return
@@ -34,6 +34,7 @@ def _maybe_download_models() -> None:
 
 class PredictionPipeline:
     def __init__(self) -> None:
+        # Thesis MVP active inference нь зөвхөн XGBoost. LSTM нь future work тул pipeline-д ачаалахгүй.
         self.xgb = XGBoostModel()
         self._xgb_lock = Lock()
         self._semaphore = asyncio.Semaphore(settings.max_concurrent_inferences)
@@ -78,10 +79,13 @@ class PredictionPipeline:
             xgb_score, shap_values = await self._run_xgb(fv.features)
             inference_duration.labels(model="total").observe(time.perf_counter() - t_total)
 
+        # XGBoost score-г 0..1 хооронд clamp хийж dashboard/API contract-г тогтвортой байлгана.
         final_score = max(0.0, min(1.0, xgb_score))
         abandonment_probability.observe(final_score)
         threshold = self.xgb.threshold
 
+        # threshold-оос дээш бол abandoned, доош бол converted гэж ML predicted_label гаргана.
+        # Business truth override-г Main service хийдэг; ML service өөрөө purchase_success-г override хийхгүй.
         predicted_class = (
             PredictedClass.abandoned
             if final_score >= threshold

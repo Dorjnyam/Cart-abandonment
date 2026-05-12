@@ -31,7 +31,7 @@
       if (Array.isArray(parsed)) return parsed;
       if (parsed && parsed.state && Array.isArray(parsed.state.items)) return parsed.state.items;
       return [];
-    } catch (_e) {
+    } catch {
       return [];
     }
   }
@@ -88,4 +88,3 @@
 
   send("page_view", { path: window.location.pathname, referrer: document.referrer });
 })(window, document);
-

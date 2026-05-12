@@ -207,7 +207,7 @@ export default function SessionDetailPage() {
       breadcrumbs={[{ label: "Sessions", href: "/sessions" }, { label: sessionId }]}
     >
       <div className="mx-auto max-w-[1400px] px-6 py-8 sm:px-8 lg:px-10">
-        {/* Header */}
+        {/* Header хэсэг */}
         <header className="page-enter">
           <Link
             href="/sessions"
@@ -267,7 +267,7 @@ export default function SessionDetailPage() {
           </SectionCard>
         ) : (
           <>
-            {/* Top: Prediction + Dominant reason */}
+            {/* Дээд хэсэг: prediction ба dominant reason */}
             <div className="mt-6 grid gap-4 lg:grid-cols-12 stagger-children">
               <SectionCard
                 className="lg:col-span-7"
@@ -324,7 +324,7 @@ export default function SessionDetailPage() {
               </SectionCard>
             </div>
 
-            {/* Middle: Timeline + Scores + Features */}
+            {/* Дунд хэсэг: timeline, scores, features */}
             <div className="mt-4 grid gap-4 lg:grid-cols-12 stagger-children">
               <SectionCard
                 className="lg:col-span-4"
@@ -408,7 +408,7 @@ export default function SessionDetailPage() {
               </SectionCard>
             </div>
 
-            {/* Recommendation */}
+            {/* Recommendation хэсэг */}
             {detail.recommendation ? (
               <SectionCard
                 className="mt-4"
@@ -473,7 +473,7 @@ export default function SessionDetailPage() {
               </SectionCard>
             )}
 
-            {/* Developer details */}
+            {/* Developer details хэсэг */}
             <details className="mt-4 tile rounded-md group">
               <summary className="flex cursor-pointer items-center justify-between gap-3 px-5 py-3 list-none">
                 <span className="inline-flex items-center gap-2 text-[12.5px] font-medium text-on-surface">

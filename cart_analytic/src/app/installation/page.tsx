@@ -71,7 +71,7 @@ export default function InstallationPage() {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
-      /* ignore */
+      /* Алдааг зориуд үл тооно. */
     }
   }
 

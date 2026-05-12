@@ -1,5 +1,6 @@
 import { apiRequest, ApiError } from "@/lib/api-client";
 import { API_ENDPOINTS } from "@/lib/api-config";
+import { SCORE_ORDER } from "@/lib/constants";
 import type { PaginatedResponse, Session, SessionDetail, ApiSession, SHAPValues, ScoreLabel } from "@/types/api";
 
 type SessionListParams = {
@@ -8,14 +9,12 @@ type SessionListParams = {
   prediction?: string;
 };
 
-const SCORE_LABELS: ScoreLabel[] = ["S1", "S2", "S3", "S4", "S5", "S6", "S7"];
-
 function dominantFromDiagnosis(reason?: string, scores?: Record<string, number>): ScoreLabel {
-  if (SCORE_LABELS.includes(reason as ScoreLabel)) return reason as ScoreLabel;
+  if (SCORE_ORDER.includes(reason as ScoreLabel)) return reason as ScoreLabel;
   if (scores) {
-    return SCORE_LABELS.reduce((best, key) => ((scores[key] ?? 0) > (scores[best] ?? 0) ? key : best), SCORE_LABELS[0]);
+    return SCORE_ORDER.reduce((best, key) => ((scores[key] ?? 0) > (scores[best] ?? 0) ? key : best), SCORE_ORDER[0]);
   }
-  return SCORE_LABELS[0];
+  return SCORE_ORDER[0];
 }
 
 function mapApiSession(api: ApiSession): Session {

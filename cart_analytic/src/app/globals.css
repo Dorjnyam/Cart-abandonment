@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
-/* ── Design tokens — Light (default / :root) ─────────────────────────
- * Aesthetic: refined warm-linen B2B analytics.
- * Inspired by editorial print + premium SaaS data products.
+/* ── Design token-ууд: Light (default / :root) ───────────────────────
+ * Гоо зүй: warm-linen өнгөтэй цэмцгэр B2B analytics.
+ * Editorial print болон premium SaaS data product-оос санаа авсан.
  */
 :root {
   --font-body:    var(--font-geist), "Söhne", "Helvetica Neue", system-ui, sans-serif;
   --font-display: var(--font-fraunces), "Tiempos Headline", Georgia, serif;
   --font-mono:    var(--font-geist-mono), "JetBrains Mono", ui-monospace, monospace;
 
-  /* Backgrounds — warm linen */
+  /* Background-ууд: warm linen */
   --canvas-rgb:                    245 244 238;
   --background-rgb:                245 244 238;
   --surface-rgb:                   241 239 231;
@@ -18,14 +18,14 @@
   --surface-variant-rgb:           241 239 231;
   --surface-alt-rgb:               239 237 229;
 
-  /* Surface containers */
+  /* Surface container-ууд */
   --surface-container-lowest-rgb:  255 255 255;
   --surface-container-low-rgb:     250 248 242;
   --surface-container-rgb:         241 239 231;
   --surface-container-high-rgb:    237 235 226;
   --surface-container-highest-rgb: 232 229 219;
 
-  /* Text */
+  /* Text өнгөнүүд */
   --on-surface-rgb:                28 25 23;
   --on-background-rgb:             28 25 23;
   --on-surface-variant-rgb:        87 83 78;
@@ -33,11 +33,11 @@
   --inverse-on-surface-rgb:        168 162 158;
   --inverse-primary-rgb:           255 255 255;
 
-  /* Borders — used at low alpha for hairlines */
+  /* Border-ууд: hairline-д бага alpha-тай ашиглана */
   --outline-rgb:                   28 25 23;
   --outline-variant-rgb:           28 25 23;
 
-  /* Primary — deep emerald */
+  /* Primary: deep emerald */
   --primary-rgb:                   31 77 62;
   --on-primary-rgb:                255 255 255;
   --primary-dim-rgb:               20 56 48;
@@ -48,7 +48,7 @@
   --on-primary-fixed-rgb:          20 56 48;
   --on-primary-fixed-variant-rgb:  31 77 62;
 
-  /* Secondary — slate blue */
+  /* Secondary: slate blue */
   --secondary-rgb:                 62 110 142;
   --on-secondary-rgb:              255 255 255;
   --secondary-dim-rgb:             45 87 116;
@@ -58,7 +58,7 @@
   --on-secondary-fixed-variant-rgb:62 110 142;
   --secondary-fixed-dim-rgb:       200 220 231;
 
-  /* Tertiary — amber/burnt-honey for medium risk */
+  /* Tertiary: medium risk-д зориулсан amber/burnt-honey */
   --tertiary-rgb:                  156 107 20;
   --on-tertiary-rgb:               255 255 255;
   --tertiary-dim-rgb:              124 84 16;
@@ -69,7 +69,7 @@
   --on-tertiary-fixed-rgb:         92 63 12;
   --on-tertiary-fixed-variant-rgb: 124 84 16;
 
-  /* Error — clay (sober warning, not alarm-red) */
+  /* Error: clay өнгө (хэт alarm-red биш) */
   --error-rgb:                     160 53 33;
   --on-error-rgb:                  255 255 255;
   --error-dim-rgb:                 126 42 26;
@@ -80,7 +80,7 @@
   --insight-bg-rgb:                229 239 234;
   --on-insight-rgb:                20 56 48;
 
-  /* Risk severity (shared across charts) */
+  /* Risk severity: chart-ууд дундаа хуваалцана */
   --color-risk-high:               #A03521;
   --color-risk-medium:             #9C6B14;
   --color-risk-low:                #1F4D3E;
@@ -90,7 +90,7 @@
   --color-variant-extended:        #3E6E8E;
   --color-variant-full:            #7A4FA0;
 
-  /* Editorial chart palette — for series ordering */
+  /* Editorial chart palette: series дараалалд ашиглана */
   --series-1: #1F4D3E;
   --series-2: #3E6E8E;
   --series-3: #9C6B14;
@@ -106,7 +106,7 @@
   --sidebar-ink-muted-rgb:         87 83 78;
 }
 
-/* ── Dark mode (kept functional, warm-slate) ─────────────────────── */
+/* ── Dark mode (ажилладаг хэвээр, warm-slate) ────────────────────── */
 .dark {
   --canvas-rgb:                    20 20 18;
   --background-rgb:                20 20 18;
@@ -176,7 +176,7 @@
   --sidebar-ink-muted-rgb:         163 158 150;
 }
 
-/* ── Base styles ────────────────────────────────────────────────────── */
+/* ── Суурь style-ууд ──────────────────────────────────────────────── */
 html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -193,7 +193,7 @@ body {
   letter-spacing: -0.005em;
 }
 
-/* Display elements use Fraunces with optical-size + softness for editorial polish */
+/* Display элементүүд editorial polish-д зориулж optical-size + softness-той Fraunces ашиглана */
 .font-display,
 h1, h2 {
   font-family: var(--font-display);
@@ -207,7 +207,7 @@ h3, h4 {
   letter-spacing: -0.012em;
 }
 
-/* Numerals and tabular numbers — for dense data */
+/* Нягт data-д зориулсан numeral болон tabular number */
 .tabular-nums {
   font-variant-numeric: tabular-nums slashed-zero;
 }
@@ -218,7 +218,7 @@ code, pre, kbd, samp {
   font-feature-settings: "ss01", "ss02";
 }
 
-/* ── Scrollbars — restrained ────────────────────────────────────────── */
+/* ── Scrollbar-ууд: даруухан ─────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px }
 ::-webkit-scrollbar-track { background: transparent }
 ::-webkit-scrollbar-thumb {
@@ -235,13 +235,13 @@ code, pre, kbd, samp {
 .no-scrollbar::-webkit-scrollbar { display: none }
 .no-scrollbar { scrollbar-width: none }
 
-/* ── Selection ──────────────────────────────────────────────────────── */
+/* ── Selection style ──────────────────────────────────────────────── */
 ::selection {
   background: rgb(var(--primary-rgb) / 0.18);
   color: rgb(var(--on-surface-rgb));
 }
 
-/* ── Refined editorial shadows ─────────────────────────────────────── */
+/* ── Цэмцгэр editorial shadow-ууд ────────────────────────────────── */
 .editorial-shadow {
   box-shadow:
     0 1px 0 rgb(28 25 23 / 0.04),
@@ -268,7 +268,7 @@ code, pre, kbd, samp {
     0 8px 24px -4px rgb(0 0 0 / 0.5);
 }
 
-/* ── Hairline (1px, very subtle) ───────────────────────────────────── */
+/* ── Hairline (1px, маш зөөлөн) ──────────────────────────────────── */
 .hairline-b { border-bottom: 1px solid rgb(28 25 23 / 0.08); }
 .hairline-t { border-top:    1px solid rgb(28 25 23 / 0.08); }
 .hairline-l { border-left:   1px solid rgb(28 25 23 / 0.08); }
@@ -280,7 +280,7 @@ code, pre, kbd, samp {
 .dark .hairline-r,
 .dark .hairline { border-color: rgb(255 255 255 / 0.08); }
 
-/* ── Material Symbols (fallback if used) ───────────────────────────── */
+/* ── Material Symbols (ашиглагдвал fallback болно) ───────────────── */
 .material-symbols-outlined {
   font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
   line-height: 1;
@@ -290,17 +290,17 @@ code, pre, kbd, samp {
   white-space: nowrap;
 }
 
-/* ── Subtle structural transitions ─────────────────────────────────── */
+/* ── Зөөлөн structural transition-ууд ────────────────────────────── */
 body, main, aside, header {
   transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease;
 }
 
-/* ── Progress bar width animation ──────────────────────────────────── */
+/* ── Progress bar-ийн width animation ────────────────────────────── */
 .transition-bar {
   transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-/* ── Page entry animation — slow, restrained ──────────────────────── */
+/* ── Page entry animation: удаан, даруухан ───────────────────────── */
 @keyframes page-enter {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -323,7 +323,7 @@ body, main, aside, header {
 .stagger-children > *:nth-child(6) { animation: item-enter 0.42s cubic-bezier(0.2,0.6,0.2,1) 250ms both; }
 .stagger-children > *:nth-child(7) { animation: item-enter 0.42s cubic-bezier(0.2,0.6,0.2,1) 300ms both; }
 
-/* ── Skeleton shimmer ─────────────────────────────────────────────── */
+/* ── Skeleton shimmer ────────────────────────────────────────────── */
 @keyframes skeleton-shimmer {
   0%   { background-position: -800px 0; }
   100% { background-position:  800px 0; }
@@ -352,7 +352,7 @@ body, main, aside, header {
   background-size: 800px 100%;
 }
 
-/* ── Card hover (very restrained) ─────────────────────────────────── */
+/* ── Card hover (маш даруухан) ───────────────────────────────────── */
 .card-lift {
   transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease !important;
 }
@@ -364,7 +364,7 @@ body, main, aside, header {
     0 12px 28px -8px rgb(28 25 23 / 0.10);
 }
 
-/* ── Editorial dotted rule (used as section separator) ────────────── */
+/* ── Editorial dotted rule (section separator болгон ашиглана) ───── */
 .editorial-rule {
   height: 1px;
   background-image: linear-gradient(
@@ -385,7 +385,7 @@ body, main, aside, header {
   );
 }
 
-/* ── Bordered tile — used for KPI / metric blocks ──────────────────── */
+/* ── Bordered tile: KPI / metric block-д ашиглана ────────────────── */
 .tile {
   background: rgb(var(--surface-container-lowest-rgb));
   border: 1px solid rgb(28 25 23 / 0.08);
@@ -394,12 +394,12 @@ body, main, aside, header {
   border-color: rgb(255 255 255 / 0.08);
 }
 
-/* ── Smooth scroll ─────────────────────────────────────────────────── */
+/* ── Smooth scroll ───────────────────────────────────────────────── */
 html {
   scroll-behavior: smooth;
 }
 
-/* ── Recharts overrides — match editorial color palette ────────────── */
+/* ── Recharts override-ууд: editorial color palette-той тааруулна ─ */
 .recharts-cartesian-axis-tick-value {
   font-family: var(--font-mono);
   font-size: 10.5px;
@@ -425,7 +425,7 @@ html {
     0 6px 14px -4px rgb(28 25 23 / 0.10) !important;
 }
 
-/* ── Form controls, base ───────────────────────────────────────────── */
+/* ── Form control-уудын суурь style ──────────────────────────────── */
 input, select, textarea, button {
   font-family: inherit;
   letter-spacing: inherit;

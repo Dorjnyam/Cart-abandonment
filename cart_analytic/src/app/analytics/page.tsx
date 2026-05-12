@@ -216,7 +216,7 @@ function AnalyticsPageContent() {
   return (
     <EditorialShell activeNav="analytics" title="Аналитик" subtitle="Орхилтын дүн шинжилгээ">
       <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6 max-w-400 mx-auto page-enter">
-        {/* Page header */}
+        {/* Хуудасны header */}
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h1 className="text-[1.1rem] font-semibold text-on-surface tracking-tight">Аналитик Deep-Dive</h1>
@@ -234,7 +234,7 @@ function AnalyticsPageContent() {
           </div>
         </div>
 
-        {/* Tab navigation */}
+        {/* Tab navigation хэсэг */}
         <div className="inline-flex rounded-lg border border-outline-variant/[0.09] bg-surface-container-lowest p-0.5" role="tablist">
           {TABS.map((t) => (
             <a

@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "patch-progress-plugin": "node scripts/patch-progress-plugin.cjs",
+    "postinstall": "node scripts/patch-progress-plugin.cjs",
+    "prebuild": "node scripts/patch-progress-plugin.cjs",
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
     "build": "docusaurus build",

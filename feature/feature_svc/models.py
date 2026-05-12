@@ -28,8 +28,8 @@ class SessionEvent(BaseModel):
 
 
 class AggregatedFields(BaseModel):
-    # extra="ignore": session service emits internal fields (state, last_seen_at,
-    # cart_add_count, etc.) that are not part of the feature contract — silently drop them.
+    # extra="allow": session service internal талбаруудыг унагахгүйгээр schema contract-г тогтвортой байлгана.
+    # Feature builder зөвхөн FeatureSet-д орсон canonical талбаруудыг ML vector болгон сонгоно.
     model_config = ConfigDict(extra="allow")
 
     visitor_id: str | None = None
@@ -234,6 +234,8 @@ class FeatureSet(BaseModel):
     mouse_speed: float = 0.0
     direction_changes: int = 0
     # --- ML target signal ---
+    # Энэ талбар нь сургалтын synthetic dataset-ийн feature_order-д байсан legacy signal.
+    # Шууд label биш; бизнес outcome metadata-г feature vector-т холихгүй байх ёстой.
     cart_abandonment_signal: bool = False
 
 

@@ -40,7 +40,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     }, 4000);
   }, []);
 
-  // Register with the bridge so api-client can call it
+  // api-client дуудаж болохын тулд bridge дээр бүртгэнэ.
   useEffect(() => {
     toastBridge.register(showToast);
     return () => toastBridge.register(null as unknown as Parameters<typeof toastBridge.register>[0]);

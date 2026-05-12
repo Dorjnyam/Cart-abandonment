@@ -546,10 +546,12 @@
     </main>
 
     <script>
+      /* Тогтмол утга ба runtime state */
       const state = {
         timer: null,
       };
 
+      /* Format helper-үүд */
       function statusClass(status) {
         if (status === "ok") return "ok";
         if (status === "bad" || status === "down") return "bad";
@@ -588,6 +590,7 @@
         return `<span class="pill ${statusClass(status)}">${label}</span>`;
       }
 
+      /* Render helper-үүд */
       function renderOverview(data) {
         const stats = data.runtime?.stats || {};
         const model = data.model || {};
@@ -857,6 +860,7 @@
         renderArtifacts(data);
       }
 
+      /* Fetch ба refresh handler */
       async function loadStatus() {
         try {
           const response = await fetch("/internal/status", { cache: "no-store" });
@@ -872,6 +876,7 @@
       }
 
       document.getElementById("refresh").addEventListener("click", loadStatus);
+      /* Startup loop */
       loadStatus();
       state.timer = setInterval(loadStatus, 3000);
     </script>

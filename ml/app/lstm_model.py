@@ -26,6 +26,13 @@ class LSTMClassifier(nn.Module):
 
 
 class LSTMModel:
+    """
+    Future work placeholder.
+
+    Thesis MVP-ийн active inference path LSTM ашиглахгүй. Энэ class нь дараагийн судалгаанд
+    sequence model туршихад үлдээсэн код бөгөөд `PredictionPipeline` дотор ачаалагдахгүй.
+    """
+
     def __init__(self) -> None:
         self.model: LSTMClassifier | None = None
         self.model_version: str = settings.model_version_lstm

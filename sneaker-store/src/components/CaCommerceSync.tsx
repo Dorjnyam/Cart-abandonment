@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import { useEffect } from "react";
 import { useCart } from "@/store/cart";
 
-/** Syncs cart + session into `window._ca_user` for Observer T1/T2 payload enrichment. */
+/** Observer T1/T2 payload enrichment-д зориулж cart + session-ийг `window._ca_user` руу sync хийнэ. */
 export default function CaCommerceSync() {
   const items = useCart((s) => s.items);
   const total = useCart((s) => s.total());

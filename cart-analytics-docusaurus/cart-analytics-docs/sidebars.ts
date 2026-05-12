@@ -1,21 +1,64 @@
 import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
 
 const sidebars: SidebarsConfig = {
+  thesisSidebar: [
+    {
+      type: 'category',
+      label: 'Танилцуулга',
+      items: ['intro/system-goal', 'intro/mvp-verification', 'intro/limitations'],
+    },
+    {
+      type: 'category',
+      label: 'Архитектур',
+      items: ['architecture/overview', 'architecture/services', 'architecture/kafka-flow', 'architecture/database'],
+    },
+    {
+      type: 'category',
+      label: 'Өгөгдлийн гэрээ',
+      items: ['contracts/event-types', 'contracts/raw-events', 'contracts/session-enriched', 'contracts/feature-ready', 'contracts/prediction-done'],
+    },
+    {
+      type: 'category',
+      label: 'Оношлогоо',
+      items: ['diagnosis/s1-s7', 'diagnosis/dominant-reason', 'diagnosis/recommendation-logic'],
+    },
+    {
+      type: 'category',
+      label: 'Машин сургалт',
+      items: ['ml/xgboost', 'ml/training-data', 'ml/metrics', 'ml/lstm-future-work'],
+    },
+    {
+      type: 'category',
+      label: 'Dashboard гарын авлага',
+      items: ['dashboard/overview', 'dashboard/sessions', 'dashboard/diagnosis', 'dashboard/recommendations', 'dashboard/integration'],
+    },
+    {
+      type: 'category',
+      label: 'Demo ба туршилт',
+      items: ['demo/uc1', 'demo/uc2', 'demo/uc3', 'demo/e2e-script'],
+    },
+    {
+      type: 'category',
+      label: 'Хөгжүүлэгчийн гарын авлага',
+      items: ['developer/docker', 'developer/environment', 'developer/api-endpoints', 'developer/troubleshooting'],
+    },
+    {
+      type: 'category',
+      label: 'Аюулгүй байдал',
+      items: ['security/api-key', 'security/secrets', 'security/tenant-isolation', 'security/privacy'],
+    },
+  ],
   overviewSidebar: [
     {
       type: 'category',
-      label: '🗺️ Ерөнхий тойм',
-      items: [
-        'overview/intro',
-        'overview/architecture',
-        'overview/getting-started',
-      ],
+      label: 'Legacy overview',
+      items: ['overview/intro', 'overview/architecture', 'overview/getting-started'],
     },
   ],
   webSidebar: [
     {
       type: 'category',
-      label: '🛍️ KICKLAB',
+      label: 'KICKLAB demo ecommerce',
       items: [
         'web/kicklab/intro',
         'web/kicklab/configuration',
@@ -27,7 +70,7 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: '📊 CartAnalytics Frontend',
+      label: 'Cart Analytics dashboard',
       items: [
         'web/cart-analytics/intro',
         'web/cart-analytics/configuration',
@@ -40,7 +83,7 @@ const sidebars: SidebarsConfig = {
   servicesSidebar: [
     {
       type: 'category',
-      label: '👁️ Observer Service',
+      label: 'Observer Service',
       items: [
         'services/observer/intro',
         'services/observer/api',
@@ -54,7 +97,7 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: '⏱️ Session Service',
+      label: 'Session Service',
       items: [
         'services/session/intro',
         'services/session/api',
@@ -67,7 +110,7 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: '🧮 Feature Service',
+      label: 'Feature Service',
       items: [
         'services/feature/intro',
         'services/feature/configuration',
@@ -78,7 +121,7 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: '🤖 ML Prediction Service',
+      label: 'ML Prediction Service',
       items: [
         'services/ml/intro',
         'services/ml/api',
@@ -92,7 +135,7 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: '🏢 Main Service',
+      label: 'Main Service',
       items: [
         'services/main/intro',
         'services/main/api',

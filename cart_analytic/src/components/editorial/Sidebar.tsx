@@ -115,7 +115,7 @@ export default function Sidebar({ active }: { active: NavKey }): ReactNode {
         borderRight: "1px solid rgb(28 25 23 / 0.08)",
       }}
     >
-      {/* Wordmark + workspace */}
+      {/* Wordmark ба workspace */}
       <div className="px-4 pt-5 pb-4 hairline-b">
         <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5">
           <span
@@ -146,7 +146,7 @@ export default function Sidebar({ active }: { active: NavKey }): ReactNode {
         ) : null}
       </div>
 
-      {/* Nav */}
+      {/* Navigation хэсэг */}
       <nav className="no-scrollbar flex-1 overflow-y-auto px-2 py-2">
         {role === "admin" ? (
           <>
@@ -192,7 +192,7 @@ export default function Sidebar({ active }: { active: NavKey }): ReactNode {
         ))}
       </nav>
 
-      {/* Footer */}
+      {/* Footer хэсэг */}
       <div className="space-y-0.5 px-2 py-2.5 hairline-t">
         <Link
           href="/profile"

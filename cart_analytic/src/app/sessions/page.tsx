@@ -163,7 +163,7 @@ function SessionsContent() {
   return (
     <EditorialShell activeNav="sessions" title="Sessions" subtitle="Evidence view for each prediction">
       <div className="mx-auto max-w-[1400px] px-6 py-8 sm:px-8 lg:px-10">
-        {/* Header */}
+        {/* Header хэсэг */}
         <header className="page-enter">
           <p className="text-[10.5px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant/70">
             Session ledger · per-prediction evidence
@@ -200,7 +200,7 @@ function SessionsContent() {
 
         <div className="editorial-rule mt-6" />
 
-        {/* Stat row */}
+        {/* Stat мөр */}
         <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 stagger-children">
           <MetricCell label="Total sessions" value={stats.total.toLocaleString()} hint="Matching current filters" />
           <MetricCell label="High-risk" value={stats.high} accent hint="Probability ≥ 75%" />
@@ -208,7 +208,7 @@ function SessionsContent() {
           <MetricCell label="Converted" value={stats.converted} hint="Reached purchase" />
         </section>
 
-        {/* Filters */}
+        {/* Filter-үүд */}
         <section className="mt-6 tile rounded-md">
           <div className="flex items-center gap-2 px-4 pt-3.5 pb-2 hairline-b">
             <SlidersHorizontal className="size-3.5 text-on-surface-variant/70" aria-hidden />
@@ -282,7 +282,7 @@ function SessionsContent() {
           </div>
         ) : null}
 
-        {/* Table */}
+        {/* Хүснэгт */}
         <section className="mt-4 overflow-hidden tile rounded-md">
           <div className="flex items-center justify-between px-4 py-3 hairline-b">
             <h2 className="text-[13px] font-semibold tracking-[-0.005em] text-on-surface">Predictions</h2>
@@ -416,7 +416,7 @@ function SessionsContent() {
           </div>
         </section>
 
-        {/* Footnote */}
+        {/* Footnote хэсэг */}
         <div className="mt-6 flex items-start gap-2 text-[11.5px] text-on-surface-variant/80">
           <span aria-hidden className="mt-1 size-1 shrink-0 rounded-full bg-on-surface-variant/40" />
           <p>

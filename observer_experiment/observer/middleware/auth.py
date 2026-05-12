@@ -55,6 +55,8 @@ def resolve_tier_for_key(key: str | None) -> str | None:
     if not tier:
         return None
     if not is_key_in_allowlist(k):
+        # Demo key prefix зөв байсан ч allowlist асаалттай үед зөвхөн бүртгэлтэй full key зөвшөөрнө.
+        # Бодит API key болон demo API key-ийн ялгаа энд тодорхой болно.
         return None
     return tier
 

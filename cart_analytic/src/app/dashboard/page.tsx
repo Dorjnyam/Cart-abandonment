@@ -315,7 +315,7 @@ export default function DashboardPage() {
   return (
     <EditorialShell activeNav="dashboard" title="Overview" breadcrumbs={[{ label: "Overview" }]} right={right}>
       <div className="mx-auto max-w-[1480px] space-y-6 px-5 py-6 sm:px-7 page-enter">
-        {/* Page header */}
+        {/* Хуудасны header */}
         <header className="flex flex-wrap items-end justify-between gap-4">
           <div className="space-y-1.5">
             <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant/80">
@@ -358,7 +358,7 @@ export default function DashboardPage() {
           </div>
         ) : (
           <>
-            {/* Hero KPI strip */}
+            {/* Гол KPI мөр */}
             <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <HeroMetric
                 label="Total sessions"
@@ -392,7 +392,7 @@ export default function DashboardPage() {
               />
             </section>
 
-            {/* Compact secondary metrics */}
+            {/* Товч secondary metrics */}
             <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <CompactMetric
                 label="High risk in window"
@@ -417,7 +417,7 @@ export default function DashboardPage() {
               />
             </section>
 
-            {/* Trend + top reason */}
+            {/* Trend ба top reason */}
             <section className="grid gap-4 lg:grid-cols-3">
               <SectionCard
                 className="lg:col-span-2"
@@ -506,7 +506,7 @@ export default function DashboardPage() {
               </SectionCard>
             </section>
 
-            {/* Funnel + reason scores + reason mix */}
+            {/* Funnel, reason scores, reason mix */}
             <section className="grid gap-4 lg:grid-cols-3">
               <SectionCard title="Conversion funnel" hint="Step-by-step session drop-off.">
                 {data.funnel.length ? (
@@ -594,7 +594,7 @@ export default function DashboardPage() {
               </SectionCard>
             </section>
 
-            {/* Recent high-risk + next best action */}
+            {/* Сүүлийн өндөр эрсдэлтэй session ба next best action */}
             <section className="grid gap-4 lg:grid-cols-3">
               <SectionCard
                 className="lg:col-span-2"

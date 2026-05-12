@@ -1,5 +1,6 @@
 import { apiRequest } from "@/lib/api-client";
 import { API_ENDPOINTS } from "@/lib/api-config";
+import { DASHBOARD_LABELS } from "@/lib/constants";
 import type { DashboardKpi, DropoffPoint, TrafficSourcePoint, TrendPoint } from "@/types/api";
 
 export type DashboardPayload = {
@@ -27,11 +28,11 @@ type OverviewApiResponse = {
 
 const EMPTY_DASHBOARD: DashboardPayload = {
   kpis: [
-    { label: "Нийт session",   value: 0,   trendPercent: 0 },
-    { label: "Орхилтын хувь", value: "—", trendPercent: 0 },
-    { label: "Дундаж session", value: "—", trendPercent: 0 },
-    { label: "Мобайл хувь",   value: "—", trendPercent: 0 },
-    { label: "Bounce хувь",   value: "—", trendPercent: 0 },
+    { label: DASHBOARD_LABELS.totalSessions, value: 0, trendPercent: 0 },
+    { label: DASHBOARD_LABELS.abandonmentRate, value: "-", trendPercent: 0 },
+    { label: "Дундаж сесс", value: "-", trendPercent: 0 },
+    { label: "Мобайл хувь", value: "-", trendPercent: 0 },
+    { label: "Bounce хувь", value: "-", trendPercent: 0 },
   ],
   trend: [],
   dropoff: [],
@@ -43,22 +44,32 @@ function mapOverviewResponse(data: OverviewApiResponse): DashboardPayload {
   if (data.kpis) {
     return {
       kpis: data.kpis,
-      trend:          trendSource.map((t) => ({ date: t.date, sessions: t.sessions, abandonmentRate: t.abandonment_rate })),
-      dropoff:        data.dropoff?.map((d) => ({ step: d.step, users: d.users, dropPercent: d.drop_percent })) ?? [],
+      trend: trendSource.map((t) => ({ date: t.date, sessions: t.sessions, abandonmentRate: t.abandonment_rate })),
+      dropoff: data.dropoff?.map((d) => ({ step: d.step, users: d.users, dropPercent: d.drop_percent })) ?? [],
       trafficSources: data.traffic_sources ?? [],
     };
   }
+
   const kpis: DashboardKpi[] = [
-    { label: "Нийт session",      value: data.total_sessions ?? 0,                                                                      trendPercent: 0 },
-    { label: "Орхилтын хувь",     value: data.abandonment_rate   != null ? `${(data.abandonment_rate   * 100).toFixed(1)}%` : "—", trendPercent: 0 },
-    { label: "Нийт таамаглал",    value: data.total_predictions ?? 0,                                                                   trendPercent: 0 },
-    { label: "Идэвхтэй session",  value: data.active_sessions ?? 0,                                                                     trendPercent: 0 },
-    { label: "Дундаж итгэл",      value: data.avg_confidence     != null ? `${(data.avg_confidence     * 100).toFixed(1)}%` : "—", trendPercent: 0 },
+    { label: DASHBOARD_LABELS.totalSessions, value: data.total_sessions ?? 0, trendPercent: 0 },
+    {
+      label: DASHBOARD_LABELS.abandonmentRate,
+      value: data.abandonment_rate != null ? `${(data.abandonment_rate * 100).toFixed(1)}%` : "-",
+      trendPercent: 0,
+    },
+    { label: "Нийт таамаглал", value: data.total_predictions ?? 0, trendPercent: 0 },
+    { label: "Идэвхтэй сесс", value: data.active_sessions ?? 0, trendPercent: 0 },
+    {
+      label: "Дундаж итгэл",
+      value: data.avg_confidence != null ? `${(data.avg_confidence * 100).toFixed(1)}%` : "-",
+      trendPercent: 0,
+    },
   ];
+
   return {
     kpis,
-    trend:          trendSource.map((t) => ({ date: t.date, sessions: t.sessions, abandonmentRate: t.abandonment_rate })),
-    dropoff:        data.dropoff?.map((d) => ({ step: d.step, users: d.users, dropPercent: d.drop_percent })) ?? [],
+    trend: trendSource.map((t) => ({ date: t.date, sessions: t.sessions, abandonmentRate: t.abandonment_rate })),
+    dropoff: data.dropoff?.map((d) => ({ step: d.step, users: d.users, dropPercent: d.drop_percent })) ?? [],
     trafficSources: data.traffic_sources ?? [],
   };
 }

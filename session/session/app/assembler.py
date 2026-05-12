@@ -153,10 +153,13 @@ async def accumulate_event(r: redis_async.Redis, event: RawEvent) -> None:
     )
     is_purchase = current.get("is_completed_purchase", "false") == "true"
     is_currently_converted = current.get("state") == SessionState.CONVERTED.value
+    # NEW → ACTIVE: тухайн session_id дээр хоёр дахь болон дараагийн event ирвэл сесс идэвхтэй болно.
     state = SessionState.NEW if not current else SessionState.ACTIVE
     if is_currently_converted:
+        # CONVERTED нь terminal төлөв. Timeout эсвэл дараагийн non-purchase event ирсэн ч ABANDONED болгохгүй.
         state = SessionState.CONVERTED
     if has_purchase_event or _payload_truthy(event_payload, "is_order_success"):
+        # ACTIVE → CONVERTED: purchase_success/order_success нь бизнесийн эцсийн үнэн төлөв.
         is_purchase = True
         state = SessionState.CONVERTED
 
@@ -223,6 +226,8 @@ async def flush_session(
 
     session_data = _decode_hash(raw)
     if session_data.get("state") != SessionState.CONVERTED.value:
+        # ACTIVE → ABANDONED: idle timeout дуусахад зөвхөн converted биш сессийг abandoned болгоно.
+        # UC2 converted сессийг timeout дахин ангилж болохгүй.
         session_data["state"] = SessionState.ABANDONED.value
         await r.hset(key, mapping={"state": SessionState.ABANDONED.value})
 
@@ -239,10 +244,8 @@ async def flush_session(
         duration_sec = 0.0
         session_data.setdefault("session_duration_sec", 0.0)
 
-    # DB FIRST — durable record before broadcasting.
-    # If Kafka fails after DB write, Feature service misses this window but DB is safe.
-    # The session can be re-emitted on retry if needed. Reversing the order would lose
-    # the DB record if Kafka succeeds but DB write fails.
+    # DB FIRST: session metadata-г эхлээд durable хадгална.
+    # Дараа нь session_enriched Kafka message гарна; metadata нь ML feature биш боловч Main-д business truth болж дамжина.
     await write_session_to_pg(session_data)
     await emit_session_enriched(session_data, window_seconds=None)
 

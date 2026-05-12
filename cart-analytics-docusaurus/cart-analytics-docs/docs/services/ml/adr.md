@@ -1,37 +1,23 @@
 ---
 id: adr
-title: ML — Архитектурын шийдвэрүүд
+title: ML архитектурын шийдвэрүүд
 sidebar_label: ADR
 ---
 
-# Архитектурын шийдвэрүүд (ADRs)
+# Архитектурын шийдвэрүүд
 
 ## XGBoost сонгосон шалтгаан
 
-Tabular session feature-д хурдан inference, SHAP explainability-тай нийцтэй, missing value-ийг зохицдог.
+Tabular session feature дээр хурдан inference хийдэг, feature order contract нь тодорхой, MVP synthetic dataset дээр reproducible metric гарсан тул XGBoost active model болсон.
 
-## LSTM optional ensemble
+## LSTM future work
 
-Event sequence data-д зориулсан. 4-аас доош event байвал эсвэл model файл байхгүй бол алгасна (graceful degradation).
-
-## Fail-fast consumer
-
-`SystemExit(1)` ашиглан supervisor/orchestrator-д дахин эхлүүлэх дохио өгдөг — чимээгүй degradation-аас сайн.
+LSTM нь event sequence modeling-ийн дараагийн судалгааны чиглэл. Энэ MVP дээр LSTM active inference биш, ensemble weight ашиглахгүй, deployed/evaluated LSTM artifact байхгүй.
 
 ## Manual Kafka commit
 
-At-least-once delivery — failed prediction offset ахиулахгүй тул дахин унших боломжтой.
+ML consumer амжилттай publish хийсний дараа offset commit хийх ёстой. Publish failure үед message replay боломжтой байх нь pipeline reliability-д хэрэгтэй.
 
-## Ensemble weight тохируулах боломжтой
+## Prediction contract
 
-`ENSEMBLE_WEIGHT_XGBOOST=0.7`, `ENSEMBLE_WEIGHT_LSTM=0.3` — env var-аар тохируулдаг.
-
-## Changelog / Breaking Change
-
-`prediction_done_v2` нэмэгдсэн:
-- `visitor_id` нэмэгдсэн
-- `predicted_class` enum (`abandoned`/`converted`)
-- `confidence` label нэмэгдсэн
-- `abandon_probability` → `prediction_score` болж өөрчлөгдсөн
-
-**Legacy `prediction_done` consumers нь `prediction_done_v2` руу шилжих зөвлөмж.**
+`prediction_done` payload нь `session_state`, `has_purchase_success`, `final_event_type` metadata-г дамжуулна. Main service эдгээр metadata-г ашиглан UC2 converted protection хийдэг.

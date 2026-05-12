@@ -24,6 +24,9 @@ from apps.analytics.views import (
     ExportTriggerView,
     FeatureImportanceView,
     HealthView,
+    MLInsightsView,
+    PredictionDetailView,
+    PipelineMonitorView,
     # Predictions / sessions
     PredictionsListView,
     SessionDetailView,
@@ -74,11 +77,14 @@ urlpatterns = [
 
     # ── Predictions ──────────────────────────────────────────────────────────
     path("predictions/", PredictionsListView.as_view(), name="predictions-list"),
+    path("predictions/<str:session_id>/", PredictionDetailView.as_view(), name="predictions-detail"),
 
     # ── Ablation / export / health ───────────────────────────────────────────
     path("ablation/summary/", AblationSummaryView.as_view(), name="ablation-summary"),
     path("export/", ExportTriggerView.as_view(), name="export-trigger"),
     path("health/", HealthView.as_view(), name="health"),
+    path("pipeline/monitor/", PipelineMonitorView.as_view(), name="pipeline-monitor"),
+    path("ml/insights/", MLInsightsView.as_view(), name="ml-insights"),
 
     # ── Diagnosis ────────────────────────────────────────────────────────────
     path("diagnosis/", DiagnosisListView.as_view(), name="diagnosis-list"),

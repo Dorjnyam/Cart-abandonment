@@ -5,14 +5,16 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-cartdb}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      PGCTLTIMEOUT: ${PGCTLTIMEOUT:-300}
     ports:
       - "5432:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
+      start_period: 180s
       retries: 10
 
   redis:
@@ -27,6 +29,7 @@ services:
 
   kafka:
     image: apache/kafka:3.7.1
+    restart: unless-stopped
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
@@ -44,19 +47,35 @@ services:
     ports:
       - "9092:9092"
     healthcheck:
-      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1"]
-      interval: 10s
-      timeout: 10s
-      retries: 20
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 9092"]
+      interval: 30s
+      timeout: 5s
+      start_period: 60s
+      retries: 10
 
   kafka-init:
     image: apache/kafka:3.7.1
-    command: >
-      sh -c "/opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_events --partitions 1 --replication-factor 1 &&
-             /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic session_enriched --partitions 1 --replication-factor 1 &&
-             /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic feature_ready --partitions 1 --replication-factor 1 &&
-             /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic prediction_done --partitions 1 --replication-factor 1 &&
-             /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic prediction_done_v2 --partitions 1 --replication-factor 1"
+    command:
+      - bash
+      - -ec
+      - |
+        kafka_topics() {
+          local output status
+          output=$$(/opt/kafka/bin/kafka-topics.sh "$$@" 2>&1) || status=$$?
+          printf '%s\n' "$$output" | grep -v "Due to limitations in metric names" || true
+          return "$${status:-0}"
+        }
+
+        until kafka_topics --bootstrap-server kafka:9092 --list >/dev/null; do
+          echo "waiting for kafka"
+          sleep 5
+        done
+
+        kafka_topics --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_events --partitions 1 --replication-factor 1
+        kafka_topics --bootstrap-server kafka:9092 --create --if-not-exists --topic session_enriched --partitions 1 --replication-factor 1
+        kafka_topics --bootstrap-server kafka:9092 --create --if-not-exists --topic feature_ready --partitions 1 --replication-factor 1
+        kafka_topics --bootstrap-server kafka:9092 --create --if-not-exists --topic prediction_done --partitions 1 --replication-factor 1
+        kafka_topics --bootstrap-server kafka:9092 --create --if-not-exists --topic prediction_done_v2 --partitions 1 --replication-factor 1
     depends_on:
       kafka:
         condition: service_healthy
@@ -270,7 +289,12 @@ services:
         condition: service_started
 
   demo_ecommerce:
-    build: ./sneaker-store
+    build:
+      context: ./sneaker-store
+      args:
+        NEXT_PUBLIC_OBSERVER_URL: http://localhost:8001
+        NEXT_PUBLIC_OBSERVER_SNIPPET_KEY: ${DEMO_OBSERVER_API_KEY:-tk_full_demo_mvp}
+        NEXT_PUBLIC_OBSERVER_TENANT_ID: ${NEXT_PUBLIC_OBSERVER_TENANT_ID:-00000000-0000-0000-0000-000000000001}
     command: >
       sh -c "node -e \"const { Pool } = require('pg'); const pool = new Pool({ connectionString: process.env.POSTGRES_ADMIN_URL }); pool.query('CREATE DATABASE sneakerdb').catch((e) => { if (e.code !== '42P04') throw e; }).finally(() => pool.end());\" &&
              npx prisma db push &&
@@ -285,6 +309,7 @@ services:
       ADMIN_PASSWORD: change-me-demo-shop-password
       NEXT_PUBLIC_OBSERVER_URL: http://localhost:8001
       NEXT_PUBLIC_OBSERVER_SNIPPET_KEY: ${DEMO_OBSERVER_API_KEY:-tk_full_demo_mvp}
+      NEXT_PUBLIC_OBSERVER_TENANT_ID: ${NEXT_PUBLIC_OBSERVER_TENANT_ID:-00000000-0000-0000-0000-000000000001}
     ports:
       - "3000:3000"
     depends_on:

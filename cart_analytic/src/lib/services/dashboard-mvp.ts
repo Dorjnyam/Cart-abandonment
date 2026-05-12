@@ -1,20 +1,10 @@
 import { apiRequest, isMockFallback } from "@/lib/api-client";
 import { API_ENDPOINTS } from "@/lib/api-config";
+import { REASON_LABELS, SCORE_ORDER, type ReasonCode } from "@/lib/constants";
 
-export type ReasonCode = "S1" | "S2" | "S3" | "S4" | "S5" | "S6" | "S7";
+export { REASON_LABELS, SCORE_ORDER, type ReasonCode };
+
 export type RecommendationStatus = "new" | "in_progress" | "done" | "dismissed";
-
-export const SCORE_ORDER: ReasonCode[] = ["S1", "S2", "S3", "S4", "S5", "S6", "S7"];
-
-export const REASON_LABELS: Record<ReasonCode, string> = {
-  S1: "Psychological hesitation",
-  S2: "Technical friction",
-  S3: "Trust issue",
-  S4: "Mobile usability issue",
-  S5: "Price sensitivity",
-  S6: "Indecision/navigation disorder",
-  S7: "External influence/referral effect",
-};
 
 export type DashboardSummary = {
   total_sessions: number;
@@ -239,6 +229,8 @@ const MOCK_OVERVIEW: DashboardOverview = {
 };
 
 export async function fetchDashboardOverview(): Promise<DashboardOverview> {
+  // Mock өгөгдлийг зөвхөн NEXT_PUBLIC_MOCK_FALLBACK === "true" үед ашиглана.
+  // Defense/demo үед Main API-аас ирсэн бодит өгөгдөл заавал харагдах ёстой.
   if (isMockFallback()) return MOCK_OVERVIEW;
   return apiRequest<DashboardOverview>(API_ENDPOINTS.overview);
 }

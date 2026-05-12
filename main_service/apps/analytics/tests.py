@@ -1,5 +1,5 @@
 from django.test import TestCase
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 from uuid import UUID
 
 from decimal import Decimal
@@ -361,3 +361,96 @@ class AnalyticsSmokeTests(TestCase):
             resp.data["observer"]["snippet"],
         )
         self.assertIn(f'data-tenant-id="{self.tenant1.external_id}"', resp.data["observer"]["snippet"])
+
+    @patch("apps.analytics.views.socket.create_connection")
+    @patch("apps.analytics.views.requests.get")
+    def test_pipeline_monitor_endpoint_is_registered(self, mock_get, mock_create_connection):
+        class FakeElapsed:
+            def total_seconds(self):
+                return 0.012
+
+        class FakeResponse:
+            status_code = 200
+            content = b"{}"
+            elapsed = FakeElapsed()
+
+            def json(self):
+                return {"status": "ok", "model_version": "test-model"}
+
+        mock_get.return_value = FakeResponse()
+        mock_create_connection.return_value = MagicMock()
+
+        client = APIClient()
+        auth_client(client, self.user1)
+
+        resp = client.get("/api/pipeline/monitor/")
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("services", resp.data)
+        self.assertIn("infra", resp.data)
+        self.assertIn("throughput", resp.data)
+        self.assertEqual(resp.data["services"][0]["id"], "observer")
+
+    def test_ml_insights_endpoint_is_registered(self):
+        session = Session.objects.create(
+            session_id="ml-insights-session",
+            visitor_id="vis-ml",
+            tenant=self.tenant1,
+            started_at=timezone.now(),
+            ended_at=timezone.now(),
+            event_count=4,
+            page_views=2,
+        )
+        PredictionResult.objects.create(
+            session=session,
+            tenant=self.tenant1,
+            prediction_score=0.82,
+            predicted_class="abandoned",
+            shap_values={"cart_value": -0.12, "rage_click": 0.31},
+            model_variant="xgboost",
+            abandonment_probability=0.82,
+            confidence=0.82,
+            model_version="xgboost-test",
+            predicted_at=timezone.now(),
+            business_outcome="abandoned",
+        )
+        client = APIClient()
+        auth_client(client, self.user1)
+
+        resp = client.get("/api/ml/insights/")
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data["model"]["prediction_count"], 1)
+        self.assertEqual(resp.data["metrics"]["confusion_matrix"]["true_positive"], 1)
+        self.assertEqual(resp.data["feature_contributions"][0]["feature"], "rage_click")
+
+    def test_prediction_detail_endpoint_is_registered(self):
+        session = Session.objects.create(
+            session_id="prediction-detail-session",
+            visitor_id="vis-prediction",
+            tenant=self.tenant1,
+            started_at=timezone.now(),
+            ended_at=timezone.now(),
+            event_count=3,
+            page_views=1,
+        )
+        PredictionResult.objects.create(
+            session=session,
+            tenant=self.tenant1,
+            prediction_score=0.36,
+            predicted_class="converted",
+            shap_values={"cart_value": -0.2},
+            model_variant="xgboost",
+            abandonment_probability=0.36,
+            confidence=0.64,
+            model_version="xgboost-test",
+            predicted_at=timezone.now(),
+            business_outcome="converted",
+        )
+        client = APIClient()
+        auth_client(client, self.user1)
+
+        resp = client.get("/api/predictions/prediction-detail-session/")
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data["session_id"], "prediction-detail-session")

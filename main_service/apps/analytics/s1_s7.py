@@ -81,10 +81,10 @@ def _weighted(parts: list[tuple[float, float]]) -> float:
 
 
 def calculate_s1_s7(features: dict[str, Any] | None) -> dict[str, Any]:
-    """Calculate canonical thesis S1-S7 cart abandonment reason scores.
+    """Thesis MVP-ийн canonical S1-S7 cart abandonment шалтгааны оноонуудыг тооцно.
 
-    All scores are normalized to 0..1. Missing or malformed inputs safely default
-    to 0 so the diagnosis path never crashes because of partial feature payloads.
+    Бүх оноо 0..1 хооронд normalize хийгдэнэ. Дутуу эсвэл буруу type-тэй feature ирвэл 0 default
+    ашиглана. Ингэснээр partial feature payload-оос болж diagnosis pipeline унтрахгүй.
     """
 
     f = features or {}
@@ -168,6 +168,8 @@ def calculate_s1_s7(features: dict[str, Any] | None) -> dict[str, Any]:
         "S6": s6,
         "S7": s7,
     }
+    # Давамгай шалтгаан нь S1-S7 онооны хамгийн их утга.
+    # Энэ дүрэм Main API, dashboard docs, thesis тайлбар бүгдэд нэг ижил хэрэглэгдэнэ.
     dominant_reason = max(scores, key=lambda key: scores[key])
     info = REASON_INFO[dominant_reason]
     return {

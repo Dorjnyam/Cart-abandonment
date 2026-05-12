@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { getSession, signIn } from "next-auth/react";
+import VaultBackdrop from "@/components/layout/VaultBackdrop";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -10,26 +11,7 @@ export default function LoginPage() {
 
   return (
     <div className="relative min-h-[calc(100vh-4rem)] overflow-hidden">
-      <link
-        rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
-      />
-      <div
-        className="pointer-events-none fixed inset-0 opacity-[0.35]"
-        style={{
-          backgroundImage: `
-            linear-gradient(to right, rgba(212, 254, 66, 0.05) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(212, 254, 66, 0.05) 1px, transparent 1px)
-          `,
-          backgroundSize: "40px 40px",
-        }}
-      />
-      <div
-        className="pointer-events-none fixed inset-0"
-        style={{
-          background: "radial-gradient(circle, transparent 20%, #000000 100%)",
-        }}
-      />
+      <VaultBackdrop />
       <header className="relative z-10 flex w-full items-start justify-between px-6 py-6 md:px-10">
         <div>
           <span className="font-headline text-2xl font-black tracking-tighter text-[#d4fe42]">THE_VAULT</span>

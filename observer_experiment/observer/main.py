@@ -258,6 +258,8 @@ async def _ingest(request: Request):
     key = extract_api_key(request, data)
     tier = resolve_tier_for_key(key)
     if not tier:
+        # API key буруу бол DB write хийхээс өмнө тасална.
+        # Ингэснээр tenant/org mapping тодорхойгүй raw event хадгалагдахгүй.
         raise HTTPException(
             status_code=401,
             detail=(
@@ -279,14 +281,15 @@ async def _ingest(request: Request):
     filtered = payload_obj.to_ingest_dict()
     filtered.pop("tier", None)  # tier is passed as a dedicated column, not stored in payload
 
-    # Step 1 — persist to PostgreSQL (authoritative store — blocking, intentional)
+    # Алхам 1: raw_events PostgreSQL хүснэгт нь анхны evidence store.
+    # Энэ write амжилттай болсны дараа Kafka/Redis fan-out хийдэг.
     event_id = await save_event(filtered, tier=tier)
 
-    # Step 2 — fan-out to Redis (awaited: fast local call, ~1-3 ms)
+    # Алхам 2: Redis queue нь local түр дамжуулалт тул response-оос өмнө хурдан хийгдэнэ.
     await push_to_redis(filtered, tier)
 
-    # Steps 3 & 4 — Kafka and Session Service are fire-and-forget.
-    # They run after the response is returned so network latency never affects the client.
+    # Алхам 3/4: raw event-г Kafka raw_events topic болон Session service рүү дамжуулна.
+    # Fire-and-forget тул Kafka latency хэрэглэгчийн track request-г удаашруулахгүй.
     event_out = {**filtered, "event_id": event_id, "tier": tier}
     if kafka_enabled():
         asyncio.create_task(_bg_kafka(event_out, event_id))

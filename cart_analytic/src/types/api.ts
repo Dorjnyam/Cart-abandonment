@@ -86,7 +86,7 @@ export type FeatureImportancePoint = {
   importance: number;
 };
 
-/** Django API response shape for a session (snake_case) */
+/** Session-д зориулсан Django API response хэлбэр (snake_case). */
 export type ApiSession = {
   session_id: string;
   visitor_id: string;
@@ -111,7 +111,7 @@ export type ApiSession = {
   } | null;
 };
 
-/** Ablation study variant metrics matching Django response */
+/** Django response-той таарах Ablation study variant metrics. */
 export type AblationVariant = {
   model_variant: "baseline" | "extended" | "full";
   count: number;

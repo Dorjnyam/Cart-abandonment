@@ -70,6 +70,8 @@ def _as_numeric_features(df: pd.DataFrame, feature_order: list[str]) -> pd.DataF
 
 
 def train(dataset: Path, output: Path) -> dict[str, Any]:
+    # Энэ training pipeline нь MVP synthetic/simulated dataset дээр ажиллана.
+    # F1 болон бусад metric-ийг бодит хэрэглэгчийн production performance гэж тайлбарлаж болохгүй.
     df = pd.read_csv(dataset)
     if TARGET_COLUMN not in df.columns:
         raise SystemExit(f"Dataset must contain a '{TARGET_COLUMN}' column")
