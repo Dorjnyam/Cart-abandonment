@@ -281,6 +281,18 @@ def handle_prediction_payload(payload: dict[str, Any]) -> dict[str, Any]:
             },
         )
 
+        # Fallback structured recommendation-ийг Mongolian label-р дахин үүсгэнэ.
+        # Ингэснээр fallback recommendation JSON доторх title/summary монгол хэлээр хадгалагдана.
+        if not recommendation_text or "fallback" in recommendation_text:
+            rec_payload = generate_structured_recommendation(
+                dominant_reason=scoring["dominant_reason"],
+                reason_label=scoring["reason_label"],
+                scores={f"S{i}": float(scoring[f"S{i}"]) for i in range(1, 8)},
+                probability=probability,
+                top_features=top_features,
+            )
+            recommendation_text = json.dumps(rec_payload, ensure_ascii=False)
+
         Recommendation.objects.update_or_create(
             diagnosis=diagnosis,
             tenant=tenant,
