@@ -8,9 +8,6 @@ const nextConfig: NextConfig = {
     "10.*.*.*",
     "172.*.*.*",
   ],
-  turbopack: {
-    root: __dirname,
-  },
   images: {
     remotePatterns: [
       {

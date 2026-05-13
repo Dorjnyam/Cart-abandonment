@@ -36,7 +36,7 @@ export default async function AccountPage() {
     redirect("/login");
   }
 
-  const totalSpent = user.orders.reduce((sum, order) => sum + order.totalPrice, 0);
+  const totalSpent = user.orders.reduce<number>((sum, order) => sum + order.totalPrice, 0);
   const lastOrder = user.orders[0];
 
   return (
