@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
+import type { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatMnt } from "@/lib/format";
@@ -9,12 +10,20 @@ import ThesisDemoPanel from "@/components/ThesisDemoPanel";
 
 export const dynamic = "force-dynamic";
 
+type AccountUser = Prisma.UserGetPayload<{
+  include: {
+    orders: { include: { items: { include: { product: true } } } };
+    wishlist: { include: { product: { include: { brand: true } } } };
+    addresses: true;
+  };
+}>;
+
 export default async function AccountPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user) redirect("/login");
 
   const sessionUser = session.user as { id?: string; role?: string };
-  const user = sessionUser.id
+  const user: AccountUser | null = sessionUser.id
     ? await prisma.user.findUnique({
         where: { id: sessionUser.id },
         include: {
@@ -36,7 +45,7 @@ export default async function AccountPage() {
     redirect("/login");
   }
 
-  const totalSpent = user.orders.reduce<number>((sum, order) => sum + order.totalPrice, 0);
+  const totalSpent = user.orders.reduce((sum: number, order) => sum + order.totalPrice, 0);
   const lastOrder = user.orders[0];
 
   return (
