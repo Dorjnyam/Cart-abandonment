@@ -38,37 +38,38 @@ import {
   type GeneratedApiKey,
 } from "@/lib/services/apiKeys";
 import type { ApiKey, ApiKeyEnvironment, TeamMember } from "@/types/api";
+import { relativeTimeLabel, roleLabel, serviceStatusLabel } from "@/lib/mn-labels";
 
 type SettingsTab = "profile" | "keys" | "team" | "billing" | "danger";
 
 const TABS: Array<{ id: SettingsTab; label: string; Icon: typeof Building2; description: string }> = [
-  { id: "profile", label: "Company Profile", Icon: Building2, description: "Store identity, locale, and tenant metadata." },
-  { id: "keys", label: "Tracking & API Keys", Icon: KeyRound, description: "Generate and manage Observer credentials." },
-  { id: "team", label: "Team Members", Icon: Users, description: "Invite teammates and manage access." },
-  { id: "billing", label: "Billing / Plan", Icon: CreditCard, description: "Plan, limits, and invoices." },
-  { id: "danger", label: "Danger Zone", Icon: AlertTriangle, description: "Destructive actions for this workspace." },
+  { id: "profile", label: "Компанийн профайл", Icon: Building2, description: "Дэлгүүрийн таних мэдээлэл, локал болон tenant metadata." },
+  { id: "keys", label: "Хяналт ба API түлхүүр", Icon: KeyRound, description: "Observer нэвтрэх мэдээлэл үүсгэж удирдана." },
+  { id: "team", label: "Багийн гишүүд", Icon: Users, description: "Багийн гишүүн урих, эрх удирдах." },
+  { id: "billing", label: "Төлбөр / Төлөвлөгөө", Icon: CreditCard, description: "Төлөвлөгөө, лимит болон нэхэмжлэл." },
+  { id: "danger", label: "Эрсдэлтэй бүс", Icon: AlertTriangle, description: "Энэ workspace-ийн буцаах боломжгүй үйлдлүүд." },
 ];
 
 const API_KEY_TIERS: Array<{ value: ApiKeyTier; label: string; description: string }> = [
-  { value: "full", label: "Full", description: "Full clickstream + commerce events." },
-  { value: "smart", label: "Smart", description: "Behavior events with light payloads." },
-  { value: "basic", label: "Basic", description: "Page and session events only." },
+  { value: "full", label: "Бүрэн", description: "Бүрэн clickstream + худалдааны эвентүүд." },
+  { value: "smart", label: "Ухаалаг", description: "Хөнгөн payload-той behavior эвентүүд." },
+  { value: "basic", label: "Үндсэн", description: "Зөвхөн хуудас болон сессийн эвентүүд." },
 ];
 
 const ENVIRONMENTS: Array<{ value: ApiKeyEnvironment; label: string }> = [
   { value: "production", label: "Production" },
   { value: "staging", label: "Staging" },
-  { value: "development", label: "Development" },
+  { value: "development", label: "Хөгжүүлэлт" },
 ];
 
 const INDUSTRIES = [
-  "Retail / Marketplace",
-  "Fashion & Apparel",
-  "Electronics",
-  "Health & Beauty",
-  "Home & Garden",
-  "Food & Grocery",
-  "Other",
+  "Жижиглэн худалдаа / Marketplace",
+  "Загвар ба хувцас",
+  "Электроник",
+  "Эрүүл мэнд ба гоо сайхан",
+  "Гэр ба цэцэрлэг",
+  "Хүнс ба хүнсний бараа",
+  "Бусад",
 ];
 
 const CURRENCIES = ["MNT", "USD", "EUR", "JPY", "KRW", "CNY"];
@@ -111,14 +112,7 @@ function formatDate(value?: string | null) {
 }
 
 function formatRelative(value?: string | null) {
-  if (!value) return "Never";
-  const t = new Date(value).getTime();
-  if (Number.isNaN(t)) return "—";
-  const diff = Math.floor((Date.now() - t) / 1000);
-  if (diff < 60) return `${diff}s ago`;
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86_400) return `${Math.floor(diff / 3600)}h ago`;
-  return `${Math.floor(diff / 86_400)}d ago`;
+  return relativeTimeLabel(value);
 }
 
 function StatusPill({
@@ -214,7 +208,7 @@ function SettingsInner() {
   const [newCredential, setNewCredential] = useState<GeneratedApiKey | null>(null);
   const [showNewKey, setShowNewKey] = useState(false);
   const [copiedTarget, setCopiedTarget] = useState<"key" | "snippet" | null>(null);
-  const [keyName, setKeyName] = useState("Production storefront");
+  const [keyName, setKeyName] = useState("Production дэлгүүр");
   const [keyTier, setKeyTier] = useState<ApiKeyTier>("full");
   const [keyEnv, setKeyEnv] = useState<ApiKeyEnvironment>("production");
 
@@ -223,7 +217,7 @@ function SettingsInner() {
     try {
       setStore(await fetchStoreSettings());
     } catch {
-      showToast("Could not load company profile.", "error");
+      showToast("Компанийн профайл ачаалж чадсангүй.", "error");
     } finally {
       setStoreLoading(false);
     }
@@ -234,7 +228,7 @@ function SettingsInner() {
     try {
       setMembers(await fetchTeamMembers());
     } catch {
-      showToast("Could not load team members.", "error");
+      showToast("Багийн гишүүдийг ачаалж чадсангүй.", "error");
     } finally {
       setMembersLoading(false);
     }
@@ -245,7 +239,7 @@ function SettingsInner() {
     try {
       setApiKeys(await fetchApiKeys());
     } catch {
-      showToast("Could not load API keys.", "error");
+      showToast("API түлхүүрүүдийг ачаалж чадсангүй.", "error");
     } finally {
       setKeysLoading(false);
     }
@@ -268,9 +262,9 @@ function SettingsInner() {
     try {
       const updated = await updateStoreSettings(store);
       setStore(updated);
-      showToast("Company profile saved.", "success");
+      showToast("Компанийн профайл хадгалагдлаа.", "success");
     } catch {
-      showToast("Could not save company profile.", "error");
+      showToast("Компанийн профайлыг хадгалж чадсангүй.", "error");
     } finally {
       setStoreSaving(false);
     }
@@ -282,11 +276,11 @@ function SettingsInner() {
     try {
       await inviteMember(inviteEmail.trim(), inviteRole);
       await loadMembers();
-      showToast(`${inviteEmail} invited.`, "success");
+      showToast(`${inviteEmail} хаяг руу урилга илгээгдлээ.`, "success");
       setInviteEmail("");
       setInviteOpen(false);
     } catch {
-      showToast("Could not send invitation.", "error");
+      showToast("Урилга илгээж чадсангүй.", "error");
     } finally {
       setInviting(false);
     }
@@ -296,9 +290,9 @@ function SettingsInner() {
     try {
       await removeMember(id);
       setMembers((prev) => prev.filter((m) => m.id !== id));
-      showToast("Member removed.", "success");
+      showToast("Гишүүн хасагдлаа.", "success");
     } catch {
-      showToast("Could not remove member.", "error");
+      showToast("Гишүүнийг хасаж чадсангүй.", "error");
     }
   }
 
@@ -318,14 +312,14 @@ function SettingsInner() {
         throw new Error("Clipboard API unavailable");
       }
       markCopied(target);
-      showToast(target === "key" ? "API key copied." : "Snippet copied.", "success");
+      showToast(target === "key" ? "API түлхүүр хуулагдлаа." : "Snippet хуулагдлаа.", "success");
     } catch {
       if (fallbackCopy(value)) {
         markCopied(target);
-        showToast("Copied.", "success");
+        showToast("Хуулагдлаа.", "success");
         return;
       }
-      showToast("Copy failed.", "error");
+      showToast("Хуулахад алдаа гарлаа.", "error");
     }
   }
 
@@ -339,9 +333,9 @@ function SettingsInner() {
       const created = await generateApiKey({ name: keyName, tier: keyTier, environment: keyEnv });
       setNewCredential(created);
       await loadKeys();
-      showToast("API key created. Copy the secret before closing.", "success");
+      showToast("API түлхүүр үүсгэгдлээ. Хаахаас өмнө нууц түлхүүрийг хуулна уу.", "success");
     } catch {
-      showToast("API key creation failed.", "error");
+      showToast("API түлхүүр үүсгэхэд алдаа гарлаа.", "error");
     } finally {
       setGeneratingKey(false);
     }
@@ -352,9 +346,9 @@ function SettingsInner() {
       await revokeApiKey(id);
       setNewCredential((c) => (c?.id === id ? null : c));
       await loadKeys();
-      showToast("API key revoked.", "success");
+      showToast("API түлхүүр хүчингүй боллоо.", "success");
     } catch {
-      showToast("Could not revoke API key.", "error");
+      showToast("API түлхүүрийг хүчингүй болгож чадсангүй.", "error");
     }
   }
 
@@ -367,14 +361,14 @@ function SettingsInner() {
   return (
     <EditorialShell
       activeNav="settings"
-      title="Settings"
+      title="Тохиргоо"
       subtitle={TABS.find((t) => t.id === tab)?.label}
-      breadcrumbs={[{ label: "Settings", href: "/settings" }, { label: TABS.find((t) => t.id === tab)?.label ?? "" }]}
+      breadcrumbs={[{ label: "Тохиргоо", href: "/settings" }, { label: TABS.find((t) => t.id === tab)?.label ?? "" }]}
     >
       <div className="mx-auto max-w-[1400px] px-6 py-8 sm:px-8 lg:px-10">
         <header className="page-enter">
           <p className="text-[10.5px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant/70">
-            Workspace · {TABS.find((t) => t.id === tab)?.label}
+            Ажлын орчин · {TABS.find((t) => t.id === tab)?.label}
           </p>
           <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
             <div>
@@ -387,7 +381,7 @@ function SettingsInner() {
                   letterSpacing: "-0.024em",
                 }}
               >
-                Settings
+                Тохиргоо
               </h1>
               <p className="mt-1.5 max-w-[68ch] text-[12.5px] text-on-surface-variant">
                 {TABS.find((t) => t.id === tab)?.description}
@@ -396,7 +390,7 @@ function SettingsInner() {
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-1.5 rounded-md hairline bg-surface-container-lowest px-2.5 py-1 text-[11.5px] text-on-surface">
                 <Building2 className="size-3.5 text-on-surface-variant/70" aria-hidden />
-                {store.name || "Company"}
+                {store.name || "Компани"}
               </span>
               <StatusPill tone={trackingActive ? "success" : "warn"}>
                 <span
@@ -404,9 +398,9 @@ function SettingsInner() {
                   className="size-1.5 rounded-full"
                   style={{ background: trackingActive ? "#1F4D3E" : "#9C6B14" }}
                 />
-                Tracking {store.tracking_status ?? "pending"}
+                Хяналт {serviceStatusLabel(store.tracking_status ?? "pending")}
               </StatusPill>
-              <span className="text-[11.5px] text-on-surface-variant">Plan · {planLabel}</span>
+              <span className="text-[11.5px] text-on-surface-variant">Төлөвлөгөө · {planLabel}</span>
             </div>
           </div>
         </header>
@@ -508,10 +502,10 @@ function SettingsInner() {
             className="h-full w-full max-w-md overflow-y-auto border-l border-outline-variant/[0.08] bg-surface-container-lowest p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-[14px] font-semibold text-on-surface">Invite team member</h3>
-            <p className="mt-1 text-[12px] text-on-surface-variant">They’ll receive an email with a sign-in link.</p>
+            <h3 className="text-[14px] font-semibold text-on-surface">Багийн гишүүн урих</h3>
+            <p className="mt-1 text-[12px] text-on-surface-variant">Тэд нэвтрэх холбоостой имэйл хүлээн авна.</p>
             <div className="mt-4 space-y-3">
-              <FieldShell label="Email">
+              <FieldShell label="Имэйл">
                 <input
                   className={inputClass()}
                   placeholder="teammate@company.com"
@@ -519,21 +513,21 @@ function SettingsInner() {
                   onChange={(e) => setInviteEmail(e.target.value)}
                 />
               </FieldShell>
-              <FieldShell label="Role">
+              <FieldShell label="Эрх">
                 <select
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value)}
                   className={inputClass()}
                 >
-                  <option value="member">Member</option>
-                  <option value="developer">Developer</option>
-                  <option value="owner">Owner</option>
+                  <option value="member">Гишүүн</option>
+                  <option value="developer">Хөгжүүлэгч</option>
+                  <option value="owner">Эзэмшигч</option>
                 </select>
               </FieldShell>
             </div>
             <div className="mt-6 flex justify-end gap-2">
               <button type="button" onClick={() => setInviteOpen(false)} className="rounded-md border border-outline-variant/[0.12] bg-surface-container-low px-3 py-1.5 text-[12.5px] font-medium text-on-surface">
-                Cancel
+                Цуцлах
               </button>
               <button
                 type="button"
@@ -542,7 +536,7 @@ function SettingsInner() {
                 className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-1.5 text-[12.5px] font-semibold text-on-primary disabled:opacity-60"
               >
                 {inviting ? <Loader2 className="size-3.5 animate-spin" aria-hidden /> : null}
-                Send invite
+                Урилга илгээх
               </button>
             </div>
           </div>
@@ -572,12 +566,12 @@ function ProfilePanel({
       <section className="rounded-md border border-outline-variant/[0.08] bg-surface-container-lowest">
         <header className="flex items-center justify-between border-b border-outline-variant/[0.06] px-5 py-3">
           <div>
-            <h2 className="text-[13px] font-semibold text-on-surface">Company profile</h2>
-            <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Public-facing identity for this workspace.</p>
+            <h2 className="text-[13px] font-semibold text-on-surface">Компанийн профайл</h2>
+            <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Энэ ажлын орчны гадна харагдах таних мэдээлэл.</p>
           </div>
         </header>
         <div className="grid gap-4 px-5 py-5 sm:grid-cols-2">
-          <FieldShell label="Company / store name">
+          <FieldShell label="Компани / дэлгүүрийн нэр">
             <input
               className={inputClass(loading)}
               value={store.name}
@@ -585,7 +579,7 @@ function ProfilePanel({
               placeholder="Central Market"
             />
           </FieldShell>
-          <FieldShell label="Website domain">
+          <FieldShell label="Веб домэйн">
             <input
               className={inputClass(loading)}
               value={store.domain}
@@ -593,17 +587,17 @@ function ProfilePanel({
               placeholder="central-market.mn"
             />
           </FieldShell>
-          <FieldShell label="Industry">
+          <FieldShell label="Салбар">
             <select
               value={store.industry ?? ""}
               onChange={(e) => setStore((s) => ({ ...s, industry: e.target.value }))}
               className={inputClass(loading)}
             >
-              <option value="" disabled>Select an industry</option>
+              <option value="" disabled>Салбар сонгох</option>
               {INDUSTRIES.map((industry) => <option key={industry} value={industry}>{industry}</option>)}
             </select>
           </FieldShell>
-          <FieldShell label="Currency">
+          <FieldShell label="Валют">
             <select
               value={store.currency ?? "MNT"}
               onChange={(e) => setStore((s) => ({ ...s, currency: e.target.value }))}
@@ -612,7 +606,7 @@ function ProfilePanel({
               {CURRENCIES.map((code) => <option key={code} value={code}>{code}</option>)}
             </select>
           </FieldShell>
-          <FieldShell label="Timezone">
+          <FieldShell label="Цагийн бүс">
             <select
               value={store.timezone || "Asia/Ulaanbaatar"}
               onChange={(e) => setStore((s) => ({ ...s, timezone: e.target.value }))}
@@ -629,29 +623,29 @@ function ProfilePanel({
 
       <section className="rounded-md border border-outline-variant/[0.08] bg-surface-container-lowest">
         <header className="border-b border-outline-variant/[0.06] px-5 py-3">
-          <h2 className="text-[13px] font-semibold text-on-surface">Tenant metadata</h2>
-          <p className="mt-0.5 text-[11.5px] text-on-surface-variant">System identifiers for support and integrations.</p>
+          <h2 className="text-[13px] font-semibold text-on-surface">Дэлгүүрийн metadata</h2>
+          <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Тусламж болон интеграцид ашиглах системийн ID-ууд.</p>
         </header>
         <dl className="grid gap-x-6 gap-y-3 px-5 py-5 sm:grid-cols-2">
           <div className="flex flex-col gap-0.5">
-            <dt className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">Tenant ID</dt>
+            <dt className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">Дэлгүүрийн ID</dt>
             <dd className="font-mono text-[12px] text-on-surface">{store.tenant_id ?? "—"}</dd>
           </div>
           <div className="flex flex-col gap-0.5">
-            <dt className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">Tracking status</dt>
+            <dt className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">Tracking төлөв</dt>
             <dd>
               <StatusPill tone={store.tracking_status === "active" ? "success" : "warn"}>
                 <span className={`size-1.5 rounded-full ${store.tracking_status === "active" ? "bg-emerald-500" : "bg-amber-500"}`} aria-hidden />
-                {store.tracking_status ?? "pending"}
+                {serviceStatusLabel(store.tracking_status ?? "pending")}
               </StatusPill>
             </dd>
           </div>
           <div className="flex flex-col gap-0.5">
-            <dt className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">Created</dt>
+            <dt className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">Үүссэн</dt>
             <dd className="text-[12.5px] text-on-surface">{formatDate(store.created_at)}</dd>
           </div>
           <div className="flex flex-col gap-0.5">
-            <dt className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">Plan</dt>
+            <dt className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">Төлөвлөгөө</dt>
             <dd className="text-[12.5px] text-on-surface">{store.plan || "—"}</dd>
           </div>
         </dl>
@@ -664,7 +658,7 @@ function ProfilePanel({
           className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-[12.5px] font-semibold text-on-primary disabled:opacity-60"
         >
           {saving ? <Loader2 className="size-3.5 animate-spin" aria-hidden /> : null}
-          Save profile
+          Профайл хадгалах
         </button>
       </div>
     </form>
@@ -717,25 +711,25 @@ function KeysPanel({
       <section className="rounded-md border border-outline-variant/[0.08] bg-surface-container-lowest">
         <header className="flex flex-wrap items-center justify-between gap-2 border-b border-outline-variant/[0.06] px-5 py-3">
           <div>
-            <h2 className="text-[13px] font-semibold text-on-surface">Generate API key</h2>
+            <h2 className="text-[13px] font-semibold text-on-surface">API түлхүүр үүсгэх</h2>
             <p className="mt-0.5 text-[11.5px] text-on-surface-variant">
-              The raw secret is shown <strong>once</strong>. Copy and store it in a secure secret manager — it cannot be retrieved later.
+              Raw secret <strong>нэг удаа</strong> харагдана. Аюулгүй secret manager-т хуулж хадгална уу. Дараа нь дахин харах боломжгүй.
             </p>
           </div>
           <span className="inline-flex items-center gap-1.5 rounded-md border border-outline-variant/[0.12] bg-surface-container-low/60 px-2 py-0.5 text-[11px] font-semibold text-on-surface-variant">
             <ShieldCheck className="size-3.5" aria-hidden />
-            One-time secret
+            Нэг удаагийн secret
           </span>
         </header>
 
         <form onSubmit={onGenerate} className="grid gap-4 px-5 py-5 lg:grid-cols-[1fr_180px_180px_auto]">
-          <FieldShell label="Key name">
+          <FieldShell label="Түлхүүрийн нэр">
             <input
               className={inputClass(generatingKey || !isOwner)}
               value={keyName}
               onChange={(e) => setKeyName(e.target.value)}
               disabled={!isOwner || generatingKey}
-              placeholder="Production storefront"
+              placeholder="Production дэлгүүр"
             />
           </FieldShell>
           <FieldShell label="Tier">
@@ -748,7 +742,7 @@ function KeysPanel({
               {API_KEY_TIERS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
             </select>
           </FieldShell>
-          <FieldShell label="Environment">
+          <FieldShell label="Орчин">
             <select
               value={keyEnv}
               onChange={(e) => setKeyEnv(e.target.value as ApiKeyEnvironment)}
@@ -765,11 +759,11 @@ function KeysPanel({
               className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-md bg-primary px-3 text-[12.5px] font-semibold text-on-primary disabled:opacity-60"
             >
               {generatingKey ? <Loader2 className="size-3.5 animate-spin" aria-hidden /> : <KeyRound className="size-3.5" aria-hidden />}
-              Generate
+              Үүсгэх
             </button>
           </div>
           <div className="lg:col-span-4 -mt-2 text-[11px] text-on-surface-variant">
-            Tier description: {API_KEY_TIERS.find((t) => t.value === keyTier)?.description}
+            Tier тайлбар: {API_KEY_TIERS.find((t) => t.value === keyTier)?.description}
           </div>
         </form>
       </section>
@@ -781,15 +775,15 @@ function KeysPanel({
               <ShieldCheck className="size-3.5" aria-hidden />
             </span>
             <div>
-              <h3 className="text-[13px] font-semibold text-on-surface">New API key created</h3>
+              <h3 className="text-[13px] font-semibold text-on-surface">Шинэ API түлхүүр үүсгэгдлээ</h3>
               <p className="mt-0.5 text-[12px] text-on-surface-variant">
-                Copy the secret now. After you leave this page, only the masked value remains. If lost, the key must be revoked and a new one generated.
+                Secret-ийг одоо хуулна уу. Энэ хуудсаас гарсны дараа зөвхөн нууцалсан утга үлдэнэ. Алдагдвал түлхүүрийг хүчингүй болгож шинээр үүсгэнэ.
               </p>
             </div>
           </header>
 
           <div className="space-y-4 px-5 py-5">
-            <FieldShell label="Secret key">
+            <FieldShell label="Нууц түлхүүр">
               <div className="flex flex-col gap-2 sm:flex-row">
                 <input
                   readOnly
@@ -801,11 +795,11 @@ function KeysPanel({
                   type="button"
                   onClick={() => setShowNewKey((v) => !v)}
                   disabled={!generatedKey}
-                  aria-label={showNewKey ? "Hide secret" : "Reveal secret"}
+                  aria-label={showNewKey ? "Нууц түлхүүр нуух" : "Нууц түлхүүр харуулах"}
                   className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-outline-variant/[0.12] bg-surface-container-lowest px-3 text-[12px] font-medium text-on-surface-variant hover:text-on-surface disabled:opacity-40"
                 >
                   {showNewKey ? <EyeOff className="size-3.5" aria-hidden /> : <Eye className="size-3.5" aria-hidden />}
-                  {showNewKey ? "Hide" : "Reveal"}
+                  {showNewKey ? "Нуух" : "Харуулах"}
                 </button>
                 <button
                   type="button"
@@ -814,7 +808,7 @@ function KeysPanel({
                   className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md bg-primary px-3 text-[12px] font-semibold text-on-primary disabled:opacity-40"
                 >
                   {copiedTarget === "key" ? <Check className="size-3.5" aria-hidden /> : <Copy className="size-3.5" aria-hidden />}
-                  Copy key
+                  Түлхүүр хуулах
                 </button>
               </div>
             </FieldShell>
@@ -824,7 +818,7 @@ function KeysPanel({
                 <div className="flex items-center justify-between gap-2">
                   <span className="inline-flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">
                     <Code2 className="size-3.5" aria-hidden />
-                    Ecommerce install snippet
+                    E-commerce суулгах snippet
                   </span>
                   <button
                     type="button"
@@ -832,7 +826,7 @@ function KeysPanel({
                     className="inline-flex items-center gap-1.5 rounded-md border border-outline-variant/[0.12] bg-surface-container-lowest px-2.5 py-1 text-[12px] font-medium text-on-surface hover:bg-surface-container-low"
                   >
                     {copiedTarget === "snippet" ? <Check className="size-3.5" aria-hidden /> : <Copy className="size-3.5" aria-hidden />}
-                    Copy snippet
+                    Snippet хуулах
                   </button>
                 </div>
                 <pre className="max-h-40 overflow-auto rounded-md border border-outline-variant/[0.12] bg-surface-container-lowest p-3 text-[12px] leading-relaxed text-on-surface">
@@ -847,8 +841,8 @@ function KeysPanel({
       <section className="rounded-md border border-outline-variant/[0.08] bg-surface-container-lowest">
         <header className="flex items-center justify-between border-b border-outline-variant/[0.06] px-5 py-3">
           <div>
-            <h2 className="text-[13px] font-semibold text-on-surface">Existing keys</h2>
-            <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Only the masked prefix is stored. Revoke a key any time.</p>
+            <h2 className="text-[13px] font-semibold text-on-surface">Одоо байгаа түлхүүрүүд</h2>
+            <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Зөвхөн нууцалсан prefix хадгалагдана. Түлхүүрийг хүссэн үедээ хүчингүй болгож болно.</p>
           </div>
         </header>
 
@@ -856,18 +850,18 @@ function KeysPanel({
           <div className="flex h-32 items-center justify-center"><Loader2 className="size-4 animate-spin text-primary" aria-hidden /></div>
         ) : apiKeys.length === 0 ? (
           <div className="px-5 py-8 text-center text-[12px] text-on-surface-variant">
-            No API keys yet. Generate one to connect an ecommerce storefront.
+            API түлхүүр одоогоор алга. E-commerce storefront холбохын тулд нэгийг үүсгэнэ үү.
           </div>
         ) : (
           <>
             <div className="hidden grid-cols-[minmax(0,1.2fr)_minmax(0,1.5fr)_100px_120px_120px_140px_80px] gap-3 bg-surface-container-low/40 px-5 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant md:grid">
-              <span>Name</span>
-              <span>Masked key</span>
+              <span>Нэр</span>
+              <span>Нууцалсан түлхүүр</span>
               <span>Tier</span>
               <span>Env</span>
-              <span>Status</span>
-              <span>Created · Used</span>
-              <span className="text-right">Action</span>
+              <span>Төлөв</span>
+              <span>Үүссэн · Ашигласан</span>
+              <span className="text-right">Үйлдэл</span>
             </div>
             {apiKeys.map((k) => {
               const status: "active" | "revoked" | "expired" = k.status ?? (k.is_active ? "active" : "revoked");
@@ -878,17 +872,17 @@ function KeysPanel({
                 >
                   <div className="font-semibold text-on-surface">{k.name}</div>
                   <div className="font-mono text-[12px] text-on-surface-variant truncate">{k.key_masked}</div>
-                  <div className="text-on-surface-variant capitalize">{k.tier}</div>
-                  <div className="text-on-surface-variant capitalize">{k.environment ?? "—"}</div>
+                  <div className="text-on-surface-variant">{API_KEY_TIERS.find((t) => t.value === k.tier)?.label ?? k.tier}</div>
+                  <div className="text-on-surface-variant">{ENVIRONMENTS.find((e) => e.value === k.environment)?.label ?? k.environment ?? "—"}</div>
                   <div>
                     <StatusPill tone={status === "active" ? "success" : status === "expired" ? "warn" : "neutral"}>
                       <span className={`size-1.5 rounded-full ${status === "active" ? "bg-emerald-500" : status === "expired" ? "bg-amber-500" : "bg-slate-400"}`} aria-hidden />
-                      {status}
+                      {serviceStatusLabel(status)}
                     </StatusPill>
                   </div>
                   <div className="text-[11.5px] text-on-surface-variant">
-                    <div>Created {formatDate(k.created_at)}</div>
-                    <div>Used {formatRelative(k.last_used_at)}</div>
+                    <div>Үүссэн {formatDate(k.created_at)}</div>
+                    <div>Ашигласан {formatRelative(k.last_used_at)}</div>
                   </div>
                   <div className="md:text-right">
                     {status === "active" && isOwner ? (
@@ -898,7 +892,7 @@ function KeysPanel({
                         className="inline-flex items-center gap-1 rounded-md border border-error/30 px-2 py-0.5 text-[11.5px] font-semibold text-error hover:bg-error/5"
                       >
                         <XCircle className="size-3.5" aria-hidden />
-                        Revoke
+                        Хүчингүй болгох
                       </button>
                     ) : (
                       <span className="text-[11px] text-on-surface-variant">—</span>
@@ -927,14 +921,12 @@ function TeamPanel({
   onInvite: () => void;
   onRemove: (id: number) => void;
 }) {
-  const roleLabel = (r: string) =>
-    r === "owner" ? "Owner" : r === "developer" ? "Developer" : r === "admin" ? "Admin" : "Member";
   return (
     <section className="rounded-md border border-outline-variant/[0.08] bg-surface-container-lowest">
       <header className="flex items-center justify-between border-b border-outline-variant/[0.06] px-5 py-3">
         <div>
-          <h2 className="text-[13px] font-semibold text-on-surface">Team members</h2>
-          <p className="mt-0.5 text-[11.5px] text-on-surface-variant">{members.length} members in this workspace.</p>
+          <h2 className="text-[13px] font-semibold text-on-surface">Багийн гишүүд</h2>
+          <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Энэ ажлын орчинд {members.length} гишүүн байна.</p>
         </div>
         <button
           type="button"
@@ -943,18 +935,18 @@ function TeamPanel({
           className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-1.5 text-[12.5px] font-semibold text-on-primary disabled:opacity-50"
         >
           <UserPlus className="size-3.5" aria-hidden />
-          Invite member
+          Гишүүн урих
         </button>
       </header>
 
       {loading ? (
         <div className="flex h-32 items-center justify-center"><Loader2 className="size-4 animate-spin text-primary" aria-hidden /></div>
       ) : members.length === 0 ? (
-        <div className="px-5 py-8 text-center text-[12px] text-on-surface-variant">No team members yet.</div>
+        <div className="px-5 py-8 text-center text-[12px] text-on-surface-variant">Багийн гишүүн одоогоор алга.</div>
       ) : (
         <>
           <div className="hidden grid-cols-[minmax(0,1.2fr)_minmax(0,1.4fr)_120px_120px_80px] gap-3 bg-surface-container-low/40 px-5 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant md:grid">
-            <span>Name</span><span>Email</span><span>Role</span><span>Joined</span><span className="text-right">Action</span>
+            <span>Нэр</span><span>Имэйл</span><span>Эрх</span><span>Нэгдсэн</span><span className="text-right">Үйлдэл</span>
           </div>
           {members.map((m) => (
             <div key={m.id} className="grid grid-cols-1 gap-2 border-t border-outline-variant/[0.06] px-5 py-3 text-[12.5px] md:grid-cols-[minmax(0,1.2fr)_minmax(0,1.4fr)_120px_120px_80px] md:items-center md:gap-3">
@@ -976,7 +968,7 @@ function TeamPanel({
                   disabled={!isOwner || m.role === "owner"}
                   className="text-[11.5px] font-semibold text-error hover:underline disabled:opacity-40"
                 >
-                  Remove
+                  Хасах
                 </button>
               </div>
             </div>
@@ -992,23 +984,23 @@ function BillingPanel({ plan, memberCount }: { plan: string; memberCount: number
     <div className="space-y-4">
       <section className="rounded-md border border-outline-variant/[0.08] bg-surface-container-lowest">
         <header className="border-b border-outline-variant/[0.06] px-5 py-3">
-          <h2 className="text-[13px] font-semibold text-on-surface">Current plan</h2>
-          <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Your active subscription and usage limits.</p>
+          <h2 className="text-[13px] font-semibold text-on-surface">Одоогийн төлөвлөгөө</h2>
+          <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Идэвхтэй багц болон хэрэглээний лимит.</p>
         </header>
         <div className="grid gap-4 px-5 py-5 sm:grid-cols-3">
           <div>
-            <p className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">Plan</p>
+            <p className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">Төлөвлөгөө</p>
             <p className="mt-1 text-[16px] font-semibold text-on-surface">{plan}</p>
           </div>
           <div>
-            <p className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">Team seats</p>
+            <p className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">Багийн суудал</p>
             <p className="mt-1 text-[16px] font-semibold tabular-nums text-on-surface">{memberCount} / 10</p>
             <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-container-high/70">
               <div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, (memberCount / 10) * 100)}%` }} />
             </div>
           </div>
           <div>
-            <p className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">Renews on</p>
+            <p className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">Дараагийн сунгалт</p>
             <p className="mt-1 text-[16px] font-semibold text-on-surface">—</p>
           </div>
         </div>
@@ -1016,11 +1008,11 @@ function BillingPanel({ plan, memberCount }: { plan: string; memberCount: number
 
       <section className="rounded-md border border-outline-variant/[0.08] bg-surface-container-lowest">
         <header className="border-b border-outline-variant/[0.06] px-5 py-3">
-          <h2 className="text-[13px] font-semibold text-on-surface">Invoices</h2>
-          <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Invoices appear here once your billing account is active.</p>
+          <h2 className="text-[13px] font-semibold text-on-surface">Нэхэмжлэл</h2>
+          <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Төлбөрийн бүртгэл идэвхжсэний дараа нэхэмжлэл энд харагдана.</p>
         </header>
         <div className="px-5 py-8 text-center text-[12px] text-on-surface-variant">
-          No invoices yet.
+          Нэхэмжлэл одоогоор алга.
         </div>
       </section>
     </div>
@@ -1033,29 +1025,29 @@ function DangerPanel({ storeName, isOwner }: { storeName: string; isOwner: boole
       <header className="border-b border-error/20 px-5 py-3">
         <h2 className="flex items-center gap-2 text-[13px] font-semibold text-error">
           <AlertTriangle className="size-3.5" aria-hidden />
-          Danger zone
+          Эрсдэлтэй бүс
         </h2>
-        <p className="mt-0.5 text-[11.5px] text-on-surface-variant">These actions are permanent and cannot be undone.</p>
+        <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Эдгээр үйлдэл буцаах боломжгүй.</p>
       </header>
       <div className="divide-y divide-error/10">
         <div className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-[13px] font-semibold text-on-surface">Rotate all API keys</p>
-            <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Revoke every active key for {storeName || "this workspace"}. Storefronts will stop sending events until re-keyed.</p>
+            <p className="text-[13px] font-semibold text-on-surface">Бүх API түлхүүрийг rotate хийх</p>
+            <p className="mt-0.5 text-[11.5px] text-on-surface-variant">{storeName || "энэ ажлын орчин"}-ийн бүх идэвхтэй түлхүүрийг хүчингүй болгоно. Шинэ түлхүүр өгөх хүртэл storefront эвент илгээхгүй.</p>
           </div>
           <button type="button" disabled={!isOwner} className="inline-flex items-center gap-1.5 rounded-md border border-error/30 bg-error/5 px-3 py-1.5 text-[12px] font-semibold text-error hover:bg-error/10 disabled:opacity-40">
             <KeyRound className="size-3.5" aria-hidden />
-            Rotate keys
+            Түлхүүр rotate хийх
           </button>
         </div>
         <div className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-[13px] font-semibold text-on-surface">Delete workspace</p>
-            <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Permanently delete {storeName || "this workspace"}, all sessions, predictions, and billing history.</p>
+            <p className="text-[13px] font-semibold text-on-surface">Ажлын орчин устгах</p>
+            <p className="mt-0.5 text-[11.5px] text-on-surface-variant">{storeName || "энэ ажлын орчин"}, бүх сесс, таамаглал болон төлбөрийн түүхийг бүр мөсөн устгана.</p>
           </div>
           <button type="button" disabled={!isOwner} className="inline-flex items-center gap-1.5 rounded-md bg-error px-3 py-1.5 text-[12px] font-semibold text-on-error hover:opacity-95 disabled:opacity-40">
             <Trash2 className="size-3.5" aria-hidden />
-            Delete workspace
+            Ажлын орчин устгах
           </button>
         </div>
       </div>

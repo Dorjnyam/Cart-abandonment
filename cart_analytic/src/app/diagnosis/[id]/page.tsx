@@ -8,13 +8,13 @@ import EditorialShell from "@/components/editorial/EditorialShell";
 import { getDiagnosisDetail, type DiagnosisEntry } from "@/lib/services/diagnosis";
 
 const SCORE_META: Record<string, { label: string; color: string }> = {
-  S1: { label: "Psychological hesitation", color: "bg-error" },
-  S2: { label: "Technical friction", color: "bg-error" },
-  S3: { label: "Trust issue", color: "bg-tertiary" },
-  S4: { label: "Mobile usability issue", color: "bg-tertiary" },
-  S5: { label: "Price sensitivity", color: "bg-tertiary" },
-  S6: { label: "Indecision/navigation disorder", color: "bg-secondary" },
-  S7: { label: "External influence/referral effect", color: "bg-error" },
+  S1: { label: "Сэтгэлзүйн эргэлзээ", color: "bg-error" },
+  S2: { label: "Техникийн саатал", color: "bg-error" },
+  S3: { label: "Итгэлцлийн асуудал", color: "bg-tertiary" },
+  S4: { label: "Мобайл хэрэглээний хүндрэл", color: "bg-tertiary" },
+  S5: { label: "Үнийн мэдрэмж", color: "bg-tertiary" },
+  S6: { label: "Шийдвэргүй байдал / навигацийн төөрөгдөл", color: "bg-secondary" },
+  S7: { label: "Гадны нөлөө / эх сурвалжийн эффект", color: "bg-error" },
 };
 
 export default function DiagnosisDetailPage() {
@@ -46,7 +46,7 @@ export default function DiagnosisDetailPage() {
           </div>
         ) : !entry ? (
           <div className="rounded-lg border border-outline-variant/20 bg-surface-container-lowest p-8 text-sm text-on-surface-variant">
-            No persisted diagnosis exists for this session.
+            Энэ сесс дээр хадгалагдсан оношлогоо алга.
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -55,7 +55,7 @@ export default function DiagnosisDetailPage() {
               <h3 className="font-bold text-on-surface mb-4">S1-S7 оноо</h3>
               {entry ? (
                 <div className="mb-3 rounded-lg border border-outline-variant/10 bg-surface-container-low px-4 py-2.5 text-xs text-on-surface-variant space-y-1">
-                  <div>Session: <span className="font-mono font-semibold text-on-surface">{entry.sessionId}</span></div>
+                  <div>Сесс: <span className="font-mono font-semibold text-on-surface">{entry.sessionId}</span></div>
                   <div>Огноо: <span className="font-semibold text-on-surface">{entry.createdAt}</span></div>
                 </div>
               ) : null}

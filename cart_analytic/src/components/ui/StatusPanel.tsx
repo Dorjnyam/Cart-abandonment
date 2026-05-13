@@ -18,7 +18,7 @@ export default function StatusPanel({
             live ? "bg-emerald-100 text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-100" : "bg-slate-200 text-slate-700",
           ].join(" ")}
         >
-          {live ? "LIVE" : "OFF"}
+          {live ? "ШУУД" : "УНТРААСАН"}
         </span>
         <Radio className="size-4 text-on-surface-variant" aria-hidden />
       </div>
@@ -36,7 +36,7 @@ export default function StatusPanel({
           </span>
           {statusText}
         </p>
-        <p className="mt-3 text-[0.6875rem] font-semibold uppercase tracking-wide text-on-surface-variant">Uptime</p>
+        <p className="mt-3 text-[0.6875rem] font-semibold uppercase tracking-wide text-on-surface-variant">Ажилласан хугацаа</p>
         <div className="mt-1 h-2 rounded-full bg-surface-container-high overflow-hidden">
           <div className="h-full rounded-full bg-secondary" style={{ width: `${Math.min(100, uptimePct)}%` }} />
         </div>

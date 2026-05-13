@@ -11,13 +11,13 @@ export const SCORE_ORDER = ["S1", "S2", "S3", "S4", "S5", "S6", "S7"] as const;
 export type ReasonCode = typeof SCORE_ORDER[number];
 
 export const REASON_LABELS: Record<ReasonCode, string> = {
-  S1: "Psychological hesitation",
-  S2: "Technical friction",
-  S3: "Trust issue",
-  S4: "Mobile usability issue",
-  S5: "Price sensitivity",
-  S6: "Indecision/navigation disorder",
-  S7: "External influence/referral effect",
+  S1: "Сэтгэлзүйн эргэлзээ",
+  S2: "Техникийн саатал",
+  S3: "Итгэлцлийн асуудал",
+  S4: "Мобайл хэрэглээний хүндрэл",
+  S5: "Үнийн мэдрэмж",
+  S6: "Шийдвэргүй байдал / навигацийн төөрөгдөл",
+  S7: "Гадны нөлөө / эх сурвалжийн эффект",
 };
 
 export const SCORE_LABELS = REASON_LABELS;

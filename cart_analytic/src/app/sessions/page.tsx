@@ -22,16 +22,17 @@ import {
   type PaginatedDashboardSessions,
   type ReasonCode,
 } from "@/lib/services/dashboard-mvp";
+import { deviceLabel, predictionClassLabel, recommendationStatusLabel, riskLabel } from "@/lib/mn-labels";
 
 const EMPTY_PAGE: PaginatedDashboardSessions = { count: 0, next: null, previous: null, results: [] };
 
 function RiskChip({ probability }: { probability: number }) {
   const tone =
     probability >= 0.75
-      ? { bg: "rgb(160 53 33 / 0.08)", fg: "#7E2A1A", dot: "#A03521", label: "High" }
+      ? { bg: "rgb(160 53 33 / 0.08)", fg: "#7E2A1A", dot: "#A03521", label: riskLabel("high") }
       : probability >= 0.5
-        ? { bg: "rgb(156 107 20 / 0.10)", fg: "#7C5410", dot: "#9C6B14", label: "Med" }
-        : { bg: "rgb(31 77 62 / 0.08)", fg: "#1F4D3E", dot: "#1F4D3E", label: "Low" };
+        ? { bg: "rgb(156 107 20 / 0.10)", fg: "#7C5410", dot: "#9C6B14", label: riskLabel("medium") }
+        : { bg: "rgb(31 77 62 / 0.08)", fg: "#1F4D3E", dot: "#1F4D3E", label: riskLabel("low") };
   return (
     <span
       className="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[11px] font-medium tabular-nums"
@@ -54,9 +55,9 @@ function StatusDot({ value }: { value: string | null }) {
   };
   const tone = map[value] ?? map.dismissed;
   return (
-    <span className="inline-flex items-center gap-1.5 text-[11.5px] capitalize" style={{ color: tone.fg }}>
+    <span className="inline-flex items-center gap-1.5 text-[11.5px]" style={{ color: tone.fg }}>
       <span aria-hidden className="size-1.5 rounded-full" style={{ background: tone.dot }} />
-      {value.replace(/_/g, " ")}
+      {recommendationStatusLabel(value)}
     </span>
   );
 }
@@ -64,9 +65,9 @@ function StatusDot({ value }: { value: string | null }) {
 function DeviceGlyph({ device }: { device: string | null | undefined }) {
   const Icon = device === "mobile" ? Smartphone : device === "tablet" ? Tablet : Monitor;
   return (
-    <span className="inline-flex items-center gap-1.5 text-[12px] capitalize text-on-surface-variant">
+    <span className="inline-flex items-center gap-1.5 text-[12px] text-on-surface-variant">
       <Icon className="size-3.5 text-on-surface-variant/60" strokeWidth={1.6} aria-hidden />
-      {device || "unknown"}
+      {deviceLabel(device)}
     </span>
   );
 }
@@ -139,7 +140,7 @@ function SessionsContent() {
     try {
       setData(await fetchDashboardSessions(query));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Sessions API request failed.");
+      setError(err instanceof Error ? err.message : "Сессийн API хүсэлт амжилтгүй боллоо.");
       setData(EMPTY_PAGE);
     } finally {
       setLoading(false);
@@ -161,12 +162,12 @@ function SessionsContent() {
   }, [data]);
 
   return (
-    <EditorialShell activeNav="sessions" title="Sessions" subtitle="Evidence view for each prediction">
+    <EditorialShell activeNav="sessions" title="Сессүүд" subtitle="Таамаглал бүрийн нотолгоо">
       <div className="mx-auto max-w-[1400px] px-6 py-8 sm:px-8 lg:px-10">
         {/* Header хэсэг */}
         <header className="page-enter">
           <p className="text-[10.5px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant/70">
-            Session ledger · per-prediction evidence
+            Сессийн бүртгэл · таамаглал бүрийн нотолгоо
           </p>
           <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
             <div>
@@ -179,10 +180,10 @@ function SessionsContent() {
                   letterSpacing: "-0.024em",
                 }}
               >
-                Sessions
+                Сессүүд
               </h1>
               <p className="mt-1.5 max-w-[60ch] text-[12.5px] text-on-surface-variant">
-                Search a session to inspect its event timeline, model output, S1–S7 diagnosis, and the resulting recommendation.
+                Сесс хайж эвентийн дараалал, загварын гаралт, S1–S7 оношлогоо болон үүссэн зөвлөмжийг шалгана.
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -192,7 +193,7 @@ function SessionsContent() {
                 className="inline-flex items-center gap-1.5 rounded-md hairline bg-surface-container-lowest px-3 py-1.5 text-[12px] font-medium text-on-surface hover:bg-surface-container-low transition-colors"
               >
                 <RefreshCw className={`size-3.5 ${loading ? "animate-spin" : ""}`} aria-hidden />
-                Refresh
+                Шинэчлэх
               </button>
             </div>
           </div>
@@ -202,10 +203,10 @@ function SessionsContent() {
 
         {/* Stat мөр */}
         <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 stagger-children">
-          <MetricCell label="Total sessions" value={stats.total.toLocaleString()} hint="Matching current filters" />
-          <MetricCell label="High-risk" value={stats.high} accent hint="Probability ≥ 75%" />
-          <MetricCell label="Abandoned" value={stats.abandoned} hint="Model-predicted" />
-          <MetricCell label="Converted" value={stats.converted} hint="Reached purchase" />
+          <MetricCell label="Нийт сесс" value={stats.total.toLocaleString()} hint="Одоогийн шүүлтүүрт таарсан" />
+          <MetricCell label="Өндөр эрсдэл" value={stats.high} accent hint="Магадлал ≥ 75%" />
+          <MetricCell label="Орхисон" value={stats.abandoned} hint="Загварын таамаглал" />
+          <MetricCell label="Худалдан авсан" value={stats.converted} hint="Худалдан авалт хүрсэн" />
         </section>
 
         {/* Filter-үүд */}
@@ -213,7 +214,7 @@ function SessionsContent() {
           <div className="flex items-center gap-2 px-4 pt-3.5 pb-2 hairline-b">
             <SlidersHorizontal className="size-3.5 text-on-surface-variant/70" aria-hidden />
             <span className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant/80">
-              Filter ledger
+              Шүүлтүүрийн бүртгэл
             </span>
             {(search || predictedClass || dominantReason || highRiskOnly) ? (
               <button
@@ -226,7 +227,7 @@ function SessionsContent() {
                 }}
                 className="ml-auto text-[11px] font-medium text-primary hover:underline"
               >
-                Clear all
+                Бүгдийг цэвэрлэх
               </button>
             ) : null}
           </div>
@@ -236,7 +237,7 @@ function SessionsContent() {
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by session_id"
+                placeholder="session_id-аар хайх"
                 className="w-full h-9 rounded-md hairline bg-surface-container-lowest pl-8 pr-3 text-[12.5px] text-on-surface placeholder:text-on-surface-variant/45 focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/40 transition"
               />
             </label>
@@ -245,16 +246,16 @@ function SessionsContent() {
               onChange={(e) => setPredictedClass(e.target.value)}
               className="h-9 rounded-md hairline bg-surface-container-lowest px-2.5 text-[12.5px] text-on-surface focus:outline-none focus:ring-1 focus:ring-primary/40"
             >
-              <option value="">All classes</option>
-              <option value="abandoned">Abandoned</option>
-              <option value="converted">Converted</option>
+              <option value="">Бүх ангилал</option>
+              <option value="abandoned">Орхисон</option>
+              <option value="converted">Худалдан авсан</option>
             </select>
             <select
               value={dominantReason}
               onChange={(e) => setDominantReason(e.target.value)}
               className="h-9 rounded-md hairline bg-surface-container-lowest px-2.5 text-[12.5px] text-on-surface focus:outline-none focus:ring-1 focus:ring-primary/40"
             >
-              <option value="">All dominant reasons</option>
+              <option value="">Бүх давамгай шалтгаан</option>
               {SCORE_ORDER.map((code) => (
                 <option key={code} value={code}>
                   {code} · {REASON_LABELS[code]}
@@ -264,7 +265,7 @@ function SessionsContent() {
             <label className="inline-flex h-9 cursor-pointer items-center justify-between gap-2 rounded-md hairline bg-surface-container-lowest px-3 text-[12px] font-medium text-on-surface">
               <span className="inline-flex items-center gap-1.5">
                 <Filter className="size-3.5 text-on-surface-variant/70" aria-hidden />
-                High-risk only
+                Зөвхөн өндөр эрсдэл
               </span>
               <input
                 type="checkbox"
@@ -285,10 +286,10 @@ function SessionsContent() {
         {/* Хүснэгт */}
         <section className="mt-4 overflow-hidden tile rounded-md">
           <div className="flex items-center justify-between px-4 py-3 hairline-b">
-            <h2 className="text-[13px] font-semibold tracking-[-0.005em] text-on-surface">Predictions</h2>
+            <h2 className="text-[13px] font-semibold tracking-[-0.005em] text-on-surface">Таамаглалууд</h2>
             <span className="text-[11px] text-on-surface-variant">
-              Showing <span className="tabular-nums text-on-surface">{data.results.length}</span> of{" "}
-              <span className="tabular-nums text-on-surface">{data.count}</span>
+              Нийт <span className="tabular-nums text-on-surface">{data.count}</span>-оос{" "}
+              <span className="tabular-nums text-on-surface">{data.results.length}</span> мөр
             </span>
           </div>
           <div className="overflow-x-auto">
@@ -296,13 +297,13 @@ function SessionsContent() {
               <thead>
                 <tr className="bg-surface-container-low/40 text-left">
                   {[
-                    "Session",
-                    "Class",
-                    "Probability",
-                    "Dominant reason",
-                    "Device",
-                    "Events",
-                    "Recommendation",
+                    "Сесс",
+                    "Ангилал",
+                    "Магадлал",
+                    "Давамгай шалтгаан",
+                    "Төхөөрөмж",
+                    "Эвент",
+                    "Зөвлөмж",
                     "",
                   ].map((h, i) => (
                     <th
@@ -333,11 +334,11 @@ function SessionsContent() {
                           className="text-[20px] text-on-surface"
                           style={{ fontFamily: "var(--font-display)", fontVariationSettings: '"opsz" 96', fontWeight: 400, letterSpacing: "-0.02em" }}
                         >
-                          No sessions match.
+                          Таарах сесс алга.
                         </p>
                         <p className="mt-2 text-[12.5px] text-on-surface-variant">
-                          Adjust filters or generate a session in the demo shop. The Main service ingests new predictions
-                          within a few seconds.
+                          Шүүлтүүрээ өөрчлөх эсвэл demo shop дээр сесс үүсгэнэ үү. Main сервис шинэ таамаглалыг
+                          хэдхэн секундын дотор боловсруулна.
                         </p>
                       </div>
                     </td>
@@ -359,7 +360,7 @@ function SessionsContent() {
                         <td className="px-4 py-3 hairline-b">
                           {session.prediction?.predicted_class ? (
                             <span
-                              className="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[11px] font-medium capitalize"
+                              className="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[11px] font-medium"
                               style={{
                                 background:
                                   session.prediction.predicted_class === "abandoned"
@@ -371,7 +372,7 @@ function SessionsContent() {
                                     : "#1F4D3E",
                               }}
                             >
-                              {session.prediction.predicted_class}
+                              {predictionClassLabel(session.prediction.predicted_class)}
                             </span>
                           ) : (
                             <span className="text-[11.5px] text-on-surface-variant/60">—</span>
@@ -403,7 +404,7 @@ function SessionsContent() {
                             href={`/sessions/${session.session_id}`}
                             className="inline-flex items-center gap-1 text-[12px] font-medium text-primary opacity-0 transition-opacity group-hover:opacity-100"
                           >
-                            Open
+                            Нээх
                             <ArrowUpRight className="size-3.5" aria-hidden />
                           </Link>
                         </td>
@@ -420,8 +421,8 @@ function SessionsContent() {
         <div className="mt-6 flex items-start gap-2 text-[11.5px] text-on-surface-variant/80">
           <span aria-hidden className="mt-1 size-1 shrink-0 rounded-full bg-on-surface-variant/40" />
           <p>
-            <span className="font-medium text-on-surface-variant">Tip.</span> Copy a demo session ID from the storefront,
-            paste it into search, then open the evidence view to inspect the model output and S1–S7 reasoning.
+            <span className="font-medium text-on-surface-variant">Зөвлөгөө.</span> Storefront дээрээс demo session ID хуулж,
+            хайлт дээр оруулаад нотолгооны дэлгэцээс загварын гаралт болон S1–S7 тайлбарыг шалгаарай.
           </p>
         </div>
       </div>
@@ -433,7 +434,7 @@ export default function SessionsPage() {
   return (
     <Suspense
       fallback={
-        <EditorialShell activeNav="sessions" title="Sessions" subtitle="Loading sessions">
+        <EditorialShell activeNav="sessions" title="Сессүүд" subtitle="Сессүүд ачаалж байна">
           <div className="mx-auto max-w-[1400px] px-6 py-8">
             <div className="skeleton h-10 w-64 rounded" />
             <div className="mt-6 grid gap-3 sm:grid-cols-4">

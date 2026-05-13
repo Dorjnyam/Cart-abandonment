@@ -22,10 +22,10 @@ export default function ExportModal() {
       const body: Record<string, string> = { export_type: exportType };
       if (modelVariant !== "all") body.model_variant = modelVariant;
       const data = await apiClient.post<{ task_id?: string }>(API_ENDPOINTS.exportTrigger, body);
-      showToast(`Export дараалалд оров — task_id: ${data.task_id ?? "—"}`, "success");
+      showToast(`Экспорт дараалалд орлоо — task_id: ${data.task_id ?? "—"}`, "success");
       setOpen(false);
     } catch {
-      showToast("Export эхлүүлэхэд алдаа гарлаа. Дахин оролдоно уу.", "error");
+      showToast("Экспорт эхлүүлэхэд алдаа гарлаа. Дахин оролдоно уу.", "error");
     } finally {
       setLoading(false);
     }
@@ -39,7 +39,7 @@ export default function ExportModal() {
         className="inline-flex items-center gap-2 rounded-lg border border-outline-variant/10 bg-surface-container-lowest px-4 py-2 text-sm font-semibold text-on-surface shadow-card hover:bg-surface-alt transition-colors"
       >
         <Download className="size-4" aria-hidden />
-        Export
+        Экспорт
       </button>
 
       {open ? (
@@ -71,7 +71,7 @@ export default function ExportModal() {
                   className="w-full rounded-lg border border-outline-variant/15 bg-surface-container-low px-3 py-2 text-sm text-on-surface focus:outline-none"
                 >
                   <option value="analytics">Аналитик</option>
-                  <option value="sessions">Session өгөгдөл</option>
+                  <option value="sessions">Сессийн өгөгдөл</option>
                 </select>
               </div>
 

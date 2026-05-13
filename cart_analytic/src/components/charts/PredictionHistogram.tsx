@@ -5,7 +5,7 @@ import type { HistogramBin } from "@/types/api";
 
 export default function PredictionHistogram({ data }: { data: HistogramBin[] | null | undefined }) {
   if (!data || data.length === 0) {
-    return <div className="h-72 grid place-items-center text-sm text-on-surface-variant">Prediction тархалтын өгөгдөл алга.</div>;
+    return <div className="h-72 grid place-items-center text-sm text-on-surface-variant">Таамаглалын тархалтын өгөгдөл алга.</div>;
   }
 
   return (

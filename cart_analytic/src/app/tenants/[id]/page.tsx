@@ -28,7 +28,7 @@ function TenantDetailContent() {
     if (!params.id) return;
     fetchTenantDetail(params.id)
       .then(setTenant)
-      .catch(() => showToast("Tenant мэдээлэл ачааллахад алдаа гарлаа.", "error"))
+      .catch(() => showToast("Дэлгүүрийн мэдээлэл ачааллахад алдаа гарлаа.", "error"))
       .finally(() => setLoading(false));
   }, [params.id, showToast]);
 
@@ -42,12 +42,12 @@ function TenantDetailContent() {
 
   if (!tenant) {
     return (
-      <div className="p-8 text-center text-sm text-on-surface-variant">Tenant олдсонгүй.</div>
+      <div className="p-8 text-center text-sm text-on-surface-variant">Дэлгүүр олдсонгүй.</div>
     );
   }
 
   const stats = [
-    { label: "Нийт session", value: tenant.total_sessions.toLocaleString() },
+    { label: "Нийт сесс", value: tenant.total_sessions.toLocaleString() },
     { label: "Орхилтын хувь", value: `${(tenant.abandonment_rate * 100).toFixed(1)}%` },
     { label: "Статус", value: tenant.status === "active" ? "Идэвхтэй" : "Идэвхгүй" },
   ];
@@ -60,7 +60,7 @@ function TenantDetailContent() {
         className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
       >
         <ArrowLeft className="size-4" aria-hidden />
-        Тenants жагсаалт руу буцах
+        Дэлгүүрийн жагсаалт руу буцах
       </button>
 
       {/* Header card хэсэг */}
@@ -107,7 +107,7 @@ function TenantDetailContent() {
         <div className="rounded-lg border border-outline-variant/10 bg-surface-container-low px-4 py-3 font-mono text-sm text-on-surface-variant">
           tk_full_••••••••{tenant.id.toString().padStart(4, "0")}
         </div>
-        <p className="text-xs text-on-surface-variant">Бүтэн түлхүүрийг харахын тулд тухайн tenant-ийн API Key хуудасруу очно уу.</p>
+        <p className="text-xs text-on-surface-variant">Бүтэн түлхүүрийг харахын тулд тухайн дэлгүүрийн API түлхүүрийн хуудас руу очно уу.</p>
       </div>
 
       {/* Toggle товч */}
@@ -115,7 +115,7 @@ function TenantDetailContent() {
         <button
           type="button"
           disabled
-          title="main_service одоогоор tenant төлөв өөрчлөх endpoint өгөөгүй байна"
+          title="main_service одоогоор дэлгүүрийн төлөв өөрчлөх endpoint өгөөгүй байна"
           className="inline-flex items-center gap-2 rounded-lg bg-surface-container-high px-5 py-2.5 text-sm font-semibold text-on-surface-variant opacity-70"
         >
           Төлөв өөрчлөх endpoint байхгүй
@@ -128,7 +128,7 @@ function TenantDetailContent() {
 export default function TenantDetailPage() {
   return (
     <RoleGuard allow={["admin"]}>
-      <EditorialShell activeNav="tenants" title="Tenant дэлгэрэнгүй" subtitle="Admin Panel">
+      <EditorialShell activeNav="tenants" title="Дэлгүүрийн дэлгэрэнгүй" subtitle="Админ самбар">
         <TenantDetailContent />
       </EditorialShell>
     </RoleGuard>

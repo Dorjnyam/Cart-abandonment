@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { orderSchema } from "@/lib/validators";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { authOptions } from "@/lib/auth";
 
 export async function POST(request: Request) {
   const ip = request.headers.get("x-forwarded-for") ?? "checkout-anon";
@@ -11,6 +13,11 @@ export async function POST(request: Request) {
   const parsed = orderSchema.safeParse(body);
   if (!parsed.success) return new NextResponse("Invalid order payload", { status: 400 });
   const { items, couponCode, paymentMethod, deliveryAddress, deliveryOption } = parsed.data;
+  const session = await getServerSession(authOptions);
+  const sessionUserId = (session?.user as { id?: string } | undefined)?.id;
+  const sessionDbUser = sessionUserId
+    ? await prisma.user.findUnique({ where: { id: sessionUserId }, select: { id: true, email: true } })
+    : null;
 
   if (!Array.isArray(items) || items.length === 0) {
     return new NextResponse("No items", { status: 400 });
@@ -92,6 +99,8 @@ export async function POST(request: Request) {
         status: "pending",
         deliveryAddress,
         timeline,
+        userId: sessionDbUser?.id,
+        guestEmail: sessionDbUser?.email ?? null,
         items: {
           create: lines.map(({ item, p }) => ({
             productId: item.id,

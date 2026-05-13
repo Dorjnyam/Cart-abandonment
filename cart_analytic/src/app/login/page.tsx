@@ -165,7 +165,7 @@ export default function LoginPage() {
     <AuthShell
       eyebrow="Нэвтрэх"
       title="Данс руугаа орох"
-      description="Имэйл, нууц үг, хандах эрхээ сонгоод dashboard руу орно."
+      description="Имэйл, нууц үг, хандах эрхээ сонгоод хяналтын самбар руу орно."
     >
       <Suspense fallback={null}>
         <LoginForm />

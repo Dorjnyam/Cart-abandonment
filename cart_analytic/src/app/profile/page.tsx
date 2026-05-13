@@ -6,6 +6,7 @@ import EditorialShell from "@/components/editorial/EditorialShell";
 import { useAuth } from "@/components/editorial/AuthContext";
 import { API_ENDPOINTS } from "@/lib/api-config";
 import { apiClient } from "@/lib/api-client";
+import { roleLabel } from "@/lib/mn-labels";
 
 function StatusMsg({ type, text }: { type: "success" | "error"; text: string }) {
   return (
@@ -56,7 +57,7 @@ export default function ProfilePage() {
             <div className="min-w-0">
               <p className="font-semibold text-on-surface text-base truncate">{fullName || "Хэрэглэгч"}</p>
               <span className="inline-flex rounded-full bg-secondary-container/80 text-on-secondary-container text-[0.6875rem] font-bold uppercase tracking-wide px-2.5 py-0.5 mt-1">
-                {role}
+                {roleLabel(role)}
               </span>
             </div>
           </div>

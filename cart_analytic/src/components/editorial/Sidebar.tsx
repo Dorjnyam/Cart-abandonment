@@ -41,20 +41,20 @@ export type NavKey =
 type NavItemType = { key: NavKey; label: string; href: string; Icon: LucideIcon };
 
 const productNavItems: NavItemType[] = [
-  { key: "dashboard", label: "Overview", href: "/dashboard", Icon: LayoutDashboard },
-  { key: "ml-insights", label: "Analytics", href: "/ml-insights", Icon: BrainCircuit },
-  { key: "sessions", label: "Sessions", href: "/sessions", Icon: Activity },
-  { key: "diagnosis", label: "Diagnosis", href: "/diagnosis", Icon: Stethoscope },
-  { key: "recommendations", label: "Recommendations", href: "/recommendations", Icon: Lightbulb },
+  { key: "dashboard", label: "Тойм", href: "/dashboard", Icon: LayoutDashboard },
+  { key: "ml-insights", label: "Аналитик", href: "/ml-insights", Icon: BrainCircuit },
+  { key: "sessions", label: "Сессүүд", href: "/sessions", Icon: Activity },
+  { key: "diagnosis", label: "Оношлогоо", href: "/diagnosis", Icon: Stethoscope },
+  { key: "recommendations", label: "Зөвлөмжүүд", href: "/recommendations", Icon: Lightbulb },
 ];
 
 const operationsNavItems: NavItemType[] = [
-  { key: "pipeline", label: "Live Pipeline", href: "/pipeline", Icon: Radio },
+  { key: "pipeline", label: "Урсгалын монитор", href: "/pipeline", Icon: Radio },
 ];
 
 const systemNavItems: NavItemType[] = [
-  { key: "installation", label: "Installation", href: "/installation", Icon: Plug },
-  { key: "settings", label: "Settings", href: "/settings", Icon: Settings },
+  { key: "installation", label: "Суулгалт", href: "/installation", Icon: Plug },
+  { key: "settings", label: "Тохиргоо", href: "/settings", Icon: Settings },
 ];
 
 function NavItem({
@@ -133,7 +133,7 @@ export default function Sidebar({ active }: { active: NavKey }): ReactNode {
               Cart Analytics
             </div>
             <div className="mt-0.5 text-[9.5px] uppercase tracking-[0.22em] text-on-surface-variant/70">
-              Recovery Intelligence
+              Сэргээх аналитик
             </div>
           </div>
         </Link>
@@ -150,12 +150,12 @@ export default function Sidebar({ active }: { active: NavKey }): ReactNode {
       <nav className="no-scrollbar flex-1 overflow-y-auto px-2 py-2">
         {role === "admin" ? (
           <>
-            <SectionLabel label="Admin" />
-            <NavItem active={active === "admin"} label="Tenant control" href="/admin" Icon={Shield} />
+            <SectionLabel label="Админ" />
+            <NavItem active={active === "admin"} label="Дэлгүүрийн удирдлага" href="/admin" Icon={Shield} />
           </>
         ) : null}
 
-        <SectionLabel label="Product" />
+        <SectionLabel label="Бүтээгдэхүүн" />
         {productNavItems.map((item) => (
           <NavItem
             key={item.key}
@@ -169,7 +169,7 @@ export default function Sidebar({ active }: { active: NavKey }): ReactNode {
           />
         ))}
 
-        <SectionLabel label="Operations" />
+        <SectionLabel label="Ажиллагаа" />
         {operationsNavItems.map((item) => (
           <NavItem
             key={item.key}
@@ -180,7 +180,7 @@ export default function Sidebar({ active }: { active: NavKey }): ReactNode {
           />
         ))}
 
-        <SectionLabel label="System" />
+        <SectionLabel label="Систем" />
         {systemNavItems.map((item) => (
           <NavItem
             key={item.key}
@@ -199,21 +199,21 @@ export default function Sidebar({ active }: { active: NavKey }): ReactNode {
           className="flex items-center gap-2.5 rounded-md px-3 py-1.5 text-[12.5px] text-on-surface-variant transition-colors hover:bg-[rgb(28_25_23/0.04)] hover:text-on-surface"
         >
           <UserCircle className="size-[15px] shrink-0 text-on-surface-variant/70" aria-hidden strokeWidth={1.6} />
-          <span className="truncate" suppressHydrationWarning>{userName || "Profile"}</span>
+          <span className="truncate" suppressHydrationWarning>{userName || "Профайл"}</span>
         </Link>
         <Link
           href="/installation"
           className="flex items-center gap-2.5 rounded-md px-3 py-1.5 text-[12.5px] text-on-surface-variant transition-colors hover:bg-[rgb(28_25_23/0.04)] hover:text-on-surface"
         >
           <BookOpen className="size-[15px] shrink-0 text-on-surface-variant/70" aria-hidden strokeWidth={1.6} />
-          Documentation
+          Баримт бичиг
         </Link>
         <Link
           href="/installation"
           className="flex items-center gap-2.5 rounded-md px-3 py-1.5 text-[12.5px] text-on-surface-variant transition-colors hover:bg-[rgb(28_25_23/0.04)] hover:text-on-surface"
         >
           <LifeBuoy className="size-[15px] shrink-0 text-on-surface-variant/70" aria-hidden strokeWidth={1.6} />
-          Help &amp; support
+          Тусламж
         </Link>
         <button
           type="button"
@@ -221,7 +221,7 @@ export default function Sidebar({ active }: { active: NavKey }): ReactNode {
           className="mt-0.5 flex w-full items-center gap-2.5 rounded-md px-3 py-1.5 text-[12.5px] text-on-surface-variant/80 transition-colors hover:bg-[rgb(28_25_23/0.04)] hover:text-on-surface"
         >
           <LogOut className="size-[15px] shrink-0 text-on-surface-variant/70" aria-hidden strokeWidth={1.6} />
-          Sign out
+          Гарах
         </button>
       </div>
     </aside>

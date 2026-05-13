@@ -26,8 +26,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Cart Analytics — Cart Abandonment Intelligence",
-  description: "Refined analytics for cart abandonment, ML risk scoring, and recovery recommendations.",
+  title: "Cart Analytics — Сагс орхилтын аналитик",
+  description: "Сагс орхилт, ML эрсдэлийн оноо, сэргээх зөвлөмжийн аналитик самбар.",
 };
 
 /* Theme-г first paint-ээс өмнө сэргээж flash үүсгэхгүй. Анхны утга нь light. */
@@ -50,7 +50,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="mn"
       className={`light ${fraunces.variable} ${geist.variable} ${geistMono.variable}`}
       suppressHydrationWarning
     >

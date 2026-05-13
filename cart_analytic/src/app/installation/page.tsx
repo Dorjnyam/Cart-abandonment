@@ -21,13 +21,14 @@ import {
   type IntegrationResponse,
 } from "@/lib/services/dashboard-mvp";
 import { fetchPipelineMonitor, type PipelineMonitor, type ServiceHealth } from "@/lib/services/pipeline";
+import { healthLabel } from "@/lib/mn-labels";
 
 function StatusPill({ health }: { health: ServiceHealth }) {
   const map: Record<ServiceHealth, { bg: string; text: string; dot: string; label: string }> = {
-    healthy: { bg: "bg-emerald-500/10", text: "text-emerald-600 dark:text-emerald-300", dot: "bg-emerald-500", label: "Healthy" },
-    degraded: { bg: "bg-amber-500/10", text: "text-amber-600 dark:text-amber-300", dot: "bg-amber-500", label: "Degraded" },
-    down: { bg: "bg-error/10", text: "text-error", dot: "bg-rose-500", label: "Down" },
-    unknown: { bg: "bg-surface-container-high/60", text: "text-on-surface-variant", dot: "bg-slate-400", label: "Unknown" },
+    healthy: { bg: "bg-emerald-500/10", text: "text-emerald-600 dark:text-emerald-300", dot: "bg-emerald-500", label: healthLabel("healthy") },
+    degraded: { bg: "bg-amber-500/10", text: "text-amber-600 dark:text-amber-300", dot: "bg-amber-500", label: healthLabel("degraded") },
+    down: { bg: "bg-error/10", text: "text-error", dot: "bg-rose-500", label: healthLabel("down") },
+    unknown: { bg: "bg-surface-container-high/60", text: "text-on-surface-variant", dot: "bg-slate-400", label: healthLabel("unknown") },
   };
   const tone = map[health];
   return (
@@ -53,7 +54,7 @@ export default function InstallationPage() {
       setIntegration(i);
       setPipeline(p);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Integration request failed.");
+      setError(err instanceof Error ? err.message : "Интеграцийн хүсэлт амжилтгүй боллоо.");
       setIntegration(null);
     } finally {
       setLoading(false);
@@ -78,15 +79,15 @@ export default function InstallationPage() {
   return (
     <EditorialShell
       activeNav="installation"
-      title="Installation"
-      breadcrumbs={[{ label: "Installation" }]}
+      title="Суулгалт"
+      breadcrumbs={[{ label: "Суулгалт" }]}
     >
       <div className="mx-auto max-w-6xl space-y-5 px-4 py-5 sm:px-6">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h1 className="text-[18px] font-semibold tracking-tight text-on-surface">Installation</h1>
+            <h1 className="text-[18px] font-semibold tracking-tight text-on-surface">Суулгалт</h1>
             <p className="mt-1 max-w-2xl text-[13px] text-on-surface-variant">
-              Connect your storefront to the cart abandonment pipeline. Observer ingests events, the rest of the pipeline scores them in seconds.
+              Storefront-оо сагс орхилтын pipeline-т холбоно. Observer эвент хүлээн авч, pipeline-ийн бусад хэсэг хэдхэн секундын дотор оноолно.
             </p>
           </div>
           <button
@@ -95,7 +96,7 @@ export default function InstallationPage() {
             className="inline-flex items-center gap-2 rounded-md border border-outline-variant/[0.12] bg-surface-container-lowest px-3 py-1.5 text-[12px] font-medium text-on-surface hover:bg-surface-container-low"
           >
             <RefreshCw className="size-3.5" aria-hidden />
-            Refresh
+            Шинэчлэх
           </button>
         </div>
 
@@ -111,42 +112,42 @@ export default function InstallationPage() {
           <>
             <section className="rounded-md border border-outline-variant/[0.08] bg-surface-container-lowest">
               <header className="border-b border-outline-variant/[0.06] px-5 py-3">
-                <h2 className="text-[13px] font-semibold text-on-surface">Setup checklist</h2>
-                <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Three steps to start receiving real events.</p>
+                <h2 className="text-[13px] font-semibold text-on-surface">Суулгалтын checklist</h2>
+                <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Бодит эвент хүлээн авах гурван алхам.</p>
               </header>
               <ol className="divide-y divide-outline-variant/[0.06]">
                 <li className="grid grid-cols-[28px_1fr_auto] gap-3 px-5 py-3.5">
                   <span className="mt-0.5 flex size-5 items-center justify-center rounded-full bg-primary/10 text-[11px] font-semibold text-primary">1</span>
                   <div>
-                    <p className="text-[13px] font-semibold text-on-surface">Generate an API key</p>
-                    <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Open Settings → Tracking &amp; API Keys and create a key for production.</p>
+                    <p className="text-[13px] font-semibold text-on-surface">API түлхүүр үүсгэх</p>
+                    <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Тохиргоо → Tracking &amp; API Keys хэсгийг нээж production түлхүүр үүсгэнэ.</p>
                   </div>
                   <Link href="/settings?tab=keys" className="self-center text-[11.5px] font-semibold text-primary hover:underline">
-                    Open settings
+                    Тохиргоо нээх
                   </Link>
                 </li>
                 <li className="grid grid-cols-[28px_1fr_auto] gap-3 px-5 py-3.5">
                   <span className="mt-0.5 flex size-5 items-center justify-center rounded-full bg-primary/10 text-[11px] font-semibold text-primary">2</span>
                   <div>
-                    <p className="text-[13px] font-semibold text-on-surface">Install the Observer snippet</p>
-                    <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Add the script tag to every storefront page, ideally before the closing &lt;/head&gt; tag.</p>
+                    <p className="text-[13px] font-semibold text-on-surface">Observer snippet суулгах</p>
+                    <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Script tag-ийг storefront-ийн бүх хуудсанд, боломжтой бол хаагдах &lt;/head&gt; tag-аас өмнө нэмнэ.</p>
                   </div>
                   <button
                     onClick={() => void copySnippet()}
                     className="self-center inline-flex items-center gap-1.5 rounded-md border border-outline-variant/[0.12] bg-surface-container-lowest px-2.5 py-1 text-[11.5px] font-medium text-on-surface hover:bg-surface-container-low"
                   >
                     {copied ? <Check className="size-3.5" aria-hidden /> : <Copy className="size-3.5" aria-hidden />}
-                    {copied ? "Copied" : "Copy"}
+                    {copied ? "Хуулагдсан" : "Хуулах"}
                   </button>
                 </li>
                 <li className="grid grid-cols-[28px_1fr_auto] gap-3 px-5 py-3.5">
                   <span className="mt-0.5 flex size-5 items-center justify-center rounded-full bg-primary/10 text-[11px] font-semibold text-primary">3</span>
                   <div>
-                    <p className="text-[13px] font-semibold text-on-surface">Verify events</p>
-                    <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Browse a product, add to cart, then check the latest events table below.</p>
+                    <p className="text-[13px] font-semibold text-on-surface">Эвент шалгах</p>
+                    <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Бүтээгдэхүүн үзэж, сагсанд нэмээд доорх сүүлийн эвентийн хүснэгтийг шалгана.</p>
                   </div>
                   <Link href="/pipeline" className="self-center text-[11.5px] font-semibold text-primary hover:underline">
-                    Live monitor
+                    Шууд монитор
                   </Link>
                 </li>
               </ol>
@@ -166,13 +167,13 @@ export default function InstallationPage() {
                     <dd className="truncate font-mono text-on-surface">{integration.observer.url}</dd>
                   </div>
                   <div className="grid grid-cols-[100px_1fr] gap-3 px-4 py-2.5 text-[12px]">
-                    <dt className="text-on-surface-variant">Health</dt>
+                    <dt className="text-on-surface-variant">Төлөв</dt>
                     <dd>
                       <StatusPill health={(integration.observer.health as ServiceHealth) ?? "unknown"} />
                     </dd>
                   </div>
                   <div className="grid grid-cols-[100px_1fr] gap-3 px-4 py-2.5 text-[12px]">
-                    <dt className="text-on-surface-variant">Demo key</dt>
+                    <dt className="text-on-surface-variant">Demo түлхүүр</dt>
                     <dd className="truncate font-mono text-on-surface">{integration.observer.demo_api_key}</dd>
                   </div>
                 </dl>
@@ -187,7 +188,7 @@ export default function InstallationPage() {
                 </header>
                 <div className="px-4 py-3 space-y-2">
                   <div className="flex items-center justify-between text-[12px]">
-                    <span className="text-on-surface-variant">Cluster health</span>
+                    <span className="text-on-surface-variant">Кластерын төлөв</span>
                     <StatusPill health={(integration.kafka.health as ServiceHealth) ?? "unknown"} />
                   </div>
                   <div className="flex flex-wrap gap-1.5">
@@ -204,18 +205,18 @@ export default function InstallationPage() {
                 <header className="border-b border-outline-variant/[0.06] px-4 py-3">
                   <div className="flex items-center gap-2">
                     <Server className="size-4 text-on-surface-variant" strokeWidth={1.75} aria-hidden />
-                    <h2 className="text-[13px] font-semibold text-on-surface">Demo links</h2>
+                    <h2 className="text-[13px] font-semibold text-on-surface">Demo холбоосууд</h2>
                   </div>
                 </header>
                 <div className="space-y-1.5 px-4 py-3 text-[12.5px]">
                   <Link href={integration.demo_shop.url} className="flex items-center gap-2 text-primary hover:underline">
-                    Demo shop <ExternalLink className="size-3.5" aria-hidden />
+                    Demo дэлгүүр <ExternalLink className="size-3.5" aria-hidden />
                   </Link>
                   <Link href={integration.dashboard.url} className="flex items-center gap-2 text-primary hover:underline">
                     Dashboard <ExternalLink className="size-3.5" aria-hidden />
                   </Link>
                   <Link href="/pipeline" className="flex items-center gap-2 text-primary hover:underline">
-                    Pipeline monitor <ArrowUpRight className="size-3.5" aria-hidden />
+                    Pipeline монитор <ArrowUpRight className="size-3.5" aria-hidden />
                   </Link>
                 </div>
               </section>
@@ -224,15 +225,15 @@ export default function InstallationPage() {
             <section className="rounded-md border border-outline-variant/[0.08] bg-surface-container-lowest">
               <header className="flex flex-wrap items-center justify-between gap-2 border-b border-outline-variant/[0.06] px-5 py-3">
                 <div>
-                  <h2 className="text-[13px] font-semibold text-on-surface">Observer install snippet</h2>
-                  <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Generate a real key in Settings to embed it directly in this snippet.</p>
+                  <h2 className="text-[13px] font-semibold text-on-surface">Observer суулгах snippet</h2>
+                  <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Тохиргооноос бодит түлхүүр үүсгэвэл энэ snippet-д шууд оруулж болно.</p>
                 </div>
                 <button
                   onClick={() => void copySnippet()}
                   className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-[12px] font-semibold text-on-primary hover:opacity-95"
                 >
                   {copied ? <Check className="size-3.5" aria-hidden /> : <Copy className="size-3.5" aria-hidden />}
-                  {copied ? "Copied" : "Copy snippet"}
+                  {copied ? "Хуулагдсан" : "Snippet хуулах"}
                 </button>
               </header>
               <pre className="overflow-x-auto bg-[#0b1220] px-5 py-4 text-[12px] leading-relaxed text-slate-100">
@@ -245,14 +246,14 @@ export default function InstallationPage() {
                 <header className="flex items-center justify-between border-b border-outline-variant/[0.06] px-5 py-3">
                   <div className="flex items-center gap-2">
                     <Activity className="size-4 text-on-surface-variant" strokeWidth={1.75} aria-hidden />
-                    <h2 className="text-[13px] font-semibold text-on-surface">Recent events from your storefront</h2>
+                    <h2 className="text-[13px] font-semibold text-on-surface">Storefront-оос ирсэн сүүлийн эвентүүд</h2>
                   </div>
-                  <span className="text-[11px] text-on-surface-variant">Last 10</span>
+                  <span className="text-[11px] text-on-surface-variant">Сүүлийн 10</span>
                 </header>
                 {integration.last_events.length ? (
                   <>
                     <div className="grid grid-cols-[1fr_1fr_auto] bg-surface-container-low/40 px-5 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">
-                      <span>Session</span><span>Event</span><span className="text-right">Created</span>
+                      <span>Сесс</span><span>Эвент</span><span className="text-right">Үүссэн</span>
                     </div>
                     {integration.last_events.map((event, i) => (
                       <div key={`${event.session_id}-${i}`} className="grid grid-cols-[1fr_1fr_auto] gap-3 border-t border-outline-variant/[0.06] px-5 py-2 text-[12px]">
@@ -264,7 +265,7 @@ export default function InstallationPage() {
                   </>
                 ) : (
                   <div className="px-5 py-8 text-center text-[12px] text-on-surface-variant">
-                    No events yet. Trigger a flow on the storefront to verify.
+                    Эвент одоогоор алга. Шалгахын тулд storefront дээр урсгал ажиллуулна уу.
                   </div>
                 )}
               </section>
@@ -273,10 +274,10 @@ export default function InstallationPage() {
                 <header className="flex items-center justify-between border-b border-outline-variant/[0.06] px-5 py-3">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="size-4 text-on-surface-variant" strokeWidth={1.75} aria-hidden />
-                    <h2 className="text-[13px] font-semibold text-on-surface">Pipeline at a glance</h2>
+                    <h2 className="text-[13px] font-semibold text-on-surface">Pipeline товч төлөв</h2>
                   </div>
                   <Link href="/pipeline" className="text-[11.5px] font-semibold text-primary hover:underline">
-                    Open monitor
+                    Монитор нээх
                   </Link>
                 </header>
                 {pipeline ? (
@@ -292,7 +293,7 @@ export default function InstallationPage() {
                     ))}
                   </ul>
                 ) : (
-                  <div className="px-5 py-8 text-center text-[12px] text-on-surface-variant">Pipeline data unavailable.</div>
+                  <div className="px-5 py-8 text-center text-[12px] text-on-surface-variant">Pipeline өгөгдөл боломжгүй байна.</div>
                 )}
               </section>
             </div>

@@ -186,7 +186,8 @@ Create **`.env`** or **`.env.local`** in the project root (both are gitignored b
 | `ADMIN_PASSWORD` | No | Plaintext comparison in dev-style setup; use a long random value. |
 | `GOOGLE_CLIENT_ID` | No | Enable Google sign-in (with `GOOGLE_CLIENT_SECRET`). |
 | `GOOGLE_CLIENT_SECRET` | No | Google OAuth client secret. |
-| `NEXT_PUBLIC_OBSERVER_URL` | No | Observer snippet host (default `http://localhost:8001` if unset or empty). See [`docs/NEXTJS_OBSERVER.md`](docs/NEXTJS_OBSERVER.md) and [`src/app/layout.tsx`](src/app/layout.tsx). |
+| `NEXT_PUBLIC_OBSERVER_URL` | No | Public Observer URL used by the browser. Default is `/api/observer`, which proxies through the storefront so phones on the same Wi-Fi do not call their own `localhost`. See [`docs/NEXTJS_OBSERVER.md`](docs/NEXTJS_OBSERVER.md). |
+| `OBSERVER_SERVER_URL` | No | Server-side Observer URL for the Next proxy. Use `http://observer:8001` in Docker Compose or `http://localhost:8001` when running the store directly on the host. |
 | `NEXT_PUBLIC_OBSERVER_SNIPPET_KEY` | No | Observer `track.js` key. **Tier 1** delegated `data-ca` clicks require a **`tk_full_*`** key. Default matches the previous dev **`tk_smart_*`** key (T2/T3); set `tk_full_…` in production when you need commerce click attributes. Empty env values fall back to defaults. |
 
 ### Observer: Tier 1 (`data-ca`) vs Tier 2
@@ -202,10 +203,16 @@ Create **`.env`** or **`.env.local`** in the project root (both are gitignored b
 DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/sneakerstore"
 NEXTAUTH_SECRET="replace-with-long-random-string"
 NEXTAUTH_URL="http://localhost:3000"
+NEXT_PUBLIC_OBSERVER_URL="/api/observer"
+OBSERVER_SERVER_URL="http://localhost:8001"
 # Optional Vault admin:
 # ADMIN_EMAIL="admin@example.com"
 # ADMIN_PASSWORD="your-strong-secret"
 ```
+
+### Phone / LAN testing
+
+When the app is running, open the store from another device with your PC IPv4 address, for example `http://192.168.1.25:3000`. Do not use `localhost` on the phone. The Docker Compose setup binds the storefront to `0.0.0.0:3000`, allows Observer CORS for the local demo, and sends browser analytics through `/api/observer` so phone browsers can reach the same services.
 
 ---
 

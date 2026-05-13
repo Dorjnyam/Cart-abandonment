@@ -13,7 +13,7 @@ import AblationStudyPanel from "./AblationStudyPanel";
 
 const TABS = [
   { key: "overview",  label: "Тойм" },
-  { key: "ablation",  label: "Ablation Study" },
+  { key: "ablation",  label: "Ablation шинжилгээ" },
 ] as const;
 type TabKey = typeof TABS[number]["key"];
 
@@ -97,7 +97,7 @@ function AnalyticsOverviewTab({ data, loading }: { data: AnalyticsOverview; load
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h3 className="text-sm font-bold text-on-surface">Орхилтын трендийн шинжилгээ</h3>
-              <p className="text-[0.6875rem] text-on-surface-variant mt-0.5">Session тоо ба орхилтын хувь</p>
+              <p className="text-[0.6875rem] text-on-surface-variant mt-0.5">Сессийн тоо ба орхилтын хувь</p>
             </div>
             <div className="inline-flex rounded-lg border border-outline-variant/15 bg-surface-container-low p-0.5 text-xs font-semibold">
               <span className="px-3 py-1.5 text-on-surface-variant">Өдөр</span>
@@ -106,7 +106,7 @@ function AnalyticsOverviewTab({ data, loading }: { data: AnalyticsOverview; load
           </div>
           {loading ? <ChartSkeleton height="h-52" /> : <AbandonmentTrendChart data={data.abandonmentTrend} />}
           <InsightQuote>
-            36-р долоо хоногийн бууралт нь &quot;One-click&quot; checkout шинэчлэлттэй шууд уялдаатай — эргэн тойрны baseline-тай харьцуулахад итгэлтэй.
+            36-р долоо хоногийн бууралт нь &quot;One-click&quot; checkout шинэчлэлттэй шууд уялдаатай. Эргэн тойрны baseline-тай харьцуулахад итгэлтэй.
           </InsightQuote>
         </div>
 
@@ -214,19 +214,19 @@ function AnalyticsPageContent() {
   }, []);
 
   return (
-    <EditorialShell activeNav="analytics" title="Аналитик" subtitle="Орхилтын дүн шинжилгээ">
+      <EditorialShell activeNav="analytics" title="Аналитик" subtitle="Орхилтын дүн шинжилгээ">
       <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6 max-w-400 mx-auto page-enter">
         {/* Хуудасны header */}
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-[1.1rem] font-semibold text-on-surface tracking-tight">Аналитик Deep-Dive</h1>
+            <h1 className="text-[1.1rem] font-semibold text-on-surface tracking-tight">Аналитикийн нарийвчилсан шинжилгээ</h1>
             <p className="text-[13px] text-on-surface-variant mt-0.5">
               Орхилтын жолоодогч болон сессийн эрсдэлийн профайлын нарийвчилсан тайлбар.
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <span className="inline-flex items-center rounded-full border border-outline-variant/[0.1] bg-surface-container-low px-2.5 py-1 text-[11px] font-semibold text-on-surface-variant">
-              Q3 session өгөгдөл
+              Q3 сессийн өгөгдөл
             </span>
             <span className="inline-flex items-center rounded-full border border-[#10b981]/20 bg-[#10b981]/8 px-2.5 py-1 text-[11px] font-semibold text-[#10b981]">
               Баталгаажсан
@@ -257,7 +257,7 @@ function AnalyticsPageContent() {
         {tab === "ablation" ? (
           <section>
             <div className="mb-4">
-              <h3 className="text-sm font-bold text-on-surface">Ablation Study — Загварын хувилбаруудын харьцуулалт</h3>
+              <h3 className="text-sm font-bold text-on-surface">Ablation шинжилгээ — Загварын хувилбаруудын харьцуулалт</h3>
               <p className="text-[0.6875rem] text-on-surface-variant mt-0.5">
                 Baseline, extended, full загваруудын гүйцэтгэлийн зөрүү
               </p>

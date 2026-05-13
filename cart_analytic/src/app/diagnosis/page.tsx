@@ -19,15 +19,16 @@ import {
   type ReasonCode,
   type ReasonsResponse,
 } from "@/lib/services/dashboard-mvp";
+import { riskLabel } from "@/lib/mn-labels";
 
 const REASON_BLURB: Record<ReasonCode, string> = {
-  S1: "Psychological hesitation: the session shows hesitation signals before checkout completion.",
-  S2: "Technical friction: errors, slow interactions, or checkout failures blocked progress.",
-  S3: "Trust issue: the buyer may need stronger merchant, payment, or product reassurance.",
-  S4: "Mobile usability issue: mobile interaction quality may be reducing completion.",
-  S5: "Price sensitivity: cart total, shipping, or discount expectations may be blocking purchase.",
-  S6: "Indecision/navigation disorder: repeated navigation or comparison behavior suggests uncertainty.",
-  S7: "External influence/referral effect: referrer or external context may affect completion.",
+  S1: "Сэтгэлзүйн эргэлзээ: checkout дуусахаас өмнө эргэлзэх дохио илэрсэн.",
+  S2: "Техникийн саатал: алдаа, удаан харилцан үйлдэл эсвэл checkout доголдол явцыг хаасан.",
+  S3: "Итгэлцлийн асуудал: худалдаачин, төлбөр эсвэл бүтээгдэхүүний баталгааг илүү тодруулах шаардлагатай.",
+  S4: "Мобайл хэрэглээний хүндрэл: гар утас дээрх харилцан үйлдлийн чанар дуусгалтад нөлөөлж байна.",
+  S5: "Үнийн мэдрэмж: сагсны нийт дүн, хүргэлт эсвэл хөнгөлөлтийн хүлээлт худалдан авалтыг саатуулж байна.",
+  S6: "Шийдвэргүй байдал / навигацийн төөрөгдөл: давтан шилжилт, харьцуулалт нь эргэлзээг харуулж байна.",
+  S7: "Гадны нөлөө / эх сурвалжийн эффект: referral эсвэл гадны контекст худалдан авалтад нөлөөлж байна.",
 };
 
 function severityTone(severity: string) {
@@ -78,7 +79,7 @@ export default function DiagnosisPage() {
     try {
       setData(await fetchDashboardReasons());
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Reason analysis API request failed.");
+      setError(err instanceof Error ? err.message : "Шалтгааны шинжилгээний API хүсэлт амжилтгүй боллоо.");
       setData(null);
     } finally {
       setLoading(false);
@@ -121,12 +122,12 @@ export default function DiagnosisPage() {
   }));
 
   return (
-    <EditorialShell activeNav="diagnosis" title="Why Customers Abandon" subtitle="Canonical S1–S7 reason analysis">
+    <EditorialShell activeNav="diagnosis" title="Хэрэглэгч яагаад орхиж байна" subtitle="S1–S7 шалтгааны шинжилгээ">
       <div className="mx-auto max-w-[1400px] px-6 py-8 sm:px-8 lg:px-10">
         {/* Header хэсэг */}
         <header className="page-enter">
           <p className="text-[10.5px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant/70">
-            Diagnosis · canonical S1–S7 reasoning
+            Оношлогоо · S1–S7 стандарт тайлбар
           </p>
           <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
             <div>
@@ -139,11 +140,11 @@ export default function DiagnosisPage() {
                   letterSpacing: "-0.024em",
                 }}
               >
-                Why customers abandon
+                Хэрэглэгч яагаад орхиж байна
               </h1>
               <p className="mt-1.5 max-w-[68ch] text-[12.5px] text-on-surface-variant">
-                Each session is scored across seven canonical reasons, normalized 0–1. The Main service
-                computes the dominant reason; the dashboard surfaces it without inventing one locally.
+                Сесс бүрийг долоон стандарт шалтгаанаар 0–1 хооронд оноолно. Main сервис давамгай
+                шалтгааныг тооцоолж, dashboard тухайн үр дүнг өөрчлөхгүйгээр харуулна.
               </p>
             </div>
             <button
@@ -152,7 +153,7 @@ export default function DiagnosisPage() {
               className="inline-flex items-center gap-1.5 rounded-md hairline bg-surface-container-lowest px-3 py-1.5 text-[12px] font-medium text-on-surface hover:bg-surface-container-low transition-colors"
             >
               <RefreshCw className={`size-3.5 ${loading ? "animate-spin" : ""}`} aria-hidden />
-              Refresh
+              Шинэчлэх
             </button>
           </div>
         </header>
@@ -169,8 +170,8 @@ export default function DiagnosisPage() {
         <div className="mt-6 grid gap-4 lg:grid-cols-12 stagger-children">
           <SectionCard
             className="lg:col-span-7"
-            title="Dominant reason formula"
-            hint="Argmax across the seven canonical scores"
+            title="Давамгай шалтгааны томьёо"
+            hint="Долоон стандарт онооноос хамгийн ихийг сонгоно"
             right={<Sigma className="size-3.5 text-on-surface-variant/60" aria-hidden />}
           >
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
@@ -182,13 +183,13 @@ export default function DiagnosisPage() {
                   "dominant_reason = argmax(S1, S2, S3, S4, S5, S6, S7)"}
               </pre>
               <p className="max-w-[42ch] text-[11.5px] leading-[1.55] text-on-surface-variant">
-                The argmax convention keeps the dashboard truthful: every dominant label here is exactly the one
-                the Main service emitted, not a recomputation.
+                Argmax зарчим нь dashboard-ийг үнэн зөв байлгана: энд харагдах давамгай label бүр
+                Main сервисээс ирсэн утга бөгөөд локал дахин тооцоолол биш.
               </p>
             </div>
           </SectionCard>
 
-          <SectionCard className="lg:col-span-5" title="Highest-scoring reason" hint={`${totalDominant} sessions diagnosed`}>
+          <SectionCard className="lg:col-span-5" title="Хамгийн өндөр оноотой шалтгаан" hint={`${totalDominant} сесс оношлогдсон`}>
             {top ? (
               <>
                 <div className="flex items-baseline gap-3">
@@ -214,7 +215,7 @@ export default function DiagnosisPage() {
                 <dl className="mt-4 grid grid-cols-2 gap-4">
                   <div>
                     <dt className="text-[10px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant/70">
-                      Average score
+                      Дундаж оноо
                     </dt>
                     <dd
                       className="mt-1 font-mono tabular-nums text-on-surface"
@@ -231,7 +232,7 @@ export default function DiagnosisPage() {
                   </div>
                   <div>
                     <dt className="text-[10px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant/70">
-                      Sessions dominant
+                      Давамгай сесс
                     </dt>
                     <dd
                       className="mt-1 tabular-nums text-on-surface"
@@ -249,7 +250,7 @@ export default function DiagnosisPage() {
                 </dl>
               </>
             ) : (
-              <p className="text-[12.5px] text-on-surface-variant">No sessions diagnosed yet.</p>
+              <p className="text-[12.5px] text-on-surface-variant">Оношлогдсон сесс одоогоор алга.</p>
             )}
           </SectionCard>
         </div>
@@ -257,8 +258,8 @@ export default function DiagnosisPage() {
         {/* Chart хэсэг */}
         <SectionCard
           className="mt-4"
-          title="S1–S7 average scores across diagnosed sessions"
-          hint="Higher means the reason fires more strongly on average"
+          title="Оношлогдсон сессүүдийн S1–S7 дундаж оноо"
+          hint="Өндөр байх тусам тухайн шалтгаан илүү хүчтэй илэрч байна"
         >
           {loading ? (
             <div className="skeleton h-72 rounded-md" />
@@ -305,7 +306,7 @@ export default function DiagnosisPage() {
             <div className="rounded-md hairline bg-surface-container-low/40 px-6 py-12 text-center">
               <Sparkles className="mx-auto size-5 text-on-surface-variant/60" aria-hidden />
               <p className="mt-3 text-[12.5px] text-on-surface-variant">
-                No diagnosis yet. Generate a demo session and wait for prediction processing.
+                Оношлогоо одоогоор алга. Demo сесс үүсгээд таамаглал боловсруулагдахыг хүлээнэ үү.
               </p>
             </div>
           )}
@@ -344,7 +345,7 @@ export default function DiagnosisPage() {
                     style={{ background: tone.bg, color: tone.fg }}
                   >
                     <span aria-hidden className="size-1.5 rounded-full" style={{ background: tone.dot }} />
-                    {reason.severity}
+                    {riskLabel(reason.severity)}
                   </span>
                 </header>
 
@@ -352,7 +353,7 @@ export default function DiagnosisPage() {
                   <div>
                     <div className="flex items-baseline justify-between">
                       <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant/70">
-                        Average score
+                        Дундаж оноо
                       </span>
                       <span className="font-mono tabular-nums text-[12.5px] text-on-surface">
                         {reason.average_score.toFixed(2)}
@@ -372,7 +373,7 @@ export default function DiagnosisPage() {
 
                   <div className="rounded-md hairline bg-surface-container-low/40 p-3">
                     <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant/70">
-                      Suggested action
+                      Санал болгосон арга хэмжээ
                     </p>
                     <p className="mt-1 text-[12px] leading-[1.55] text-on-surface">{reason.recommended_action}</p>
                   </div>
@@ -380,11 +381,11 @@ export default function DiagnosisPage() {
 
                 <footer className="mt-auto flex items-center justify-between gap-3 px-5 py-3 hairline-t">
                   <span className="text-[11px] text-on-surface-variant">
-                    <span className="tabular-nums text-on-surface">{reason.dominant_sessions}</span> sessions dominant
+                    <span className="tabular-nums text-on-surface">{reason.dominant_sessions}</span> сесс давамгай
                   </span>
                   <span className="text-[11px] text-on-surface-variant">
                     {totalDominant > 0
-                      ? `${((reason.dominant_sessions / totalDominant) * 100).toFixed(0)}% share`
+                      ? `${((reason.dominant_sessions / totalDominant) * 100).toFixed(0)}% эзлэх хувь`
                       : "—"}
                   </span>
                 </footer>

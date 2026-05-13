@@ -18,6 +18,7 @@ import {
   type RecommendationStatus,
   type RecommendationsResponse,
 } from "@/lib/services/dashboard-mvp";
+import { priorityLabel, sourceLabel } from "@/lib/mn-labels";
 
 type RecommendationItem = NonNullable<RecommendationContract>;
 
@@ -27,10 +28,10 @@ const STATUS_COLUMNS: Array<{
   Icon: typeof Lightbulb;
   accent: string;
 }> = [
-  { key: "new", label: "New", Icon: Lightbulb, accent: "#9C6B14" },
-  { key: "in_progress", label: "In progress", Icon: Clock3, accent: "#3E6E8E" },
-  { key: "done", label: "Done", Icon: CheckCircle2, accent: "#1F4D3E" },
-  { key: "dismissed", label: "Dismissed", Icon: XCircle, accent: "#A8A29E" },
+  { key: "new", label: "Шинэ", Icon: Lightbulb, accent: "#9C6B14" },
+  { key: "in_progress", label: "Хийгдэж байна", Icon: Clock3, accent: "#3E6E8E" },
+  { key: "done", label: "Дууссан", Icon: CheckCircle2, accent: "#1F4D3E" },
+  { key: "dismissed", label: "Хассан", Icon: XCircle, accent: "#A8A29E" },
 ];
 
 function priorityTone(priority: string) {
@@ -82,7 +83,7 @@ export default function RecommendationsPage() {
     try {
       setData(await fetchDashboardRecommendations());
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Recommendations API request failed.");
+      setError(err instanceof Error ? err.message : "Зөвлөмжийн API хүсэлт амжилтгүй боллоо.");
       setData(null);
     } finally {
       setLoading(false);
@@ -146,10 +147,10 @@ export default function RecommendationsPage() {
             style={{ background: tone.bg, color: tone.fg }}
           >
             <span aria-hidden className="size-1 rounded-full" style={{ background: tone.dot }} />
-            {item.priority}
+            {priorityLabel(item.priority)}
           </span>
           <span className="ml-auto text-[10px] font-mono text-on-surface-variant/70">
-            {item.source === "gemini" ? "Gemini" : "Fallback"}
+            {sourceLabel(item.source)}
           </span>
         </div>
 
@@ -169,7 +170,7 @@ export default function RecommendationsPage() {
         <div className="space-y-2.5">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant/70">
-              Expected impact
+              Хүлээгдэж буй нөлөө
             </p>
             <p className="mt-1 text-[11.5px] leading-[1.5] text-on-surface">{item.expected_impact}</p>
           </div>
@@ -177,7 +178,7 @@ export default function RecommendationsPage() {
           {item.evidence.length ? (
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant/70">
-                Evidence
+                Нотолгоо
               </p>
               <ul className="mt-1 space-y-1 text-[11.5px] leading-[1.5] text-on-surface-variant">
                 {item.evidence.map((evidence) => (
@@ -193,7 +194,7 @@ export default function RecommendationsPage() {
           {item.action_steps.length ? (
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant/70">
-                Action steps
+                Хэрэгжүүлэх алхмууд
               </p>
               <ol className="mt-1 space-y-1.5 text-[11.5px] leading-[1.5] text-on-surface">
                 {item.action_steps.map((step, i) => (
@@ -221,7 +222,7 @@ export default function RecommendationsPage() {
               className="inline-flex items-center gap-1 rounded-md hairline bg-surface-container-lowest px-2 py-1 text-[10.5px] font-medium text-on-surface hover:bg-surface-container-low transition-colors disabled:opacity-50"
             >
               <Clock3 className="size-3" aria-hidden />
-              Start
+              Эхлүүлэх
             </button>
           ) : null}
           {item.status !== "done" ? (
@@ -233,7 +234,7 @@ export default function RecommendationsPage() {
               style={{ background: "#1F4D3E" }}
             >
               <Check className="size-3" aria-hidden />
-              Mark done
+              Дууссан болгох
             </button>
           ) : null}
           {item.status !== "dismissed" ? (
@@ -243,7 +244,7 @@ export default function RecommendationsPage() {
               onClick={() => void setStatus(item, "dismissed")}
               className="ml-auto inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10.5px] font-medium text-on-surface-variant hover:text-on-surface hover:bg-[rgb(28_25_23/0.04)] transition-colors disabled:opacity-50"
             >
-              Dismiss
+              Хасах
             </button>
           ) : null}
         </div>
@@ -252,11 +253,11 @@ export default function RecommendationsPage() {
   }
 
   return (
-    <EditorialShell activeNav="recommendations" title="What To Fix Next" subtitle="Gemini / fallback action board">
+    <EditorialShell activeNav="recommendations" title="Дараа нь юу засах вэ" subtitle="Gemini / нөөц дүрмийн ажлын самбар">
       <div className="mx-auto max-w-[1400px] px-6 py-8 sm:px-8 lg:px-10">
         <header className="page-enter">
           <p className="text-[10.5px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant/70">
-            Recommendations · action queue
+            Зөвлөмжүүд · хийх ажлын дараалал
           </p>
           <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
             <div>
@@ -269,11 +270,11 @@ export default function RecommendationsPage() {
                   letterSpacing: "-0.024em",
                 }}
               >
-                What to fix next
+                Дараа нь юу засах вэ
               </h1>
               <p className="mt-1.5 max-w-[68ch] text-[12.5px] text-on-surface-variant">
-                Gemini and fallback rules turn dominant reasons into concrete action items. Move them across columns to
-                track which ones your team is shipping. Status changes persist through the Main service.
+                Gemini болон нөөц дүрмүүд давамгай шалтгааныг бодит хэрэгжүүлэх ажлууд болгон хувиргана.
+                Багийн гүйцэтгэлийг хянахын тулд картуудыг багануудын хооронд шилжүүлнэ. Төлөвийн өөрчлөлт Main сервист хадгалагдана.
               </p>
             </div>
             <button
@@ -282,7 +283,7 @@ export default function RecommendationsPage() {
               className="inline-flex items-center gap-1.5 rounded-md hairline bg-surface-container-lowest px-3 py-1.5 text-[12px] font-medium text-on-surface hover:bg-surface-container-low transition-colors"
             >
               <RefreshCw className={`size-3.5 ${loading ? "animate-spin" : ""}`} aria-hidden />
-              Refresh
+              Шинэчлэх
             </button>
           </div>
         </header>
@@ -291,11 +292,11 @@ export default function RecommendationsPage() {
 
         {/* Stats хэсэг */}
         <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5 stagger-children">
-          <MetricCell label="Total" value={data?.stats?.total ?? 0} hint="Active items" />
-          <MetricCell label="New" value={data?.stats?.new ?? 0} hint="Awaiting review" />
-          <MetricCell label="In progress" value={data?.stats?.in_progress ?? 0} hint="Team is shipping" />
-          <MetricCell label="Done" value={data?.stats?.done ?? 0} hint="Marked complete" />
-          <MetricCell label="Dismissed" value={data?.stats?.dismissed ?? 0} hint="Set aside" />
+          <MetricCell label="Нийт" value={data?.stats?.total ?? 0} hint="Идэвхтэй зүйлс" />
+          <MetricCell label="Шинэ" value={data?.stats?.new ?? 0} hint="Хянах шаардлагатай" />
+          <MetricCell label="Хийгдэж байна" value={data?.stats?.in_progress ?? 0} hint="Баг хэрэгжүүлж байна" />
+          <MetricCell label="Дууссан" value={data?.stats?.done ?? 0} hint="Дууссанаар тэмдэглэсэн" />
+          <MetricCell label="Хассан" value={data?.stats?.dismissed ?? 0} hint="Тусад нь тавьсан" />
         </section>
 
         {error ? (
@@ -332,7 +333,7 @@ export default function RecommendationsPage() {
                     grouped[key].map(renderCard)
                   ) : (
                     <div className="rounded-md hairline bg-surface-container-lowest/50 px-3 py-8 text-center">
-                      <p className="text-[11.5px] text-on-surface-variant/70">Empty</p>
+                      <p className="text-[11.5px] text-on-surface-variant/70">Хоосон</p>
                     </div>
                   )}
                 </div>
@@ -351,11 +352,11 @@ export default function RecommendationsPage() {
                 letterSpacing: "-0.02em",
               }}
             >
-              No recommendations yet
+              Зөвлөмж одоогоор алга
             </p>
             <p className="mx-auto mt-2 max-w-[42ch] text-[12.5px] text-on-surface-variant">
-              Run a demo abandoned flow so the Main service produces a diagnosis. Recommendations are generated
-              automatically once a dominant reason is set.
+              Main сервис оношлогоо үүсгэхийн тулд demo орхилтын урсгал ажиллуулна уу.
+              Давамгай шалтгаан тогтоогдмогц зөвлөмж автоматаар үүснэ.
             </p>
           </div>
         )}

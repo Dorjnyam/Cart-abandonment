@@ -24,6 +24,7 @@ import {
   type FeatureContribution,
   type MLInsights,
 } from "@/lib/services/mlInsights";
+import { directionLabel } from "@/lib/mn-labels";
 
 const intFmt = new Intl.NumberFormat("en-US");
 
@@ -150,7 +151,7 @@ export default function MLInsightsPage() {
       setData(await fetchMLInsights());
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "ML Insights request failed.");
+      setError(err instanceof Error ? err.message : "ML дүгнэлтийн хүсэлт амжилтгүй боллоо.");
     } finally {
       setLoading(false);
     }
@@ -187,16 +188,16 @@ export default function MLInsightsPage() {
       className="inline-flex items-center gap-1.5 rounded-md hairline bg-surface-container-lowest px-2.5 py-1 text-[11.5px] font-medium text-on-surface hover:bg-surface-container-low"
     >
       <RefreshCw className={clsx("size-3", loading && "animate-spin")} aria-hidden />
-      Refresh
+      Шинэчлэх
     </button>
   );
 
   return (
     <EditorialShell
       activeNav="ml-insights"
-      title="Analytics"
-      subtitle="Model quality"
-      breadcrumbs={[{ label: "Analytics", href: "/ml-insights" }, { label: "Model performance" }]}
+      title="Аналитик"
+      subtitle="Загварын чанар"
+      breadcrumbs={[{ label: "Аналитик", href: "/ml-insights" }, { label: "Загварын гүйцэтгэл" }]}
       right={right}
     >
       <div className="mx-auto max-w-[1480px] space-y-6 px-5 py-6 sm:px-7 page-enter">
@@ -204,16 +205,16 @@ export default function MLInsightsPage() {
         <header className="flex flex-wrap items-end justify-between gap-4">
           <div className="space-y-1.5">
             <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant/80">
-              Model intelligence · cart-abandon classifier
+              Загварын аналитик · сагс орхилтын ангилагч
             </p>
             <h1
               className="font-display text-[34px] font-medium tracking-[-0.025em] text-on-surface leading-[1.05]"
               style={{ fontVariationSettings: '"opsz" 144, "SOFT" 30' }}
             >
-              Analytics
+              Аналитик
             </h1>
             <p className="max-w-2xl text-[13px] text-on-surface-variant">
-              Model performance, probability distribution, and feature attribution for the active cart abandonment classifier.
+              Идэвхтэй сагс орхилтын ангилагчийн гүйцэтгэл, магадлалын тархалт болон онцлогийн тайлбар.
             </p>
           </div>
         </header>
@@ -233,20 +234,20 @@ export default function MLInsightsPage() {
             {/* Model meta мөр */}
             <section className="tile rounded-[8px]">
               <div className="grid grid-cols-2 gap-x-6 gap-y-4 px-5 py-4 sm:grid-cols-3 lg:grid-cols-6">
-                <Field label="Model" value={`${data.model.model_name} · ${data.model.model_version}`} />
+                <Field label="Загвар" value={`${data.model.model_name} · ${data.model.model_version}`} />
                 <Field
-                  label="Variant"
+                  label="Хувилбар"
                   value={
                     <span className="inline-flex items-center rounded-[4px] bg-primary px-1.5 py-0.5 text-[11px] font-semibold tracking-wide text-on-primary">
                       {data.model.variant}
                     </span>
                   }
                 />
-                <Field label="Trained" value={new Date(data.model.trained_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })} />
-                <Field label="Dataset" value={<span className="font-mono text-[11.5px]">{data.model.dataset}</span>} />
-                <Field label="Threshold" value={<span className="tabular-nums">{data.model.threshold.toFixed(2)}</span>} />
+                <Field label="Сургасан огноо" value={new Date(data.model.trained_at).toLocaleDateString("mn-MN", { day: "2-digit", month: "short", year: "numeric" })} />
+                <Field label="Өгөгдлийн багц" value={<span className="font-mono text-[11.5px]">{data.model.dataset}</span>} />
+                <Field label="Босго" value={<span className="tabular-nums">{data.model.threshold.toFixed(2)}</span>} />
                 <Field
-                  label="Predictions"
+                  label="Таамаглал"
                   value={<span className="tabular-nums">{intFmt.format(data.model.prediction_count)}</span>}
                 />
               </div>
@@ -254,20 +255,20 @@ export default function MLInsightsPage() {
 
             {/* KPI grid хэсэг */}
             <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-              <MetricBlock label="Accuracy"  value={fmtPct(data.metrics.accuracy)}  helper="overall classification" emphasis />
-              <MetricBlock label="Precision" value={fmtPct(data.metrics.precision)} helper="of predicted abandons" />
-              <MetricBlock label="Recall"    value={fmtPct(data.metrics.recall)}    helper="of true abandons caught" />
-              <MetricBlock label="F1 score"  value={fmtPct(data.metrics.f1)}        helper="harmonic mean" />
-              <MetricBlock label="ROC AUC"   value={data.metrics.roc_auc ? data.metrics.roc_auc.toFixed(3) : "—"} helper="ranking quality" />
-              <MetricBlock label="Log loss"  value={data.metrics.log_loss ? data.metrics.log_loss.toFixed(3) : "—"} helper="cross-entropy" />
+              <MetricBlock label="Нарийвчлал" value={fmtPct(data.metrics.accuracy)} helper="нийт ангилалт" emphasis />
+              <MetricBlock label="Эерэг нарийвчлал" value={fmtPct(data.metrics.precision)} helper="орхино гэж таамагласнаас" />
+              <MetricBlock label="Илрүүлэлт" value={fmtPct(data.metrics.recall)} helper="бодит орхилтыг барьсан" />
+              <MetricBlock label="F1 оноо" value={fmtPct(data.metrics.f1)} helper="гармоник дундаж" />
+              <MetricBlock label="ROC AUC" value={data.metrics.roc_auc ? data.metrics.roc_auc.toFixed(3) : "—"} helper="эрэмбэлэлтийн чанар" />
+              <MetricBlock label="Log loss" value={data.metrics.log_loss ? data.metrics.log_loss.toFixed(3) : "—"} helper="cross-entropy" />
             </section>
 
             {/* Distribution ба Confusion */}
             <div className="grid gap-4 lg:grid-cols-5">
               <SectionCard
                 className="lg:col-span-3"
-                title="Predicted probability distribution"
-                hint={`Across ${intFmt.format(data.model.prediction_count)} predictions · Threshold τ = ${data.model.threshold.toFixed(2)}`}
+                title="Таамагласан магадлалын тархалт"
+                hint={`${intFmt.format(data.model.prediction_count)} таамаглал · Босго τ = ${data.model.threshold.toFixed(2)}`}
                 pad={false}
               >
                 <div className="px-3 pb-2 pt-3">
@@ -277,7 +278,7 @@ export default function MLInsightsPage() {
                         <CartesianGrid strokeDasharray="2 4" vertical={false} />
                         <XAxis dataKey="bucket" tickLine={false} axisLine={false} stroke="rgb(28 25 23 / 0.2)" tick={{ fontSize: 10, fontFamily: "var(--font-mono)", fill: "rgb(87 83 78)" }} />
                         <YAxis tickLine={false} axisLine={false} stroke="rgb(28 25 23 / 0.2)" tick={{ fontSize: 10, fontFamily: "var(--font-mono)", fill: "rgb(87 83 78)" }} />
-                        <Tooltip cursor={{ fill: "rgb(28 25 23 / 0.04)" }} formatter={(v) => [intFmt.format(Number(v)), "Predictions"]} />
+                        <Tooltip cursor={{ fill: "rgb(28 25 23 / 0.04)" }} formatter={(v) => [intFmt.format(Number(v)), "Таамаглал"]} />
                         <Bar dataKey="count" radius={[2, 2, 0, 0]}>
                           {data.probability_distribution.map((bin) => {
                             const lower = parseFloat(bin.bucket.split(/[–-]/)[0]);
@@ -295,62 +296,62 @@ export default function MLInsightsPage() {
                   <div className="flex items-center gap-3 text-on-surface-variant">
                     <span className="inline-flex items-center gap-1.5">
                       <span className="size-2 rounded-[2px]" style={{ background: "#3E6E8E" }} aria-hidden />
-                      Predicted convert (P &lt; {(data.model.threshold * 100).toFixed(0)}%)
+                      Худалдан авна гэж таамагласан (P &lt; {(data.model.threshold * 100).toFixed(0)}%)
                     </span>
                     <span className="inline-flex items-center gap-1.5">
                       <span className="size-2 rounded-[2px]" style={{ background: "#A03521" }} aria-hidden />
-                      Predicted abandon (P ≥ {(data.model.threshold * 100).toFixed(0)}%)
+                      Орхино гэж таамагласан (P ≥ {(data.model.threshold * 100).toFixed(0)}%)
                     </span>
                   </div>
                   <span className="text-on-surface-variant">
-                    Peak buckets: <span className="font-mono text-on-surface">{peakBuckets.join(", ")}</span>
+                    Оргил bucket: <span className="font-mono text-on-surface">{peakBuckets.join(", ")}</span>
                   </span>
                 </div>
               </SectionCard>
 
               <SectionCard
                 className="lg:col-span-2"
-                title="Confusion matrix"
-                hint={`At threshold ${data.model.threshold.toFixed(2)} · ${intFmt.format(totalConfusion)} labelled samples`}
+                title="Алдааны матриц"
+                hint={`Босго ${data.model.threshold.toFixed(2)} · ${intFmt.format(totalConfusion)} шошготой sample`}
               >
                 <div className="grid grid-cols-[80px_1fr_1fr] gap-2">
                   <div />
                   <div className="text-center text-[9.5px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant/80">
-                    Predicted abandon
+                    Орхино гэж таамагласан
                   </div>
                   <div className="text-center text-[9.5px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant/80">
-                    Predicted convert
+                    Худалдан авна гэж таамагласан
                   </div>
 
                   <div className="self-center text-right text-[10px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant">
-                    Actual abandon
+                    Бодитоор орхисон
                   </div>
-                  <ConfusionCell label="True positive"  value={data.metrics.confusion_matrix.true_positive}  total={totalConfusion} variant="true" />
-                  <ConfusionCell label="False negative" value={data.metrics.confusion_matrix.false_negative} total={totalConfusion} variant="false" />
+                  <ConfusionCell label="Зөв эерэг" value={data.metrics.confusion_matrix.true_positive} total={totalConfusion} variant="true" />
+                  <ConfusionCell label="Алдаатай сөрөг" value={data.metrics.confusion_matrix.false_negative} total={totalConfusion} variant="false" />
 
                   <div className="self-center text-right text-[10px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant">
-                    Actual convert
+                    Бодитоор худалдан авсан
                   </div>
-                  <ConfusionCell label="False positive" value={data.metrics.confusion_matrix.false_positive} total={totalConfusion} variant="false" />
-                  <ConfusionCell label="True negative"  value={data.metrics.confusion_matrix.true_negative}  total={totalConfusion} variant="true" />
+                  <ConfusionCell label="Алдаатай эерэг" value={data.metrics.confusion_matrix.false_positive} total={totalConfusion} variant="false" />
+                  <ConfusionCell label="Зөв сөрөг" value={data.metrics.confusion_matrix.true_negative} total={totalConfusion} variant="true" />
                 </div>
               </SectionCard>
             </div>
 
             {/* Feature contribution-ууд */}
             <SectionCard
-              title="Top features & SHAP contributions"
-              hint="Ranked by gain importance · sign and direction from mean SHAP across the holdout set."
+              title="Гол онцлогууд ба SHAP хувь нэмэр"
+              hint="Gain importance-аар эрэмбэлсэн · holdout set дээрх дундаж SHAP-ийн тэмдэг ба чиглэл."
               pad={false}
             >
               <div className="overflow-x-auto">
                 <div className="min-w-[820px]">
                   <div className="grid grid-cols-[28px_minmax(0,1.4fr)_minmax(0,1.4fr)_120px_140px] bg-surface-container-low/40 px-5 py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant/80 hairline-b">
                     <span>#</span>
-                    <span>Feature</span>
-                    <span>Importance</span>
+                    <span>Онцлог</span>
+                    <span>Ач холбогдол</span>
                     <span className="text-right">Mean SHAP</span>
-                    <span className="text-right">Direction</span>
+                    <span className="text-right">Чиглэл</span>
                   </div>
                   {data.feature_contributions.map((f, i) => (
                     <div
@@ -385,7 +386,7 @@ export default function MLInsightsPage() {
                       </span>
                       <span className="flex items-center justify-end gap-1.5 text-[11.5px] text-on-surface-variant">
                         <DirectionGlyph direction={f.direction} />
-                        <span className="capitalize">{f.direction}</span>
+                        <span>{directionLabel(f.direction)}</span>
                       </span>
                     </div>
                   ))}
@@ -395,10 +396,10 @@ export default function MLInsightsPage() {
 
             {/* Feature legend ба тайлбар */}
             <p className="text-[11px] text-on-surface-variant max-w-3xl">
-              <span className="font-semibold text-on-surface">Reading the table.</span>{" "}
-              Importance reflects how much each feature contributes to splits. Mean SHAP captures the average
-              push toward (positive) or away from (negative) abandonment across all sessions. Direction summarises
-              whether the feature consistently raises or lowers risk.
+              <span className="font-semibold text-on-surface">Хүснэгтийг унших нь.</span>{" "}
+              Ач холбогдол нь тухайн онцлог split-д хэр их нөлөөлснийг илэрхийлнэ. Mean SHAP нь бүх сессийн
+              хэмжээнд орхилт руу түлхэх эерэг эсвэл холдуулах сөрөг дундаж нөлөөг харуулна. Чиглэл нь
+              тухайн онцлог эрсдэлийг тогтмол өсгөж эсвэл бууруулж байгааг нэгтгэнэ.
             </p>
           </>
         )}

@@ -49,7 +49,7 @@ export default function ConnectionStatus() {
             : "text-on-surface-variant"
         }
       >
-        {status === "live" ? "Live" : "Demo"}
+        {status === "live" ? "Шууд" : "Demo"}
       </span>
     </div>
   );

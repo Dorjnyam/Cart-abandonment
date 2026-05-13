@@ -64,7 +64,6 @@ function buildEvent(
 
 function demoUseCaseSequence(kind: UseCaseKind): EventTuple[] {
   if (kind === "converted") {
-    // UC2: purchase_success нь converted terminal төлөв тул abandoned diagnosis/recommendation үүсгэхгүй.
     return [
       ["page_view", { device_type: "desktop", referrer: "http://localhost:3000", page_view_count: 1 }],
       ["product_view", { device_type: "desktop", referrer: "http://localhost:3000", page_view_count: 2 }],
@@ -97,7 +96,6 @@ function demoUseCaseSequence(kind: UseCaseKind): EventTuple[] {
   }
 
   if (kind === "price_sensitive") {
-    // UC3: өндөр cart_total, shipping_cost, coupon failure нь S5 Price sensitivity-г давамгай болгох evidence.
     return [
       ["page_view", { device_type: "desktop", cart_total: 820000 }],
       ["product_view", { device_type: "desktop", cart_total: 820000, price: 410000, product_price: 410000 }],
@@ -142,7 +140,6 @@ function demoUseCaseSequence(kind: UseCaseKind): EventTuple[] {
     ];
   }
 
-  // UC1: mobile checkout алдаа, rage_click, js_error, slow page load нь S2 Technical friction-г хүчтэй болгоно.
   return [
     ["page_view", { device_type: "mobile", page_view_count: 1 }],
     ["product_view", { device_type: "mobile", page_view_count: 2 }],
@@ -225,7 +222,7 @@ export default function ThesisDemoPanel() {
   }
 
   return (
-    <section className="mt-8 border border-[#c8f135]/40 bg-zinc-950 p-4 text-sm">
+    <section className="border border-[#c8f135]/40 bg-zinc-950 p-4 text-sm">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="font-brand text-lg font-bold uppercase text-[#c8f135]">Дипломын demo горим</p>
@@ -238,7 +235,7 @@ export default function ThesisDemoPanel() {
           <button disabled={busy} onClick={clearState} className="btn-secondary px-4 py-2 text-xs">Цэвэрлэх</button>
         </div>
       </div>
-      {sessionId ? <p className="mt-3 font-mono text-xs text-zinc-200">Session ID: {dashboardHint}</p> : null}
+      {sessionId ? <p className="mt-3 font-mono text-xs text-zinc-200">{dashboardHint}</p> : null}
       {statuses.length ? (
         <div className="mt-3">
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Илгээсэн үйлдлүүд</p>

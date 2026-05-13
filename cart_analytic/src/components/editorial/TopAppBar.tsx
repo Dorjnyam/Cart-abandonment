@@ -9,6 +9,7 @@ import { useAuth } from "./AuthContext";
 import ThemeToggle from "./ThemeToggle";
 import { HEADER_LEFT_CLASS } from "./layoutConstants";
 import { fetchPipelineMonitor, type ServiceHealth } from "@/lib/services/pipeline";
+import { healthLabel, roleAccessLabel, roleLabel } from "@/lib/mn-labels";
 
 function Breadcrumbs({ items }: { items: { label: string; href?: string }[] }) {
   return (
@@ -34,10 +35,10 @@ function Breadcrumbs({ items }: { items: { label: string; href?: string }[] }) {
 
 function StatusIndicator({ health }: { health: ServiceHealth }) {
   const map: Record<ServiceHealth, { dot: string; label: string; tone: string }> = {
-    healthy:  { dot: "#1F4D3E", label: "All systems operational", tone: "text-on-surface-variant" },
-    degraded: { dot: "#9C6B14", label: "Partial degradation",     tone: "text-[#7C5410]" },
-    down:     { dot: "#A03521", label: "Outage detected",         tone: "text-error" },
-    unknown:  { dot: "#A8A29E", label: "Status unknown",          tone: "text-on-surface-variant" },
+    healthy:  { dot: "#1F4D3E", label: healthLabel("healthy"),  tone: "text-on-surface-variant" },
+    degraded: { dot: "#9C6B14", label: healthLabel("degraded"), tone: "text-[#7C5410]" },
+    down:     { dot: "#A03521", label: healthLabel("down"),     tone: "text-error" },
+    unknown:  { dot: "#A8A29E", label: healthLabel("unknown"),  tone: "text-on-surface-variant" },
   };
   const { dot, label, tone } = map[health];
   return (
@@ -58,17 +59,11 @@ function StatusIndicator({ health }: { health: ServiceHealth }) {
 
 function CompanyChip() {
   const { storeName, role } = useAuth();
-  const planByRole: Record<string, string> = {
-    admin: "Internal admin",
-    owner: "Owner workspace",
-    member: "Member access",
-    developer: "Developer access",
-  };
   return (
     <Link
       href="/settings?tab=profile"
       className="hidden md:inline-flex items-center gap-2 rounded-md hairline pl-1 pr-3 py-1 text-[12px] text-on-surface bg-surface-container-lowest hover:bg-surface-container-low transition-colors"
-      title="Open company profile"
+      title="Компанийн профайл нээх"
     >
       <span
         className="flex size-6 shrink-0 items-center justify-center rounded-[5px] text-[10.5px] font-semibold text-white"
@@ -77,9 +72,9 @@ function CompanyChip() {
         {(storeName || "C").trim().slice(0, 1).toUpperCase()}
       </span>
       <span className="flex flex-col leading-tight">
-        <span className="font-semibold tracking-[-0.005em]">{storeName || "No company"}</span>
+        <span className="font-semibold tracking-[-0.005em]">{storeName || "Компани сонгоогүй"}</span>
         <span className="text-[9.5px] uppercase tracking-[0.18em] text-on-surface-variant/80">
-          {planByRole[role] ?? role}
+          {roleAccessLabel(role)}
         </span>
       </span>
     </Link>
@@ -90,7 +85,7 @@ function MockDataBadge() {
   if (process.env.NEXT_PUBLIC_MOCK_FALLBACK !== "true") return null;
   return (
     <span className="inline-flex items-center rounded-md border border-error/30 bg-error/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-error">
-      Mock data
+      Туршилтын өгөгдөл
     </span>
   );
 }
@@ -128,13 +123,6 @@ export default function TopAppBar({
     };
   }, [pathname]);
 
-  const roleLabel: Record<string, string> = {
-    admin: "Admin",
-    owner: "Owner",
-    member: "Member",
-    developer: "Developer",
-  };
-
   const initials = userName
     .split(/[\s_]/)
     .slice(0, 2)
@@ -161,8 +149,8 @@ export default function TopAppBar({
           <Search className="absolute left-2.5 size-3.5 text-on-surface-variant/55 pointer-events-none" aria-hidden />
           <input
             type="search"
-            placeholder="Search session, key, event…"
-            aria-label="Search"
+            placeholder="Сесс, түлхүүр, эвент хайх…"
+            aria-label="Хайх"
             className="w-56 xl:w-72 h-8 rounded-md hairline bg-surface-container-lowest pl-8 pr-12 text-[12px] text-on-surface placeholder:text-on-surface-variant/45 focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/40 transition"
           />
           <kbd
@@ -176,7 +164,7 @@ export default function TopAppBar({
         <button
           type="button"
           className="relative flex items-center justify-center w-8 h-8 rounded-md text-on-surface-variant hover:text-on-surface hover:bg-[rgb(28_25_23/0.04)] transition-colors"
-          aria-label="Notifications"
+          aria-label="Мэдэгдэл"
         >
           <Bell className="size-[15px]" strokeWidth={1.7} />
         </button>
@@ -187,7 +175,7 @@ export default function TopAppBar({
           className="hidden sm:flex flex-col items-end leading-tight gap-0.5 px-2.5 ml-1 hairline-l"
           suppressHydrationWarning
         >
-          <span className="text-[11px] font-semibold text-on-surface">{roleLabel[role] ?? role}</span>
+          <span className="text-[11px] font-semibold text-on-surface">{roleLabel(role)}</span>
           <span className="text-[10px] text-on-surface-variant max-w-30 truncate">{userName}</span>
         </div>
         <div

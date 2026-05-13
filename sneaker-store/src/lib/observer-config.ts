@@ -1,5 +1,5 @@
 export const OBSERVER_URL =
-  process.env.NEXT_PUBLIC_OBSERVER_URL?.trim() || "http://localhost:8001";
+  process.env.NEXT_PUBLIC_OBSERVER_URL?.trim() || "/api/observer";
 
 export const OBSERVER_SNIPPET_KEY =
   process.env.NEXT_PUBLIC_OBSERVER_SNIPPET_KEY?.trim() || "tk_full_demo_mvp";

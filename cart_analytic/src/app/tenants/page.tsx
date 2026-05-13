@@ -13,8 +13,8 @@ const STATUS_DOT: Record<string, string> = {
   inactive: "bg-error",
 };
 const STATUS_LABEL: Record<string, string> = {
-  active: "Active",
-  inactive: "Inactive",
+  active: "Идэвхтэй",
+  inactive: "Идэвхгүй",
 };
 const PLAN_BADGE: Record<string, string> = {
   full: "bg-secondary-container text-on-secondary-container border border-on-secondary-container/10",
@@ -61,7 +61,7 @@ function TenantsContent() {
       {/* Stats хэсэг */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-10">
         {[
-          { label: "Нийт Tenant", value: total.toLocaleString(), badge: null },
+          { label: "Нийт дэлгүүр", value: total.toLocaleString(), badge: null },
           { label: "Идэвхтэй", value: active.toLocaleString(), badge: null },
           { label: "Сүүлийн 30 хоног", value: new30d.toLocaleString(), badge: "шинэ бүртгэл" },
         ].map((card) => (
@@ -97,7 +97,7 @@ function TenantsContent() {
             />
           </form>
           <span className="text-xs text-on-surface-variant tabular-nums">
-            {loading ? "Ачааллаж байна..." : `Нийт ${total.toLocaleString()} tenant`}
+            {loading ? "Ачааллаж байна..." : `Нийт ${total.toLocaleString()} дэлгүүр`}
           </span>
         </div>
 
@@ -126,7 +126,7 @@ function TenantsContent() {
               ) : tenants.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-12 text-center text-sm text-on-surface-variant">
-                    Tenant олдсонгүй.
+                    Дэлгүүр олдсонгүй.
                   </td>
                 </tr>
               ) : (
@@ -205,7 +205,7 @@ function TenantsContent() {
 export default function TenantsPage() {
   return (
     <RoleGuard allow={["admin"]}>
-      <EditorialShell activeNav="admin" title="Tenant удирдлага" subtitle="Admin Panel: Stores / Tenants">
+      <EditorialShell activeNav="admin" title="Дэлгүүрийн удирдлага" subtitle="Админ самбар: дэлгүүрүүд">
         <TenantsContent />
       </EditorialShell>
     </RoleGuard>

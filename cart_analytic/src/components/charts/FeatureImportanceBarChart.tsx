@@ -9,7 +9,7 @@ export default function FeatureImportanceBarChart({
   data: FeatureImportancePoint[] | null | undefined;
 }) {
   if (!data || data.length === 0) {
-    return <div className="h-72 grid place-items-center text-sm text-on-surface-variant">Feature importance өгөгдөл алга.</div>;
+    return <div className="h-72 grid place-items-center text-sm text-on-surface-variant">Онцлогийн ач холбогдлын өгөгдөл алга.</div>;
   }
 
   return (

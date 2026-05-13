@@ -33,13 +33,16 @@ export default function Navbar() {
         <div className="flex items-center gap-3 text-sm">
           <Link href="/search" className="rounded p-2 text-zinc-200 hover:text-[#c8f135]">Search</Link>
           {session?.user ? (
-            <button
-              type="button"
-              className="rounded p-2 text-zinc-200 hover:text-[#c8f135]"
-              onClick={() => signOut({ callbackUrl: "/" })}
-            >
-              Logout
-            </button>
+            <>
+              <Link href="/account" className="rounded p-2 text-zinc-200 hover:text-[#c8f135]">Profile</Link>
+              <button
+                type="button"
+                className="rounded p-2 text-zinc-200 hover:text-[#c8f135]"
+                onClick={() => signOut({ callbackUrl: "/" })}
+              >
+                Logout
+              </button>
+            </>
           ) : (
             <Link href="/login" className="rounded p-2 text-zinc-200 hover:text-[#c8f135]">
               Sign in
@@ -74,4 +77,3 @@ export default function Navbar() {
     </header>
   );
 }
-

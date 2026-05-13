@@ -26,7 +26,7 @@ export default function SignupPage() {
     <AuthShell
       eyebrow="Бүртгүүлэх"
       title="Шинэ данс үүсгэх"
-      description="Дэлгүүрийн мэдээллээ оруулаад analytics workspace үүсгэнэ."
+      description="Дэлгүүрийн мэдээллээ оруулаад аналитикийн ажлын орчин үүсгэнэ."
     >
       <form
         className="space-y-5"

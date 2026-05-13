@@ -155,7 +155,7 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       REDIS_URL: redis://redis:6379/0
       SESSION_SERVICE_URL: http://session_service:8002/ingest/raw-event
-      OBSERVER_CORS_ORIGINS: http://localhost:3000,http://localhost:3001
+      OBSERVER_CORS_ORIGINS: "*"
       # Local/dev default is prefix validation so API keys generated in analytics work immediately.
       # Set OBSERVER_API_KEYS to a comma-separated allowlist when you want exact-key enforcement.
       OBSERVER_API_KEYS: ${OBSERVER_API_KEYS:-}
@@ -292,7 +292,7 @@ services:
     build:
       context: ./sneaker-store
       args:
-        NEXT_PUBLIC_OBSERVER_URL: http://localhost:8001
+        NEXT_PUBLIC_OBSERVER_URL: /api/observer
         NEXT_PUBLIC_OBSERVER_SNIPPET_KEY: ${DEMO_OBSERVER_API_KEY:-tk_full_demo_mvp}
         NEXT_PUBLIC_OBSERVER_TENANT_ID: ${NEXT_PUBLIC_OBSERVER_TENANT_ID:-00000000-0000-0000-0000-000000000001}
     command: >
@@ -303,11 +303,13 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/sneakerdb
       POSTGRES_ADMIN_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/postgres
-      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_URL: ${DEMO_ECOMMERCE_PUBLIC_URL:-http://localhost:3000}
+      NEXTAUTH_URL_INTERNAL: http://demo_ecommerce:3000
       NEXTAUTH_SECRET: change-me-nextauth-secret
       ADMIN_EMAIL: demo-shop@example.com
       ADMIN_PASSWORD: change-me-demo-shop-password
-      NEXT_PUBLIC_OBSERVER_URL: http://localhost:8001
+      NEXT_PUBLIC_OBSERVER_URL: /api/observer
+      OBSERVER_SERVER_URL: http://observer:8001
       NEXT_PUBLIC_OBSERVER_SNIPPET_KEY: ${DEMO_OBSERVER_API_KEY:-tk_full_demo_mvp}
       NEXT_PUBLIC_OBSERVER_TENANT_ID: ${NEXT_PUBLIC_OBSERVER_TENANT_ID:-00000000-0000-0000-0000-000000000001}
     ports:

@@ -17,7 +17,7 @@ export default function ShapWaterfallChart({ data }: { data: SHAPValues | null |
   return (
     <div className="space-y-3">
       <div className="text-sm text-on-surface-variant">
-        Base: <span className="font-semibold text-on-surface tabular-nums">{data.baseValue.toFixed(2)}</span> → Prediction:{" "}
+        Суурь: <span className="font-semibold text-on-surface tabular-nums">{data.baseValue.toFixed(2)}</span> → Таамаглал:{" "}
         <span className="font-semibold text-on-surface tabular-nums">{data.prediction.toFixed(2)}</span>
       </div>
       {data.values.map((item) => (

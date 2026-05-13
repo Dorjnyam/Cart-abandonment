@@ -11,9 +11,12 @@ try {
 const { PrismaClient } = require("@prisma/client");
 const { PrismaPg } = require("@prisma/adapter-pg");
 const { Pool } = require("pg");
+const bcrypt = require("bcrypt");
 const catalog = require("../sneaker_store_500_products.json");
 
 const MNT_PER_USD = 3500;
+const DEMO_CUSTOMER_EMAIL = "mjldoko11@gmail.com";
+const DEMO_CUSTOMER_PASSWORD = "Doko0204$";
 const PEXELS_PHOTO_IDS = [
   6776079,
   6776083,
@@ -399,7 +402,26 @@ async function main() {
     });
   }
 
+  const demoPassword = await bcrypt.hash(DEMO_CUSTOMER_PASSWORD, 10);
+  await prisma.user.upsert({
+    where: { email: DEMO_CUSTOMER_EMAIL },
+    create: {
+      name: "Diplomiin Demo Customer",
+      email: DEMO_CUSTOMER_EMAIL,
+      password: demoPassword,
+      role: "customer",
+      emailVerifiedAt: new Date(),
+    },
+    update: {
+      name: "Diplomiin Demo Customer",
+      password: demoPassword,
+      role: "customer",
+      emailVerifiedAt: new Date(),
+    },
+  });
+
   console.log(`Seeded ${createdProducts.length} products at ${MNT_PER_USD} MNT/USD.`);
+  console.log(`Seeded demo customer ${DEMO_CUSTOMER_EMAIL}.`);
   console.log(`Assigned ${PEXELS_PHOTO_IDS.length} remote Pexels sneaker images across the catalog.`);
 }
 

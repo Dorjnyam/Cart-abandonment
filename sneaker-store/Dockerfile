@@ -5,7 +5,7 @@ RUN npm ci && npm install lightningcss-linux-x64-musl @tailwindcss/oxide-linux-x
 
 FROM node:22-alpine AS builder
 WORKDIR /app
-ARG NEXT_PUBLIC_OBSERVER_URL=http://localhost:8001
+ARG NEXT_PUBLIC_OBSERVER_URL=/api/observer
 ARG NEXT_PUBLIC_OBSERVER_SNIPPET_KEY=tk_full_demo_mvp
 ARG NEXT_PUBLIC_OBSERVER_TENANT_ID=00000000-0000-0000-0000-000000000001
 ENV NEXT_TELEMETRY_DISABLED=1

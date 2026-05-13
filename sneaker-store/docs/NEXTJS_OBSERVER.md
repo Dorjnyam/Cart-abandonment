@@ -17,10 +17,11 @@ Source: [`src/app/layout.tsx`](../src/app/layout.tsx).
 
 | Variable | Purpose |
 |----------|---------|
-| `NEXT_PUBLIC_OBSERVER_URL` | Observer base URL (e.g. `http://localhost:8001`). |
+| `NEXT_PUBLIC_OBSERVER_URL` | Public Observer base URL. Use `/api/observer` for local/LAN demos so phone browsers call the storefront host instead of their own `localhost`. |
+| `OBSERVER_SERVER_URL` | Server-side Observer URL used by the `/api/observer` proxy (`http://observer:8001` in Docker Compose, `http://localhost:8001` on the host). |
 | `NEXT_PUBLIC_OBSERVER_SNIPPET_KEY` | Snippet key (`tk_basic_*` / `tk_smart_*` / `tk_full_*`). |
 
-**Fallback behavior:** In [`layout.tsx`](../src/app/layout.tsx), `NEXT_PUBLIC_OBSERVER_URL?.trim() || "http://localhost:8001"` (and the same pattern for the snippet key) so empty strings from `.env` do not win over the default. Add **`.env.local`** next to `package.json` (see repo template values), set your real snippet key, then restart `next dev`.
+**Fallback behavior:** In [`observer-config.ts`](../src/lib/observer-config.ts), `NEXT_PUBLIC_OBSERVER_URL?.trim() || "/api/observer"` (and the same pattern for the snippet key) so empty strings from `.env` do not win over the default. Add **`.env.local`** next to `package.json` (see repo template values), set your real snippet key, then restart `next dev`.
 
 After editing **`.env.local`**, restart `next dev` so Next.js picks up changes to `NEXT_PUBLIC_*` vars.
 

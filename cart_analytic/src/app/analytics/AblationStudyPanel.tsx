@@ -39,7 +39,7 @@ export default function AblationStudyPanel() {
       setData(result);
       setError("");
     } catch {
-      setError("Ablation data is unavailable.");
+      setError("Ablation өгөгдөл одоогоор боломжгүй байна.");
     } finally {
       setLoading(false);
     }
@@ -50,7 +50,7 @@ export default function AblationStudyPanel() {
   if (!data) {
     return (
       <div className="rounded-lg border border-outline-variant/15 bg-surface-container-lowest p-5 text-sm text-on-surface-variant">
-        {loading ? "Loading ablation data..." : error || "No ablation data available."}
+        {loading ? "Ablation өгөгдөл уншиж байна..." : error || "Ablation өгөгдөл алга."}
       </div>
     );
   }
@@ -123,7 +123,7 @@ export default function AblationStudyPanel() {
                             : "font-semibold text-red-700"
                       }
                     >
-                      {baseline ? deltaLabel(baseline, v) : "—"} conf
+                      {baseline ? deltaLabel(baseline, v) : "—"} итгэл
                     </span>
                   ) : "—"}
                 </td>

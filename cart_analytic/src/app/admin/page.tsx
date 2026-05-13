@@ -189,7 +189,7 @@ function ModelMetricsTab() {
   if (!summary) {
     return (
       <div className="rounded-lg border border-outline-variant/15 bg-surface-container-lowest p-5 text-sm text-on-surface-variant">
-        Model metrics are unavailable.
+        Загварын хэмжилт одоогоор боломжгүй байна.
       </div>
     );
   }
@@ -259,7 +259,7 @@ function ExportHistoryTab() {
       setTaskIds((prev) => [...prev.filter((t) => t.type !== exportType), { type: exportType, id: taskId }]);
       showToast(`Export эхэлсэн. Task ID: ${taskId}`, "success");
     } catch {
-      showToast("Export эхлүүлэхэд алдаа гарлаа.", "error");
+      showToast("Экспорт эхлүүлэхэд алдаа гарлаа.", "error");
     } finally {
       if (exportType === "analytics") setAnalyticsLoading(false);
       else setSessionsLoading(false);
@@ -281,12 +281,12 @@ function ExportHistoryTab() {
             <div key={type} className="rounded-xl border border-outline-variant/[0.09] bg-surface-container-lowest p-5 space-y-3">
               <div>
                 <p className="text-[13px] font-semibold text-on-surface">
-                  {isAnalytics ? "Analytics Export" : "Sessions Export"}
+                  {isAnalytics ? "Аналитик экспорт" : "Сесс экспорт"}
                 </p>
                 <p className="text-[11px] text-on-surface-variant mt-0.5">
                   {isAnalytics
-                    ? "Session, prediction болон оношлогооны өгөгдөл"
-                    : "Session summary өгөгдлийн багц"}
+                    ? "Сесс, таамаглал болон оношлогооны өгөгдөл"
+                    : "Сессийн нэгтгэл өгөгдлийн багц"}
                 </p>
               </div>
               {taskId && (
@@ -301,7 +301,7 @@ function ExportHistoryTab() {
                 }`}
               >
                 <RefreshCw className={`size-4 ${isLoading ? "animate-spin" : ""}`} aria-hidden />
-                {isLoading ? "Эхлүүлж байна..." : isAnalytics ? "Analytics Export" : "Sessions Export"}
+              {isLoading ? "Эхлүүлж байна..." : isAnalytics ? "Аналитик экспорт" : "Сесс экспорт"}
               </button>
             </div>
           );
@@ -312,7 +312,7 @@ function ExportHistoryTab() {
 }
 
 const TABS: { key: Tab; label: string }[] = [
-  { key: "health",  label: "Pipeline Health" },
+  { key: "health",  label: "Pipeline төлөв" },
   { key: "metrics", label: "Загварын хэмжилт" },
   { key: "export",  label: "Экспорт" },
 ];

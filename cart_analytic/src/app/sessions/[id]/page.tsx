@@ -19,6 +19,7 @@ import {
   SCORE_ORDER,
   type DashboardSessionDetail,
 } from "@/lib/services/dashboard-mvp";
+import { predictionClassLabel, recommendationStatusLabel, riskLabel, sourceLabel } from "@/lib/mn-labels";
 
 function SectionCard({
   title,
@@ -55,10 +56,10 @@ function ProbabilityDial({ probability }: { probability: number }) {
   const pct = Math.max(0, Math.min(1, probability));
   const tone =
     pct >= 0.75
-      ? { stroke: "#A03521", label: "High abandonment risk", lightFg: "#7E2A1A", bg: "rgb(160 53 33 / 0.06)" }
+      ? { stroke: "#A03521", label: `${riskLabel("high")} орхилтын эрсдэл`, lightFg: "#7E2A1A", bg: "rgb(160 53 33 / 0.06)" }
       : pct >= 0.5
-        ? { stroke: "#9C6B14", label: "Medium risk", lightFg: "#7C5410", bg: "rgb(156 107 20 / 0.08)" }
-        : { stroke: "#1F4D3E", label: "Low risk", lightFg: "#1F4D3E", bg: "rgb(31 77 62 / 0.06)" };
+        ? { stroke: "#9C6B14", label: `${riskLabel("medium")} эрсдэл`, lightFg: "#7C5410", bg: "rgb(156 107 20 / 0.08)" }
+        : { stroke: "#1F4D3E", label: `${riskLabel("low")} эрсдэл`, lightFg: "#1F4D3E", bg: "rgb(31 77 62 / 0.06)" };
   const radius = 64;
   const circumference = 2 * Math.PI * radius;
   const dash = pct * circumference;
@@ -93,7 +94,7 @@ function ProbabilityDial({ probability }: { probability: number }) {
           >
             {formatPct(probability)}
           </p>
-          <p className="mt-1 text-[10px] uppercase tracking-[0.2em] text-on-surface-variant">probability</p>
+          <p className="mt-1 text-[10px] uppercase tracking-[0.2em] text-on-surface-variant">магадлал</p>
         </div>
       </div>
       <div className="flex-1">
@@ -105,8 +106,8 @@ function ProbabilityDial({ probability }: { probability: number }) {
           {tone.label}
         </span>
         <p className="mt-3 text-[12.5px] leading-[1.55] text-on-surface-variant">
-          The classifier evaluates this session against the trained cart-abandon distribution. Confidence above the
-          threshold flags the session as abandoned.
+          Ангилагч энэ сессийг сургасан сагс орхилтын тархалттай харьцуулж үнэлнэ. Магадлал босгоос давбал
+          сессийг орхисон гэж тэмдэглэнэ.
         </p>
       </div>
     </div>
@@ -116,7 +117,7 @@ function ProbabilityDial({ probability }: { probability: number }) {
 function ScoreBars({ detail }: { detail: DashboardSessionDetail }) {
   const scores = detail.diagnosis?.scores;
   if (!scores) {
-    return <p className="text-[12.5px] text-on-surface-variant">No S1–S7 diagnosis yet for this session.</p>;
+    return <p className="text-[12.5px] text-on-surface-variant">Энэ сесс дээр S1–S7 оношлогоо хараахан алга.</p>;
   }
   return (
     <div className="space-y-3">
@@ -182,7 +183,7 @@ export default function SessionDetailPage() {
     try {
       setDetail(await fetchDashboardSessionDetail(sessionId));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Session detail request failed.");
+      setError(err instanceof Error ? err.message : "Сессийн дэлгэрэнгүй хүсэлт амжилтгүй боллоо.");
       setDetail(null);
     } finally {
       setLoading(false);
@@ -202,9 +203,9 @@ export default function SessionDetailPage() {
   return (
     <EditorialShell
       activeNav="sessions"
-      title="Session Evidence"
+      title="Сессийн нотолгоо"
       subtitle={sessionId}
-      breadcrumbs={[{ label: "Sessions", href: "/sessions" }, { label: sessionId }]}
+      breadcrumbs={[{ label: "Сессүүд", href: "/sessions" }, { label: sessionId }]}
     >
       <div className="mx-auto max-w-[1400px] px-6 py-8 sm:px-8 lg:px-10">
         {/* Header хэсэг */}
@@ -214,10 +215,10 @@ export default function SessionDetailPage() {
             className="inline-flex items-center gap-1.5 text-[11.5px] font-medium text-on-surface-variant hover:text-on-surface transition-colors"
           >
             <ArrowLeft className="size-3.5" aria-hidden />
-            Back to ledger
+            Бүртгэл рүү буцах
           </Link>
           <p className="mt-3 text-[10.5px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant/70">
-            Session evidence · ML reasoning chain
+            Сессийн нотолгоо · ML тайлбарын дараалал
           </p>
           <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
             <div className="min-w-0">
@@ -230,7 +231,7 @@ export default function SessionDetailPage() {
                   letterSpacing: "-0.024em",
                 }}
               >
-                Evidence view
+                Нотолгооны дэлгэц
               </h1>
               <p className="mt-1.5 font-mono text-[12px] text-on-surface-variant">{sessionId}</p>
             </div>
@@ -240,7 +241,7 @@ export default function SessionDetailPage() {
               className="inline-flex items-center gap-1.5 rounded-md hairline bg-surface-container-lowest px-3 py-1.5 text-[12px] font-medium text-on-surface hover:bg-surface-container-low transition-colors"
             >
               <RefreshCw className={`size-3.5 ${loading ? "animate-spin" : ""}`} aria-hidden />
-              Refresh
+              Шинэчлэх
             </button>
           </div>
         </header>
@@ -260,9 +261,9 @@ export default function SessionDetailPage() {
             {error}
           </div>
         ) : !detail ? (
-          <SectionCard className="mt-6" title="Not found" hint="Verify the session reached Main service.">
+          <SectionCard className="mt-6" title="Олдсонгүй" hint="Сесс Main сервист хүрсэн эсэхийг шалгана уу.">
             <p className="text-[12.5px] text-on-surface-variant">
-              This session ID isn’t in the ledger. It may still be in transit, or the demo flow may not have completed.
+              Энэ session ID бүртгэлд алга. Дамжуулалт үргэлжилж байгаа эсвэл demo урсгал бүрэн дуусаагүй байж болно.
             </p>
           </SectionCard>
         ) : (
@@ -271,8 +272,8 @@ export default function SessionDetailPage() {
             <div className="mt-6 grid gap-4 lg:grid-cols-12 stagger-children">
               <SectionCard
                 className="lg:col-span-7"
-                title="ML prediction"
-                hint={detail.prediction?.predicted_class ? `Predicted: ${detail.prediction.predicted_class}` : "No prediction"}
+                title="ML таамаглал"
+                hint={detail.prediction?.predicted_class ? `Таамаглал: ${predictionClassLabel(detail.prediction.predicted_class)}` : "Таамаглал алга"}
                 right={
                   detail.prediction ? (
                     <span className="inline-flex items-center gap-1.5 rounded-md hairline bg-surface-container-lowest px-2 py-0.5 text-[10.5px] font-mono text-on-surface-variant">
@@ -283,17 +284,17 @@ export default function SessionDetailPage() {
               >
                 <ProbabilityDial probability={detail.prediction?.abandonment_probability ?? 0} />
                 <dl className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
-                  <MetaField label="Threshold" value={detail.prediction?.threshold ?? "—"} />
-                  <MetaField label="Predicted class" value={detail.prediction?.predicted_class ?? "—"} />
-                  <MetaField label="Tenant" value={String(detail.organization_id)} />
-                  <MetaField label="Events" value={detail.event_count} />
+                  <MetaField label="Босго" value={detail.prediction?.threshold ?? "—"} />
+                  <MetaField label="Таамагласан ангилал" value={predictionClassLabel(detail.prediction?.predicted_class)} />
+                  <MetaField label="Дэлгүүр" value={String(detail.organization_id)} />
+                  <MetaField label="Эвент" value={detail.event_count} />
                 </dl>
               </SectionCard>
 
               <SectionCard
                 className="lg:col-span-5"
-                title="Dominant reason"
-                hint="From S1–S7 diagnosis · argmax"
+                title="Давамгай шалтгаан"
+                hint="S1–S7 оношлогооноос · хамгийн их оноо"
               >
                 {detail.diagnosis ? (
                   <>
@@ -319,7 +320,7 @@ export default function SessionDetailPage() {
                     </p>
                   </>
                 ) : (
-                  <p className="text-[12.5px] text-on-surface-variant">No diagnosis yet.</p>
+                  <p className="text-[12.5px] text-on-surface-variant">Оношлогоо одоогоор алга.</p>
                 )}
               </SectionCard>
             </div>
@@ -328,8 +329,8 @@ export default function SessionDetailPage() {
             <div className="mt-4 grid gap-4 lg:grid-cols-12 stagger-children">
               <SectionCard
                 className="lg:col-span-4"
-                title="Event timeline"
-                hint={`${detail.events.length} events captured`}
+                title="Эвентийн дараалал"
+                hint={`${detail.events.length} эвент бүртгэгдсэн`}
                 right={<Clock3 className="size-3.5 text-on-surface-variant/60" aria-hidden />}
               >
                 {detail.events.length ? (
@@ -365,19 +366,19 @@ export default function SessionDetailPage() {
                   </ol>
                 ) : (
                   <p className="text-[12.5px] text-on-surface-variant">
-                    No raw events surfaced from Observer for this session.
+                    Энэ сессийн Observer raw эвент одоогоор харагдахгүй байна.
                   </p>
                 )}
               </SectionCard>
 
-              <SectionCard className="lg:col-span-4" title="S1–S7 scores" hint="Normalized 0–1 · dominant emphasized">
+              <SectionCard className="lg:col-span-4" title="S1–S7 оноо" hint="0–1 хооронд нормчилсон · давамгайг тодруулсан">
                 <ScoreBars detail={detail} />
               </SectionCard>
 
               <SectionCard
                 className="lg:col-span-4"
-                title="Top model features"
-                hint="XGBoost contribution magnitude"
+                title="Загварын гол онцлогууд"
+                hint="XGBoost хувь нэмрийн хэмжээ"
               >
                 {detail.top_features.length ? (
                   <div className="space-y-3">
@@ -403,7 +404,7 @@ export default function SessionDetailPage() {
                     })}
                   </div>
                 ) : (
-                  <p className="text-[12.5px] text-on-surface-variant">No feature attributions for this prediction.</p>
+                  <p className="text-[12.5px] text-on-surface-variant">Энэ таамаглалд онцлогийн тайлбар алга.</p>
                 )}
               </SectionCard>
             </div>
@@ -412,8 +413,8 @@ export default function SessionDetailPage() {
             {detail.recommendation ? (
               <SectionCard
                 className="mt-4"
-                title="Recommendation"
-                hint={`${detail.recommendation.source === "gemini" ? "Generated by Gemini" : "Generated by fallback"} · ${detail.recommendation.status}`}
+                title="Зөвлөмж"
+                hint={`${detail.recommendation.source === "gemini" ? "Gemini үүсгэсэн" : "Нөөц дүрмээр үүссэн"} · ${recommendationStatusLabel(detail.recommendation.status)}`}
                 right={<Lightbulb className="size-3.5 text-on-surface-variant/60" aria-hidden />}
               >
                 <div className="grid gap-6 lg:grid-cols-3">
@@ -426,7 +427,7 @@ export default function SessionDetailPage() {
                         {detail.recommendation.reason_code}
                       </span>
                       <span className="rounded-[3px] hairline px-1.5 py-0.5 font-mono text-[10.5px] text-on-surface-variant">
-                        {detail.recommendation.source}
+                        {sourceLabel(detail.recommendation.source)}
                       </span>
                     </div>
                     <h3
@@ -446,7 +447,7 @@ export default function SessionDetailPage() {
                   </div>
                   <div className="lg:col-span-1">
                     <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant/70">
-                      Action steps
+                      Хэрэгжүүлэх алхмууд
                     </p>
                     <ol className="mt-2 space-y-2 text-[12.5px] text-on-surface">
                       {detail.recommendation.action_steps.map((step, i) => (
@@ -465,10 +466,10 @@ export default function SessionDetailPage() {
                 </div>
               </SectionCard>
             ) : (
-              <SectionCard className="mt-4" title="Recommendation" hint="Awaiting generation">
+              <SectionCard className="mt-4" title="Зөвлөмж" hint="Үүсэхийг хүлээж байна">
                 <p className="text-[12.5px] text-on-surface-variant">
-                  No recommendation yet. Once diagnosis completes, Gemini or the fallback engine will compose an action
-                  plan tied to the dominant reason.
+                  Зөвлөмж одоогоор алга. Оношлогоо дуусмагц Gemini эсвэл нөөц engine давамгай шалтгаанд
+                  холбогдсон арга хэмжээний төлөвлөгөө үүсгэнэ.
                 </p>
               </SectionCard>
             )}
@@ -478,7 +479,7 @@ export default function SessionDetailPage() {
               <summary className="flex cursor-pointer items-center justify-between gap-3 px-5 py-3 list-none">
                 <span className="inline-flex items-center gap-2 text-[12.5px] font-medium text-on-surface">
                   <Code2 className="size-3.5 text-on-surface-variant/70" aria-hidden />
-                  Developer payload
+                  Хөгжүүлэгчийн payload
                 </span>
                 <ChevronDown className="size-3.5 text-on-surface-variant/60 transition-transform group-open:rotate-180" aria-hidden />
               </summary>

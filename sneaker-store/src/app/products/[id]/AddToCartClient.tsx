@@ -1,8 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useCart } from "@/store/cart";
 import { commerceAttrs } from "@/lib/commerce-attrs";
+import WishlistButton from "@/components/product/WishlistButton";
 
 export type PDPProduct = {
   id: string;
@@ -17,6 +19,7 @@ export type PDPProduct = {
 
 export default function AddToCartClient({ product }: { product: PDPProduct }) {
   const addItem = useCart((s) => s.addItem);
+  const router = useRouter();
   const inStockSizes = product.sizes.filter((s) => s.stock > 0);
   const [size, setSize] = useState(inStockSizes[0]?.eu ?? product.sizes[0]?.eu ?? 40);
   const [color, setColor] = useState(product.colors[0]?.name ?? "default");
@@ -32,6 +35,22 @@ export default function AddToCartClient({ product }: { product: PDPProduct }) {
     (product.colors[0]?.slug ?? "default");
   const variantKey = `${colorSlug}-${size}`;
   const isOnSale = product.salePrice != null;
+
+  function addSelectedToCart() {
+    if (qty > stockForSize || stockForSize <= 0) return false;
+    for (let i = 0; i < qty; i += 1) {
+      addItem({
+        id: product.id,
+        name: product.name,
+        price: product.salePrice ?? product.price,
+        size,
+        color,
+        qty: 1,
+        image: product.images[0] ?? "",
+      });
+    }
+    return true;
+  }
 
   const addToCartAttrs = useMemo(
     () =>
@@ -125,18 +144,7 @@ export default function AddToCartClient({ product }: { product: PDPProduct }) {
         {...addToCartAttrs}
         disabled={stockForSize <= 0}
         onClick={() => {
-          if (qty > stockForSize) return;
-          for (let i = 0; i < qty; i += 1) {
-            addItem({
-              id: product.id,
-              name: product.name,
-              price: product.salePrice ?? product.price,
-              size,
-              color,
-              qty: 1,
-              image: product.images[0] ?? "",
-            });
-          }
+          if (!addSelectedToCart()) return;
           setOk(true);
           setTimeout(() => setOk(false), 1500);
         }}
@@ -147,18 +155,26 @@ export default function AddToCartClient({ product }: { product: PDPProduct }) {
       <button
         type="button"
         {...commerceAttrs({
-          ca: "wishlist_add",
+          ca: "checkout_start",
           id: product.id,
           price: unitPrice,
+          value: lineValue,
           cat: product.primaryCategory || undefined,
           size: String(size),
+          qty,
           variant: variantKey,
           sale: isOnSale,
         })}
-        className="btn-secondary w-full px-4 py-3 text-sm"
+        disabled={stockForSize <= 0}
+        className="btn-secondary w-full px-4 py-3 text-sm disabled:opacity-50"
+        onClick={() => {
+          if (!addSelectedToCart()) return;
+          router.push("/checkout");
+        }}
       >
-        Add to wishlist
+        Buy now
       </button>
+      <WishlistButton productId={product.id} className="w-full" />
       {showSizeGuide && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
           <div className="surface-low w-full max-w-md rounded-xl p-4">

@@ -57,7 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => ({
       role: session.role ?? "owner",
       userName: session.userName ?? "Хэрэглэгч",
-      storeName: session.storeName ?? "Central Market",
+      storeName: session.storeName ?? "Төв Маркет",
       userId: session.userId ?? "",
       token: session.token ?? null,
       isAuthenticated: Boolean(session.token || session.role),
@@ -71,7 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           token,
           role,
           userName,
-          storeName: storeName ?? "Central Market",
+          storeName: storeName ?? "Төв Маркет",
           userId: userId ?? "",
         };
         persistSession(next);
@@ -102,7 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           token: data.access,
           role: (data.user?.role as UserRole) ?? "owner",
           userName: data.user?.email?.split("@")[0] ?? email.split("@")[0] ?? "Хэрэглэгч",
-          storeName: data.user?.store_name ?? "Central Market",
+          storeName: data.user?.store_name ?? "Төв Маркет",
           userId: data.user?.id ?? "",
         };
         persistSession(next);

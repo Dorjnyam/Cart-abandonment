@@ -28,7 +28,7 @@ export default function AbandonmentTrendChart({ data }: { data: TrendPoint[] | n
             }}
           />
           <Legend wrapperStyle={{ fontSize: "0.75rem" }} />
-          <Line yAxisId="sessions" type="monotone" dataKey="sessions" name="Sessions" stroke={navy} strokeWidth={2.25} dot={false} activeDot={{ r: 4 }} />
+          <Line yAxisId="sessions" type="monotone" dataKey="sessions" name="Сесс" stroke={navy} strokeWidth={2.25} dot={false} activeDot={{ r: 4 }} />
           <Line
             yAxisId="abandonment"
             type="monotone"

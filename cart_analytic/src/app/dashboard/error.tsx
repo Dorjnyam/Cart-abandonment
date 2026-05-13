@@ -13,7 +13,7 @@ export default function DashboardError({
   return (
     <EditorialShell activeNav="dashboard" title="Тойм" subtitle="Алдаа">
       <div className="px-4 py-8 sm:px-6 lg:px-8 max-w-2xl">
-        <ErrorStateCard title="Dashboard ачааллахад алдаа гарлаа" message={error.message} onRetry={reset} />
+        <ErrorStateCard title="Хяналтын самбар ачааллахад алдаа гарлаа" message={error.message} onRetry={reset} />
       </div>
     </EditorialShell>
   );
