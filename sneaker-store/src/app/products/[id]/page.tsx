@@ -40,7 +40,7 @@ export default async function ProductDetailPage({
   });
   if (!product) notFound();
 
-  const totalStock = product.productSizes.reduce((a, ps) => a + ps.stock, 0);
+  const totalStock = product.productSizes.reduce((a: number, ps: { stock: number }) => a + ps.stock, 0);
   const primaryCategory =
     product.categories[0]?.category.slug ??
     product.categories[0]?.category.name ??

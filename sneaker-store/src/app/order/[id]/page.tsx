@@ -15,7 +15,7 @@ export default async function OrderPage({
   });
   if (!order) notFound();
 
-  const cartItemCount = order.items.reduce((n, i) => n + i.quantity, 0);
+  const cartItemCount = order.items.reduce((n: number, i: { quantity: number }) => n + i.quantity, 0);
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 pb-20">
@@ -61,4 +61,3 @@ export default async function OrderPage({
     </div>
   );
 }
-

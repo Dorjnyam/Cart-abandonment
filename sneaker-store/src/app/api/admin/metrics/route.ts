@@ -11,8 +11,7 @@ export async function GET() {
     prisma.product.count(),
     prisma.user.count(),
   ]);
-  const sales = orders.reduce((sum, o) => sum + o.totalPrice, 0);
+  const sales = orders.reduce((sum: number, o: { totalPrice: number }) => sum + o.totalPrice, 0);
   const aov = orders.length ? Math.round(sales / orders.length) : 0;
   return NextResponse.json({ orders: orders.length, products, users, sales, aov });
 }
-

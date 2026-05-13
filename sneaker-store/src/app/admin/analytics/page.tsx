@@ -9,7 +9,7 @@ export default async function AdminAnalyticsPage() {
   ]);
 
   const purchases = orders.length;
-  const revenue = orders.reduce((sum, o) => sum + o.totalPrice, 0);
+  const revenue = orders.reduce((sum: number, o: { totalPrice: number }) => sum + o.totalPrice, 0);
 
   return (
     <div className="vault-admin-main mx-auto max-w-5xl space-y-3 px-4 py-8 lg:px-10">
