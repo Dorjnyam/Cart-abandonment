@@ -124,17 +124,13 @@ function StatusPill({
   children: React.ReactNode;
 }) {
   const map = {
-    success: { bg: "rgb(31 77 62 / 0.08)", fg: "#1F4D3E" },
-    warn:    { bg: "rgb(156 107 20 / 0.10)", fg: "#7C5410" },
-    danger:  { bg: "rgb(160 53 33 / 0.08)", fg: "#7E2A1A" },
-    neutral: { bg: "rgb(28 25 23 / 0.04)", fg: "rgb(87 83 78)" },
+    success: "bg-success/10 text-success",
+    warn: "bg-warning/10 text-warning",
+    danger: "bg-error/10 text-error",
+    neutral: "bg-surface-muted text-muted",
   } as const;
-  const tones = map[tone];
   return (
-    <span
-      className="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[11px] font-medium"
-      style={{ background: tones.bg, color: tones.fg }}
-    >
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${map[tone]}`}>
       {children}
     </span>
   );
@@ -152,21 +148,21 @@ function FieldShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-1.5">
-      <label htmlFor={htmlFor} className="block text-[10.5px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">
+    <div className="space-y-2">
+      <label htmlFor={htmlFor} className="block text-[11px] font-bold uppercase tracking-[0.18em] text-muted">
         {label}
       </label>
       {children}
-      {hint ? <p className="text-[11px] text-on-surface-variant">{hint}</p> : null}
+      {hint ? <p className="text-xs text-muted">{hint}</p> : null}
     </div>
   );
 }
 
 function inputClass(disabled = false) {
   return [
-    "w-full rounded-md border border-outline-variant/[0.12] bg-surface-container-low px-3 py-2 text-[13px] text-on-surface",
-    "focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/40",
-    disabled ? "opacity-50" : "",
+    "w-full rounded-xl border border-surface-muted bg-bg px-4 py-2.5 text-sm text-text",
+    "focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/40 transition-all",
+    disabled ? "opacity-50 cursor-not-allowed" : "",
   ].join(" ");
 }
 
@@ -396,8 +392,8 @@ function SettingsInner() {
                     className={[
                       "group relative flex shrink-0 items-center gap-2.5 rounded-md py-1.5 pl-3 pr-2.5 text-left text-[12.5px] transition-colors duration-150",
                       active
-                        ? "bg-[rgb(28_25_23/0.06)] text-on-surface font-medium"
-                        : "text-on-surface-variant hover:bg-[rgb(28_25_23/0.04)] hover:text-on-surface",
+                        ? "bg-[rgb(28_25_23/0.06)] text-text font-medium"
+                        : "text-muted hover:bg-[rgb(28_25_23/0.04)] hover:text-text",
                     ].join(" ")}
                   >
                     {active ? (
@@ -408,7 +404,7 @@ function SettingsInner() {
                       />
                     ) : null}
                     <t.Icon
-                      className={`size-[15px] shrink-0 ${active ? "text-primary" : "text-on-surface-variant/70 group-hover:text-on-surface-variant"}`}
+                      className={`size-[15px] shrink-0 ${active ? "text-primary" : "text-muted/70 group-hover:text-muted"}`}
                       strokeWidth={1.6}
                       aria-hidden
                     />
@@ -475,11 +471,11 @@ function SettingsInner() {
       {inviteOpen ? (
         <div className="fixed inset-0 z-100 flex items-end justify-end bg-black/40 sm:items-stretch" onClick={() => setInviteOpen(false)}>
           <div
-            className="h-full w-full max-w-md overflow-y-auto border-l border-outline-variant/[0.08] bg-surface-container-lowest p-6 shadow-xl"
+            className="h-full w-full max-w-md overflow-y-auto border-l border-surface-muted bg-surface p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-[14px] font-semibold text-on-surface">Багийн гишүүн урих</h3>
-            <p className="mt-1 text-[12px] text-on-surface-variant">Тэд нэвтрэх холбоостой имэйл хүлээн авна.</p>
+            <h3 className="text-[14px] font-semibold text-text">Багийн гишүүн урих</h3>
+            <p className="mt-1 text-[12px] text-muted">Тэд нэвтрэх холбоостой имэйл хүлээн авна.</p>
             <div className="mt-4 space-y-3">
               <FieldShell label="Имэйл">
                 <input
@@ -502,14 +498,14 @@ function SettingsInner() {
               </FieldShell>
             </div>
             <div className="mt-6 flex justify-end gap-2">
-              <button type="button" onClick={() => setInviteOpen(false)} className="rounded-md border border-outline-variant/[0.12] bg-surface-container-low px-3 py-1.5 text-[12.5px] font-medium text-on-surface">
+              <button type="button" onClick={() => setInviteOpen(false)} className="rounded-md border border-surface-muted bg-surface-muted/40 px-3 py-1.5 text-[12.5px] font-medium text-text">
                 Цуцлах
               </button>
               <button
                 type="button"
                 onClick={() => void handleInvite()}
                 disabled={inviting || !inviteEmail.trim()}
-                className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-1.5 text-[12.5px] font-semibold text-on-primary disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-1.5 text-[12.5px] font-semibold text-white disabled:opacity-60"
               >
                 {inviting ? <Loader2 className="size-3.5 animate-spin" aria-hidden /> : null}
                 Урилга илгээх
@@ -539,11 +535,11 @@ function ProfilePanel({
 }) {
   return (
     <form onSubmit={onSave} className="space-y-4">
-      <section className="rounded-md border border-outline-variant/[0.08] bg-surface-container-lowest">
-        <header className="flex items-center justify-between border-b border-outline-variant/[0.06] px-5 py-3">
+      <section className="rounded-xl border border-surface-muted bg-surface">
+        <header className="flex items-center justify-between border-b border-surface-muted px-5 py-3">
           <div>
-            <h2 className="text-[13px] font-semibold text-on-surface">Компанийн профайл</h2>
-            <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Энэ ажлын орчны гадна харагдах таних мэдээлэл.</p>
+            <h2 className="text-[13px] font-semibold text-text">Компанийн профайл</h2>
+            <p className="mt-0.5 text-[11.5px] text-muted">Энэ ажлын орчны гадна харагдах таних мэдээлэл.</p>
           </div>
         </header>
         <div className="grid gap-4 px-5 py-5 sm:grid-cols-2">
@@ -597,18 +593,18 @@ function ProfilePanel({
         </div>
       </section>
 
-      <section className="rounded-md border border-outline-variant/[0.08] bg-surface-container-lowest">
-        <header className="border-b border-outline-variant/[0.06] px-5 py-3">
-          <h2 className="text-[13px] font-semibold text-on-surface">Дэлгүүрийн metadata</h2>
-          <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Тусламж болон интеграцид ашиглах системийн ID-ууд.</p>
+      <section className="rounded-xl border border-surface-muted bg-surface">
+        <header className="border-b border-surface-muted px-5 py-3">
+          <h2 className="text-[13px] font-semibold text-text">Дэлгүүрийн metadata</h2>
+          <p className="mt-0.5 text-[11.5px] text-muted">Тусламж болон интеграцид ашиглах системийн ID-ууд.</p>
         </header>
         <dl className="grid gap-x-6 gap-y-3 px-5 py-5 sm:grid-cols-2">
           <div className="flex flex-col gap-0.5">
-            <dt className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">Дэлгүүрийн ID</dt>
-            <dd className="font-mono text-[12px] text-on-surface">{store.tenant_id ?? "—"}</dd>
+            <dt className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-muted">Дэлгүүрийн ID</dt>
+            <dd className="font-mono text-[12px] text-text">{store.tenant_id ?? "—"}</dd>
           </div>
           <div className="flex flex-col gap-0.5">
-            <dt className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">Tracking төлөв</dt>
+            <dt className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-muted">Tracking төлөв</dt>
             <dd>
               <StatusPill tone={store.tracking_status === "active" ? "success" : "warn"}>
                 <span className={`size-1.5 rounded-full ${store.tracking_status === "active" ? "bg-emerald-500" : "bg-amber-500"}`} aria-hidden />
@@ -617,12 +613,12 @@ function ProfilePanel({
             </dd>
           </div>
           <div className="flex flex-col gap-0.5">
-            <dt className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">Үүссэн</dt>
-            <dd className="text-[12.5px] text-on-surface">{formatDate(store.created_at)}</dd>
+            <dt className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-muted">Үүссэн</dt>
+            <dd className="text-[12.5px] text-text">{formatDate(store.created_at)}</dd>
           </div>
           <div className="flex flex-col gap-0.5">
-            <dt className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">Төлөвлөгөө</dt>
-            <dd className="text-[12.5px] text-on-surface">{store.plan || "—"}</dd>
+            <dt className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-muted">Төлөвлөгөө</dt>
+            <dd className="text-[12.5px] text-text">{store.plan || "—"}</dd>
           </div>
         </dl>
       </section>
@@ -631,7 +627,7 @@ function ProfilePanel({
         <button
           type="submit"
           disabled={saving || loading || !isOwner}
-          className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-[12.5px] font-semibold text-on-primary disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-[12.5px] font-semibold text-white disabled:opacity-60"
         >
           {saving ? <Loader2 className="size-3.5 animate-spin" aria-hidden /> : null}
           Профайл хадгалах
@@ -684,15 +680,15 @@ function KeysPanel({
 }) {
   return (
     <div className="space-y-4">
-      <section className="rounded-md border border-outline-variant/[0.08] bg-surface-container-lowest">
-        <header className="flex flex-wrap items-center justify-between gap-2 border-b border-outline-variant/[0.06] px-5 py-3">
+      <section className="rounded-xl border border-surface-muted bg-surface">
+        <header className="flex flex-wrap items-center justify-between gap-2 border-b border-surface-muted px-5 py-3">
           <div>
-            <h2 className="text-[13px] font-semibold text-on-surface">API түлхүүр үүсгэх</h2>
-            <p className="mt-0.5 text-[11.5px] text-on-surface-variant">
+            <h2 className="text-[13px] font-semibold text-text">API түлхүүр үүсгэх</h2>
+            <p className="mt-0.5 text-[11.5px] text-muted">
               Raw secret <strong>нэг удаа</strong> харагдана. Аюулгүй secret manager-т хуулж хадгална уу. Дараа нь дахин харах боломжгүй.
             </p>
           </div>
-          <span className="inline-flex items-center gap-1.5 rounded-md border border-outline-variant/[0.12] bg-surface-container-low/60 px-2 py-0.5 text-[11px] font-semibold text-on-surface-variant">
+          <span className="inline-flex items-center gap-1.5 rounded-md border border-surface-muted bg-surface-muted/40/60 px-2 py-0.5 text-[11px] font-semibold text-muted">
             <ShieldCheck className="size-3.5" aria-hidden />
             Нэг удаагийн secret
           </span>
@@ -732,13 +728,13 @@ function KeysPanel({
             <button
               type="submit"
               disabled={generatingKey || keysLoading || !isOwner}
-              className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-md bg-primary px-3 text-[12.5px] font-semibold text-on-primary disabled:opacity-60"
+              className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-md bg-primary px-3 text-[12.5px] font-semibold text-white disabled:opacity-60"
             >
               {generatingKey ? <Loader2 className="size-3.5 animate-spin" aria-hidden /> : <KeyRound className="size-3.5" aria-hidden />}
               Үүсгэх
             </button>
           </div>
-          <div className="lg:col-span-4 -mt-2 text-[11px] text-on-surface-variant">
+          <div className="lg:col-span-4 -mt-2 text-[11px] text-muted">
             Tier тайлбар: {API_KEY_TIERS.find((t) => t.value === keyTier)?.description}
           </div>
         </form>
@@ -751,8 +747,8 @@ function KeysPanel({
               <ShieldCheck className="size-3.5" aria-hidden />
             </span>
             <div>
-              <h3 className="text-[13px] font-semibold text-on-surface">Шинэ API түлхүүр үүсгэгдлээ</h3>
-              <p className="mt-0.5 text-[12px] text-on-surface-variant">
+              <h3 className="text-[13px] font-semibold text-text">Шинэ API түлхүүр үүсгэгдлээ</h3>
+              <p className="mt-0.5 text-[12px] text-muted">
                 Secret-ийг одоо хуулна уу. Энэ хуудсаас гарсны дараа зөвхөн нууцалсан утга үлдэнэ. Алдагдвал түлхүүрийг хүчингүй болгож шинээр үүсгэнэ.
               </p>
             </div>
@@ -765,14 +761,14 @@ function KeysPanel({
                   readOnly
                   type={showNewKey ? "text" : "password"}
                   value={generatedKey}
-                  className="min-w-0 flex-1 rounded-md border border-outline-variant/[0.12] bg-surface-container-lowest px-3 py-2 font-mono text-[12px] text-on-surface focus:outline-none"
+                  className="min-w-0 flex-1 rounded-md border border-surface-muted bg-surface px-3 py-2 font-mono text-[12px] text-text focus:outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => setShowNewKey((v) => !v)}
                   disabled={!generatedKey}
                   aria-label={showNewKey ? "Нууц түлхүүр нуух" : "Нууц түлхүүр харуулах"}
-                  className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-outline-variant/[0.12] bg-surface-container-lowest px-3 text-[12px] font-medium text-on-surface-variant hover:text-on-surface disabled:opacity-40"
+                  className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-surface-muted bg-surface px-3 text-[12px] font-medium text-muted hover:text-text disabled:opacity-40"
                 >
                   {showNewKey ? <EyeOff className="size-3.5" aria-hidden /> : <Eye className="size-3.5" aria-hidden />}
                   {showNewKey ? "Нуух" : "Харуулах"}
@@ -781,7 +777,7 @@ function KeysPanel({
                   type="button"
                   onClick={() => copyToClipboard(generatedKey, "key")}
                   disabled={!generatedKey}
-                  className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md bg-primary px-3 text-[12px] font-semibold text-on-primary disabled:opacity-40"
+                  className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md bg-primary px-3 text-[12px] font-semibold text-white disabled:opacity-40"
                 >
                   {copiedTarget === "key" ? <Check className="size-3.5" aria-hidden /> : <Copy className="size-3.5" aria-hidden />}
                   Түлхүүр хуулах
@@ -792,20 +788,20 @@ function KeysPanel({
             {installSnippet ? (
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="inline-flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">
+                  <span className="inline-flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-muted">
                     <Code2 className="size-3.5" aria-hidden />
                     E-commerce суулгах snippet
                   </span>
                   <button
                     type="button"
                     onClick={() => copyToClipboard(installSnippet, "snippet")}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-outline-variant/[0.12] bg-surface-container-lowest px-2.5 py-1 text-[12px] font-medium text-on-surface hover:bg-surface-container-low"
+                    className="inline-flex items-center gap-1.5 rounded-md border border-surface-muted bg-surface px-2.5 py-1 text-[12px] font-medium text-text hover:bg-surface-muted/40"
                   >
                     {copiedTarget === "snippet" ? <Check className="size-3.5" aria-hidden /> : <Copy className="size-3.5" aria-hidden />}
                     Snippet хуулах
                   </button>
                 </div>
-                <pre className="max-h-40 overflow-auto rounded-md border border-outline-variant/[0.12] bg-surface-container-lowest p-3 text-[12px] leading-relaxed text-on-surface">
+                <pre className="max-h-40 overflow-auto rounded-md border border-surface-muted bg-surface p-3 text-[12px] leading-relaxed text-text">
                   <code className="whitespace-pre-wrap break-all">{installSnippet}</code>
                 </pre>
               </div>
@@ -814,23 +810,23 @@ function KeysPanel({
         </section>
       ) : null}
 
-      <section className="rounded-md border border-outline-variant/[0.08] bg-surface-container-lowest">
-        <header className="flex items-center justify-between border-b border-outline-variant/[0.06] px-5 py-3">
+      <section className="rounded-xl border border-surface-muted bg-surface">
+        <header className="flex items-center justify-between border-b border-surface-muted px-5 py-3">
           <div>
-            <h2 className="text-[13px] font-semibold text-on-surface">Одоо байгаа түлхүүрүүд</h2>
-            <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Зөвхөн нууцалсан prefix хадгалагдана. Түлхүүрийг хүссэн үедээ хүчингүй болгож болно.</p>
+            <h2 className="text-[13px] font-semibold text-text">Одоо байгаа түлхүүрүүд</h2>
+            <p className="mt-0.5 text-[11.5px] text-muted">Зөвхөн нууцалсан prefix хадгалагдана. Түлхүүрийг хүссэн үедээ хүчингүй болгож болно.</p>
           </div>
         </header>
 
         {keysLoading ? (
           <div className="flex h-32 items-center justify-center"><Loader2 className="size-4 animate-spin text-primary" aria-hidden /></div>
         ) : apiKeys.length === 0 ? (
-          <div className="px-5 py-8 text-center text-[12px] text-on-surface-variant">
+          <div className="px-5 py-8 text-center text-[12px] text-muted">
             API түлхүүр одоогоор алга. E-commerce storefront холбохын тулд нэгийг үүсгэнэ үү.
           </div>
         ) : (
           <>
-            <div className="hidden grid-cols-[minmax(0,1.2fr)_minmax(0,1.5fr)_100px_120px_120px_140px_80px] gap-3 bg-surface-container-low/40 px-5 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant md:grid">
+            <div className="hidden grid-cols-[minmax(0,1.2fr)_minmax(0,1.5fr)_100px_120px_120px_140px_80px] gap-3 bg-surface-muted/40/40 px-5 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted md:grid">
               <span>Нэр</span>
               <span>Нууцалсан түлхүүр</span>
               <span>Tier</span>
@@ -844,19 +840,19 @@ function KeysPanel({
               return (
                 <div
                   key={k.id}
-                  className="grid grid-cols-1 gap-2 border-t border-outline-variant/[0.06] px-5 py-3 text-[12.5px] md:grid-cols-[minmax(0,1.2fr)_minmax(0,1.5fr)_100px_120px_120px_140px_80px] md:items-center md:gap-3"
+                  className="grid grid-cols-1 gap-2 border-t border-surface-muted px-5 py-3 text-[12.5px] md:grid-cols-[minmax(0,1.2fr)_minmax(0,1.5fr)_100px_120px_120px_140px_80px] md:items-center md:gap-3"
                 >
-                  <div className="font-semibold text-on-surface">{k.name}</div>
-                  <div className="font-mono text-[12px] text-on-surface-variant truncate">{k.key_masked}</div>
-                  <div className="text-on-surface-variant">{API_KEY_TIERS.find((t) => t.value === k.tier)?.label ?? k.tier}</div>
-                  <div className="text-on-surface-variant">{ENVIRONMENTS.find((e) => e.value === k.environment)?.label ?? k.environment ?? "—"}</div>
+                  <div className="font-semibold text-text">{k.name}</div>
+                  <div className="font-mono text-[12px] text-muted truncate">{k.key_masked}</div>
+                  <div className="text-muted">{API_KEY_TIERS.find((t) => t.value === k.tier)?.label ?? k.tier}</div>
+                  <div className="text-muted">{ENVIRONMENTS.find((e) => e.value === k.environment)?.label ?? k.environment ?? "—"}</div>
                   <div>
                     <StatusPill tone={status === "active" ? "success" : status === "expired" ? "warn" : "neutral"}>
                       <span className={`size-1.5 rounded-full ${status === "active" ? "bg-emerald-500" : status === "expired" ? "bg-amber-500" : "bg-slate-400"}`} aria-hidden />
                       {serviceStatusLabel(status)}
                     </StatusPill>
                   </div>
-                  <div className="text-[11.5px] text-on-surface-variant">
+                  <div className="text-[11.5px] text-muted">
                     <div>Үүссэн {formatDate(k.created_at)}</div>
                     <div>Ашигласан {formatRelative(k.last_used_at)}</div>
                   </div>
@@ -871,7 +867,7 @@ function KeysPanel({
                         Хүчингүй болгох
                       </button>
                     ) : (
-                      <span className="text-[11px] text-on-surface-variant">—</span>
+                      <span className="text-[11px] text-muted">—</span>
                     )}
                   </div>
                 </div>
@@ -898,17 +894,17 @@ function TeamPanel({
   onRemove: (id: number) => void;
 }) {
   return (
-    <section className="rounded-md border border-outline-variant/[0.08] bg-surface-container-lowest">
-      <header className="flex items-center justify-between border-b border-outline-variant/[0.06] px-5 py-3">
+    <section className="rounded-xl border border-surface-muted bg-surface">
+      <header className="flex items-center justify-between border-b border-surface-muted px-5 py-3">
         <div>
-          <h2 className="text-[13px] font-semibold text-on-surface">Багийн гишүүд</h2>
-          <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Энэ ажлын орчинд {members.length} гишүүн байна.</p>
+          <h2 className="text-[13px] font-semibold text-text">Багийн гишүүд</h2>
+          <p className="mt-0.5 text-[11.5px] text-muted">Энэ ажлын орчинд {members.length} гишүүн байна.</p>
         </div>
         <button
           type="button"
           onClick={onInvite}
           disabled={!isOwner}
-          className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-1.5 text-[12.5px] font-semibold text-on-primary disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-1.5 text-[12.5px] font-semibold text-white disabled:opacity-50"
         >
           <UserPlus className="size-3.5" aria-hidden />
           Гишүүн урих
@@ -918,25 +914,25 @@ function TeamPanel({
       {loading ? (
         <div className="flex h-32 items-center justify-center"><Loader2 className="size-4 animate-spin text-primary" aria-hidden /></div>
       ) : members.length === 0 ? (
-        <div className="px-5 py-8 text-center text-[12px] text-on-surface-variant">Багийн гишүүн одоогоор алга.</div>
+        <div className="px-5 py-8 text-center text-[12px] text-muted">Багийн гишүүн одоогоор алга.</div>
       ) : (
         <>
-          <div className="hidden grid-cols-[minmax(0,1.2fr)_minmax(0,1.4fr)_120px_120px_80px] gap-3 bg-surface-container-low/40 px-5 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant md:grid">
+          <div className="hidden grid-cols-[minmax(0,1.2fr)_minmax(0,1.4fr)_120px_120px_80px] gap-3 bg-surface-muted/40/40 px-5 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted md:grid">
             <span>Нэр</span><span>Имэйл</span><span>Эрх</span><span>Нэгдсэн</span><span className="text-right">Үйлдэл</span>
           </div>
           {members.map((m) => (
-            <div key={m.id} className="grid grid-cols-1 gap-2 border-t border-outline-variant/[0.06] px-5 py-3 text-[12.5px] md:grid-cols-[minmax(0,1.2fr)_minmax(0,1.4fr)_120px_120px_80px] md:items-center md:gap-3">
+            <div key={m.id} className="grid grid-cols-1 gap-2 border-t border-surface-muted px-5 py-3 text-[12.5px] md:grid-cols-[minmax(0,1.2fr)_minmax(0,1.4fr)_120px_120px_80px] md:items-center md:gap-3">
               <div className="flex items-center gap-2">
                 <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">
                   {(m.full_name?.[0] ?? "?").toUpperCase()}
                 </span>
-                <span className="truncate font-semibold text-on-surface">{m.full_name}</span>
+                <span className="truncate font-semibold text-text">{m.full_name}</span>
               </div>
-              <div className="truncate text-on-surface-variant">{m.email}</div>
+              <div className="truncate text-muted">{m.email}</div>
               <div>
                 <StatusPill tone={m.role === "owner" ? "success" : "neutral"}>{roleLabel(m.role)}</StatusPill>
               </div>
-              <div className="text-on-surface-variant">{formatDate(m.joined_at)}</div>
+              <div className="text-muted">{formatDate(m.joined_at)}</div>
               <div className="md:text-right">
                 <button
                   type="button"
@@ -958,36 +954,36 @@ function TeamPanel({
 function BillingPanel({ plan, memberCount }: { plan: string; memberCount: number }) {
   return (
     <div className="space-y-4">
-      <section className="rounded-md border border-outline-variant/[0.08] bg-surface-container-lowest">
-        <header className="border-b border-outline-variant/[0.06] px-5 py-3">
-          <h2 className="text-[13px] font-semibold text-on-surface">Одоогийн төлөвлөгөө</h2>
-          <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Идэвхтэй багц болон хэрэглээний лимит.</p>
+      <section className="rounded-xl border border-surface-muted bg-surface">
+        <header className="border-b border-surface-muted px-5 py-3">
+          <h2 className="text-[13px] font-semibold text-text">Одоогийн төлөвлөгөө</h2>
+          <p className="mt-0.5 text-[11.5px] text-muted">Идэвхтэй багц болон хэрэглээний лимит.</p>
         </header>
         <div className="grid gap-4 px-5 py-5 sm:grid-cols-3">
           <div>
-            <p className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">Төлөвлөгөө</p>
-            <p className="mt-1 text-[16px] font-semibold text-on-surface">{plan}</p>
+            <p className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-muted">Төлөвлөгөө</p>
+            <p className="mt-1 text-[16px] font-semibold text-text">{plan}</p>
           </div>
           <div>
-            <p className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">Багийн суудал</p>
-            <p className="mt-1 text-[16px] font-semibold tabular-nums text-on-surface">{memberCount} / 10</p>
-            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-container-high/70">
+            <p className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-muted">Багийн суудал</p>
+            <p className="mt-1 text-[16px] font-semibold tabular-nums text-text">{memberCount} / 10</p>
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-muted">
               <div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, (memberCount / 10) * 100)}%` }} />
             </div>
           </div>
           <div>
-            <p className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">Дараагийн сунгалт</p>
-            <p className="mt-1 text-[16px] font-semibold text-on-surface">—</p>
+            <p className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-muted">Дараагийн сунгалт</p>
+            <p className="mt-1 text-[16px] font-semibold text-text">—</p>
           </div>
         </div>
       </section>
 
-      <section className="rounded-md border border-outline-variant/[0.08] bg-surface-container-lowest">
-        <header className="border-b border-outline-variant/[0.06] px-5 py-3">
-          <h2 className="text-[13px] font-semibold text-on-surface">Нэхэмжлэл</h2>
-          <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Төлбөрийн бүртгэл идэвхжсэний дараа нэхэмжлэл энд харагдана.</p>
+      <section className="rounded-xl border border-surface-muted bg-surface">
+        <header className="border-b border-surface-muted px-5 py-3">
+          <h2 className="text-[13px] font-semibold text-text">Нэхэмжлэл</h2>
+          <p className="mt-0.5 text-[11.5px] text-muted">Төлбөрийн бүртгэл идэвхжсэний дараа нэхэмжлэл энд харагдана.</p>
         </header>
-        <div className="px-5 py-8 text-center text-[12px] text-on-surface-variant">
+        <div className="px-5 py-8 text-center text-[12px] text-muted">
           Нэхэмжлэл одоогоор алга.
         </div>
       </section>
@@ -1003,13 +999,13 @@ function DangerPanel({ storeName, isOwner }: { storeName: string; isOwner: boole
           <AlertTriangle className="size-3.5" aria-hidden />
           Эрсдэлтэй бүс
         </h2>
-        <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Эдгээр үйлдэл буцаах боломжгүй.</p>
+        <p className="mt-0.5 text-[11.5px] text-muted">Эдгээр үйлдэл буцаах боломжгүй.</p>
       </header>
       <div className="divide-y divide-error/10">
         <div className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-[13px] font-semibold text-on-surface">Бүх API түлхүүрийг rotate хийх</p>
-            <p className="mt-0.5 text-[11.5px] text-on-surface-variant">{storeName || "энэ ажлын орчин"}-ийн бүх идэвхтэй түлхүүрийг хүчингүй болгоно. Шинэ түлхүүр өгөх хүртэл storefront эвент илгээхгүй.</p>
+            <p className="text-[13px] font-semibold text-text">Бүх API түлхүүрийг rotate хийх</p>
+            <p className="mt-0.5 text-[11.5px] text-muted">{storeName || "энэ ажлын орчин"}-ийн бүх идэвхтэй түлхүүрийг хүчингүй болгоно. Шинэ түлхүүр өгөх хүртэл storefront эвент илгээхгүй.</p>
           </div>
           <button type="button" disabled={!isOwner} className="inline-flex items-center gap-1.5 rounded-md border border-error/30 bg-error/5 px-3 py-1.5 text-[12px] font-semibold text-error hover:bg-error/10 disabled:opacity-40">
             <KeyRound className="size-3.5" aria-hidden />
@@ -1018,10 +1014,10 @@ function DangerPanel({ storeName, isOwner }: { storeName: string; isOwner: boole
         </div>
         <div className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-[13px] font-semibold text-on-surface">Ажлын орчин устгах</p>
-            <p className="mt-0.5 text-[11.5px] text-on-surface-variant">{storeName || "энэ ажлын орчин"}, бүх сесс, таамаглал болон төлбөрийн түүхийг бүр мөсөн устгана.</p>
+            <p className="text-[13px] font-semibold text-text">Ажлын орчин устгах</p>
+            <p className="mt-0.5 text-[11.5px] text-muted">{storeName || "энэ ажлын орчин"}, бүх сесс, таамаглал болон төлбөрийн түүхийг бүр мөсөн устгана.</p>
           </div>
-          <button type="button" disabled={!isOwner} className="inline-flex items-center gap-1.5 rounded-md bg-error px-3 py-1.5 text-[12px] font-semibold text-on-error hover:opacity-95 disabled:opacity-40">
+          <button type="button" disabled={!isOwner} className="inline-flex items-center gap-1.5 rounded-md bg-error px-3 py-1.5 text-[12px] font-semibold text-white hover:opacity-95 disabled:opacity-40">
             <Trash2 className="size-3.5" aria-hidden />
             Ажлын орчин устгах
           </button>

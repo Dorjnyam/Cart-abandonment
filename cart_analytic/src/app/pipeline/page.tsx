@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import EditorialShell from "@/components/editorial/EditorialShell";
 import { useLanguage } from "@/components/editorial/LanguageContext";
+import { Badge, Card } from "@/components/ui/Card";
 import {
   fetchPipelineMonitor,
   type PipelineMonitor,
@@ -20,70 +21,37 @@ import {
   type ServiceStatus,
 } from "@/lib/services/pipeline";
 import { healthLabel, predictionClassLabel } from "@/lib/mn-labels";
+import { cn } from "@/lib/utils";
 
-const HEALTH_TONE: Record<ServiceHealth, { bg: string; text: string; ring: string; label: string; dot: string }> = {
-  healthy: {
-    bg: "bg-emerald-500/10",
-    text: "text-emerald-600 dark:text-emerald-300",
-    ring: "ring-emerald-500/20",
-    label: healthLabel("healthy"),
-    dot: "bg-emerald-500",
-  },
-  degraded: {
-    bg: "bg-amber-500/10",
-    text: "text-amber-600 dark:text-amber-300",
-    ring: "ring-amber-500/20",
-    label: healthLabel("degraded"),
-    dot: "bg-amber-500",
-  },
-  down: {
-    bg: "bg-error/10",
-    text: "text-error",
-    ring: "ring-error/20",
-    label: healthLabel("down"),
-    dot: "bg-rose-500",
-  },
-  unknown: {
-    bg: "bg-surface-container",
-    text: "text-on-surface-variant",
-    ring: "ring-outline-variant/30",
-    label: healthLabel("unknown"),
-    dot: "bg-slate-400",
-  },
-};
+function healthVariant(h: ServiceHealth): "success" | "warning" | "error" | "default" {
+  if (h === "healthy") return "success";
+  if (h === "degraded") return "warning";
+  if (h === "down") return "error";
+  return "default";
+}
 
 function StatusPill({ health }: { health: ServiceHealth }) {
-  const tone = HEALTH_TONE[health];
-  return (
-    <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[11px] font-semibold ${tone.bg} ${tone.text}`}>
-      <span aria-hidden className={`size-1.5 rounded-full ${tone.dot}`} />
-      {tone.label}
-    </span>
-  );
+  return <Badge variant={healthVariant(health)}>{healthLabel(health)}</Badge>;
 }
 
 function ServiceRow({ service }: { service: ServiceStatus }) {
   return (
-    <div className="grid grid-cols-[minmax(0,1.5fr)_1fr_1fr_auto] items-center gap-3 border-t border-outline-variant/[0.06] px-4 py-2.5 first:border-t-0 hover:bg-surface-container-low/40 transition-colors">
+    <div className="grid grid-cols-[minmax(0,1.5fr)_1fr_1fr_auto] items-center gap-3 px-5 py-3 border-b border-surface-muted/60 last:border-b-0 hover:bg-surface-muted/30 transition-colors">
       <div className="min-w-0">
         <div className="flex items-center gap-2">
-          <span className="truncate text-[13px] font-semibold text-on-surface">{service.name}</span>
+          <span className="truncate text-sm font-bold text-text">{service.name}</span>
           {service.version ? (
-            <span className="rounded-sm bg-surface-container-high/60 px-1.5 py-0.5 font-mono text-[10px] text-on-surface-variant">
+            <span className="rounded-md bg-surface-muted px-1.5 py-0.5 font-mono text-[10px] text-muted">
               {service.version}
             </span>
           ) : null}
         </div>
-        {service.detail ? (
-          <p className="mt-0.5 truncate text-[11.5px] text-on-surface-variant">{service.detail}</p>
-        ) : null}
+        {service.detail ? <p className="mt-0.5 truncate text-xs text-muted">{service.detail}</p> : null}
       </div>
-      <div className="text-[11.5px] text-on-surface-variant tabular-nums">
+      <div className="text-xs text-muted tabular-nums">
         {service.latency_p95_ms != null ? `p95 ${service.latency_p95_ms} ms` : "—"}
       </div>
-      <div className="text-[11.5px] text-on-surface-variant">
-        {service.last_heartbeat ?? "—"}
-      </div>
+      <div className="text-xs text-muted">{service.last_heartbeat ?? "—"}</div>
       <StatusPill health={service.health} />
     </div>
   );
@@ -91,38 +59,35 @@ function ServiceRow({ service }: { service: ServiceStatus }) {
 
 function ServiceTable({
   title,
-  description,
+  subtitle,
   Icon,
   services,
+  headers,
 }: {
   title: string;
-  description?: string;
+  subtitle?: string;
   Icon: typeof Server;
   services: ServiceStatus[];
+  headers: { component: string; latency: string; heartbeat: string; status: string };
 }) {
   return (
-    <section className="rounded-md border border-outline-variant/[0.08] bg-surface-container-lowest">
-      <header className="flex items-center justify-between gap-3 border-b border-outline-variant/[0.06] px-4 py-3">
-        <div className="flex items-center gap-2">
-          <Icon className="size-4 text-on-surface-variant" strokeWidth={1.75} aria-hidden />
-          <h2 className="text-[13px] font-semibold text-on-surface">{title}</h2>
-        </div>
-        {description ? <span className="text-[11px] text-on-surface-variant">{description}</span> : null}
-      </header>
-      <div className="grid grid-cols-[minmax(0,1.5fr)_1fr_1fr_auto] border-b border-outline-variant/[0.06] bg-surface-container-low/40 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">
-        <span>Бүрэлдэхүүн</span>
-        <span>Latency</span>
-        <span>Сүүлийн heartbeat</span>
-        <span className="text-right">Төлөв</span>
+    <Card title={title} subtitle={subtitle} icon={Icon} noPadding>
+      <div className="grid grid-cols-[minmax(0,1.5fr)_1fr_1fr_auto] gap-3 bg-bg border-b border-surface-muted px-5 py-2.5 text-[10px] font-bold uppercase tracking-[0.14em] text-muted">
+        <span>{headers.component}</span>
+        <span>{headers.latency}</span>
+        <span>{headers.heartbeat}</span>
+        <span className="text-right">{headers.status}</span>
       </div>
       <div>
-        {services.map((s) => <ServiceRow key={s.id} service={s} />)}
+        {services.map((s) => (
+          <ServiceRow key={s.id} service={s} />
+        ))}
       </div>
-    </section>
+    </Card>
   );
 }
 
-function ThroughputCard({
+function ThroughputTile({
   label,
   value,
   helper,
@@ -132,11 +97,13 @@ function ThroughputCard({
   helper: string;
 }) {
   return (
-    <div className="rounded-md border border-outline-variant/[0.08] bg-surface-container-lowest px-4 py-3">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">{label}</p>
-      <p className="mt-1.5 text-[20px] font-semibold tabular-nums text-on-surface">{value}</p>
-      <p className="mt-0.5 text-[11px] text-on-surface-variant">{helper}</p>
-    </div>
+    <Card>
+      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted">{label}</p>
+      <p className="mt-2 font-display font-extrabold tabular-nums text-2xl text-text leading-none">
+        {value}
+      </p>
+      <p className="mt-2 text-xs text-muted">{helper}</p>
+    </Card>
   );
 }
 
@@ -147,7 +114,11 @@ function fmt(n: number) {
 function timeShort(value: string) {
   if (!value) return "—";
   try {
-    return new Date(value).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    return new Date(value).toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
   } catch {
     return value;
   }
@@ -157,25 +128,74 @@ export default function PipelinePage() {
   const [data, setData] = useState<PipelineMonitor | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
 
-  const load = useCallback(async (silent = false) => {
-    if (!silent) setLoading(true);
-    try {
-      setData(await fetchPipelineMonitor());
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Pipeline мониторын хүсэлт амжилтгүй боллоо.");
-    } finally {
-      if (!silent) setLoading(false);
-    }
-  }, []);
+  const load = useCallback(
+    async (silent = false) => {
+      if (!silent) setLoading(true);
+      try {
+        setData(await fetchPipelineMonitor());
+        setError(null);
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : lang === "EN"
+              ? "Pipeline monitor request failed."
+              : "Pipeline мониторын хүсэлт амжилтгүй боллоо.",
+        );
+      } finally {
+        if (!silent) setLoading(false);
+      }
+    },
+    [lang],
+  );
 
   useEffect(() => {
     void load();
     const interval = setInterval(() => void load(true), 15_000);
     return () => clearInterval(interval);
   }, [load]);
+
+  const L = {
+    events24: lang === "EN" ? "Events (24h)" : "24ц эвент",
+    sessions24: lang === "EN" ? "Sessions (24h)" : "24ц сесс",
+    features24: lang === "EN" ? "Features (24h)" : "24ц feature",
+    predictions24: lang === "EN" ? "Predictions (24h)" : "24ц таамаглал",
+    consumerLag: lang === "EN" ? "Consumer lag" : "Consumer lag",
+    failures24: lang === "EN" ? "Failures (24h)" : "24ц алдаа",
+    obs: lang === "EN" ? "Observer ingest" : "Observer ingest",
+    sessSvc: lang === "EN" ? "Session service" : "Session Service",
+    featSvc: lang === "EN" ? "Feature vectors" : "Feature vectors",
+    mlSvc: lang === "EN" ? "ML service" : "ML Service",
+    kafkaLag: lang === "EN" ? "Kafka offset lag" : "Kafka offset lag",
+    allSvcs: lang === "EN" ? "Across all services" : "Бүх сервист",
+    services: lang === "EN" ? "Services" : "Сервисүүд",
+    servicesHint: lang === "EN" ? "Pipeline components" : "Pipeline бүрэлдэхүүн",
+    infra: lang === "EN" ? "Infrastructure" : "Дэд бүтэц",
+    infraHint: lang === "EN" ? "Core dependencies" : "Үндсэн хамаарлууд",
+    component: lang === "EN" ? "Component" : "Бүрэлдэхүүн",
+    latency: lang === "EN" ? "Latency" : "Latency",
+    heartbeat: lang === "EN" ? "Heartbeat" : "Heartbeat",
+    status: t.common.status,
+    recentEvents: lang === "EN" ? "Recent events" : "Сүүлийн эвентүүд",
+    recentSessions: lang === "EN" ? "Recent sessions" : "Сүүлийн сессүүд",
+    recentFeatures: lang === "EN" ? "Recent feature vectors" : "Боловсруулсан feature vector",
+    recentPredictions: lang === "EN" ? "Recent ML predictions" : "Үүссэн ML таамаглал",
+    recentFailures: lang === "EN" ? "Recent failures & lag" : "Сүүлийн алдаа ба lag",
+    last24h: lang === "EN" ? "Last 24h" : "Сүүлийн 24ц",
+    noFailures: lang === "EN" ? "No failures in last 24h." : "Сүүлийн 24 цагт алдаа алга.",
+    session: lang === "EN" ? "Session" : "Сесс",
+    event: lang === "EN" ? "Event" : "Эвент",
+    when: lang === "EN" ? "When" : "Хэзээ",
+    visitor: lang === "EN" ? "Visitor" : "Зочин",
+    events: lang === "EN" ? "Events" : "Эвент",
+    started: lang === "EN" ? "Started" : "Эхэлсэн",
+    feature: lang === "EN" ? "Features" : "Feature",
+    produced: lang === "EN" ? "Produced" : "Үүссэн",
+    classLabel: lang === "EN" ? "Class" : "Ангилал",
+    prob: lang === "EN" ? "Probability" : "Магадлал",
+  };
 
   return (
     <EditorialShell
@@ -184,156 +204,182 @@ export default function PipelinePage() {
       subtitle={t.pipeline.subtitle}
       right={
         <div className="flex items-center gap-2">
-          <span className="text-[11px] text-muted">
-            {data ? timeShort(data.refreshed_at) : "—"}
-          </span>
+          <span className="text-xs text-muted">{data ? timeShort(data.refreshed_at) : "—"}</span>
           <button
             type="button"
             onClick={() => void load()}
             className="inline-flex items-center gap-2 rounded-xl bg-surface-muted px-3 py-1.5 text-xs font-bold text-text hover:bg-surface-muted/70"
           >
-            <RefreshCw className="size-3.5" />
+            <RefreshCw className={cn("size-3.5", loading && "animate-spin")} />
             {t.common.refresh}
           </button>
         </div>
       }
     >
-      <div className="space-y-5">
-
+      <div className="space-y-6">
         {error ? (
-          <div className="rounded-md border border-error/25 bg-error/5 px-4 py-3 text-[12.5px] text-error">{error}</div>
+          <div className="rounded-xl bg-error/10 border border-error/30 px-4 py-3 text-sm text-error">
+            {error}
+          </div>
         ) : null}
 
         {loading || !data ? (
-          <div className="flex h-64 items-center justify-center text-on-surface-variant">
-            <Loader2 className="size-5 animate-spin" aria-hidden />
+          <div className="flex h-64 items-center justify-center text-muted">
+            <Loader2 className="size-6 animate-spin" />
           </div>
         ) : (
           <>
-            <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-              <ThroughputCard label="24ц эвент" value={fmt(data.throughput.events_24h)} helper="Observer ingest" />
-              <ThroughputCard label="24ц сесс" value={fmt(data.throughput.sessions_24h)} helper="Session Service" />
-              <ThroughputCard label="24ц feature" value={fmt(data.throughput.features_24h)} helper="Feature vectors" />
-              <ThroughputCard label="24ц таамаглал" value={fmt(data.throughput.predictions_24h)} helper="ML Service" />
-              <ThroughputCard label="Consumer lag" value={fmt(data.throughput.consumer_lag)} helper="Kafka offset lag" />
-              <ThroughputCard label="24ц алдаа" value={fmt(data.throughput.failures_24h)} helper="Бүх сервист" />
+            <section className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+              <ThroughputTile label={L.events24} value={fmt(data.throughput.events_24h)} helper={L.obs} />
+              <ThroughputTile label={L.sessions24} value={fmt(data.throughput.sessions_24h)} helper={L.sessSvc} />
+              <ThroughputTile label={L.features24} value={fmt(data.throughput.features_24h)} helper={L.featSvc} />
+              <ThroughputTile label={L.predictions24} value={fmt(data.throughput.predictions_24h)} helper={L.mlSvc} />
+              <ThroughputTile label={L.consumerLag} value={fmt(data.throughput.consumer_lag)} helper={L.kafkaLag} />
+              <ThroughputTile label={L.failures24} value={fmt(data.throughput.failures_24h)} helper={L.allSvcs} />
             </section>
 
             <div className="grid gap-4 lg:grid-cols-2">
-              <ServiceTable title="Сервисүүд" description="Pipeline бүрэлдэхүүн" Icon={Workflow} services={data.services} />
-              <ServiceTable title="Дэд бүтэц" description="Үндсэн хамаарлууд" Icon={Database} services={data.infra} />
+              <ServiceTable
+                title={L.services}
+                subtitle={L.servicesHint}
+                Icon={Workflow}
+                services={data.services}
+                headers={{ component: L.component, latency: L.latency, heartbeat: L.heartbeat, status: L.status }}
+              />
+              <ServiceTable
+                title={L.infra}
+                subtitle={L.infraHint}
+                Icon={Database}
+                services={data.infra}
+                headers={{ component: L.component, latency: L.latency, heartbeat: L.heartbeat, status: L.status }}
+              />
             </div>
 
             <div className="grid gap-4 xl:grid-cols-2">
-              <section className="rounded-md border border-outline-variant/[0.08] bg-surface-container-lowest">
-                <header className="flex items-center justify-between border-b border-outline-variant/[0.06] px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <Zap className="size-4 text-on-surface-variant" strokeWidth={1.75} aria-hidden />
-                    <h2 className="text-[13px] font-semibold text-on-surface">Сүүлийн эвентүүд</h2>
-                  </div>
-                  <span className="text-[11px] text-on-surface-variant">Observer → Kafka</span>
-                </header>
-                <div className="overflow-hidden">
-                  <div className="grid grid-cols-[1fr_1fr_auto] bg-surface-container-low/40 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">
-                    <span>Сесс</span><span>Эвент</span><span className="text-right">Хэзээ</span>
-                  </div>
-                  {data.latest_events.map((event, i) => (
-                    <div key={`${event.session_id}-${i}`} className="grid grid-cols-[1fr_1fr_auto] gap-2 border-t border-outline-variant/[0.06] px-4 py-2 text-[12px]">
-                      <span className="truncate font-mono text-on-surface">{event.session_id}</span>
-                      <span className="truncate text-on-surface-variant">{event.event_type}</span>
-                      <span className="text-right tabular-nums text-on-surface-variant">{timeShort(event.created_at)}</span>
-                    </div>
-                  ))}
+              <Card
+                title={L.recentEvents}
+                icon={Zap}
+                headerAction={<span className="text-[11px] text-muted">Observer → Kafka</span>}
+                noPadding
+              >
+                <div className="grid grid-cols-[1fr_1fr_auto] bg-bg border-b border-surface-muted px-5 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-muted">
+                  <span>{L.session}</span>
+                  <span>{L.event}</span>
+                  <span className="text-right">{L.when}</span>
                 </div>
-              </section>
-
-              <section className="rounded-md border border-outline-variant/[0.08] bg-surface-container-lowest">
-                <header className="flex items-center justify-between border-b border-outline-variant/[0.06] px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <Network className="size-4 text-on-surface-variant" strokeWidth={1.75} aria-hidden />
-                    <h2 className="text-[13px] font-semibold text-on-surface">Сүүлийн сессүүд</h2>
+                {data.latest_events.map((event, i) => (
+                  <div
+                    key={`${event.session_id}-${i}`}
+                    className="grid grid-cols-[1fr_1fr_auto] gap-2 border-b border-surface-muted/60 last:border-b-0 px-5 py-2.5 text-xs"
+                  >
+                    <span className="truncate font-mono text-text">{event.session_id}</span>
+                    <span className="truncate text-muted">{event.event_type}</span>
+                    <span className="text-right tabular-nums text-muted">{timeShort(event.created_at)}</span>
                   </div>
-                  <span className="text-[11px] text-on-surface-variant">Session Service</span>
-                </header>
-                <div className="grid grid-cols-[1fr_1fr_auto_auto] bg-surface-container-low/40 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">
-                  <span>Сесс</span><span>Зочин</span><span>Эвент</span><span className="text-right">Эхэлсэн</span>
+                ))}
+              </Card>
+
+              <Card
+                title={L.recentSessions}
+                icon={Network}
+                headerAction={<span className="text-[11px] text-muted">Session Service</span>}
+                noPadding
+              >
+                <div className="grid grid-cols-[1fr_1fr_auto_auto] bg-bg border-b border-surface-muted px-5 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-muted">
+                  <span>{L.session}</span>
+                  <span>{L.visitor}</span>
+                  <span>{L.events}</span>
+                  <span className="text-right">{L.started}</span>
                 </div>
                 {data.latest_sessions.map((s) => (
-                  <div key={s.session_id} className="grid grid-cols-[1fr_1fr_auto_auto] gap-3 border-t border-outline-variant/[0.06] px-4 py-2 text-[12px]">
-                    <span className="truncate font-mono text-on-surface">{s.session_id}</span>
-                    <span className="truncate text-on-surface-variant">{s.visitor_id ?? "—"}</span>
-                    <span className="tabular-nums text-on-surface-variant">{s.events}</span>
-                    <span className="text-right tabular-nums text-on-surface-variant">{timeShort(s.started_at)}</span>
+                  <div
+                    key={s.session_id}
+                    className="grid grid-cols-[1fr_1fr_auto_auto] gap-3 border-b border-surface-muted/60 last:border-b-0 px-5 py-2.5 text-xs"
+                  >
+                    <span className="truncate font-mono text-text">{s.session_id}</span>
+                    <span className="truncate text-muted">{s.visitor_id ?? "—"}</span>
+                    <span className="tabular-nums text-muted">{s.events}</span>
+                    <span className="text-right tabular-nums text-muted">{timeShort(s.started_at)}</span>
                   </div>
                 ))}
-              </section>
+              </Card>
 
-              <section className="rounded-md border border-outline-variant/[0.08] bg-surface-container-lowest">
-                <header className="flex items-center justify-between border-b border-outline-variant/[0.06] px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <Workflow className="size-4 text-on-surface-variant" strokeWidth={1.75} aria-hidden />
-                    <h2 className="text-[13px] font-semibold text-on-surface">Боловсруулсан feature vector</h2>
-                  </div>
-                  <span className="text-[11px] text-on-surface-variant">Feature Service</span>
-                </header>
-                <div className="grid grid-cols-[1fr_auto_auto] bg-surface-container-low/40 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">
-                  <span>Сесс</span><span>Feature</span><span className="text-right">Үүссэн</span>
+              <Card
+                title={L.recentFeatures}
+                icon={Workflow}
+                headerAction={<span className="text-[11px] text-muted">Feature Service</span>}
+                noPadding
+              >
+                <div className="grid grid-cols-[1fr_auto_auto] bg-bg border-b border-surface-muted px-5 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-muted">
+                  <span>{L.session}</span>
+                  <span>{L.feature}</span>
+                  <span className="text-right">{L.produced}</span>
                 </div>
                 {data.latest_features.map((f) => (
-                  <div key={f.session_id} className="grid grid-cols-[1fr_auto_auto] gap-3 border-t border-outline-variant/[0.06] px-4 py-2 text-[12px]">
-                    <span className="truncate font-mono text-on-surface">{f.session_id}</span>
-                    <span className="tabular-nums text-on-surface-variant">{f.features_count}</span>
-                    <span className="text-right tabular-nums text-on-surface-variant">{timeShort(f.produced_at)}</span>
+                  <div
+                    key={f.session_id}
+                    className="grid grid-cols-[1fr_auto_auto] gap-3 border-b border-surface-muted/60 last:border-b-0 px-5 py-2.5 text-xs"
+                  >
+                    <span className="truncate font-mono text-text">{f.session_id}</span>
+                    <span className="tabular-nums text-muted">{f.features_count}</span>
+                    <span className="text-right tabular-nums text-muted">{timeShort(f.produced_at)}</span>
                   </div>
                 ))}
-              </section>
+              </Card>
 
-              <section className="rounded-md border border-outline-variant/[0.08] bg-surface-container-lowest">
-                <header className="flex items-center justify-between border-b border-outline-variant/[0.06] px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <Workflow className="size-4 text-on-surface-variant" strokeWidth={1.75} aria-hidden />
-                    <h2 className="text-[13px] font-semibold text-on-surface">Үүссэн ML таамаглалууд</h2>
-                  </div>
-                  <span className="text-[11px] text-on-surface-variant">ML Service</span>
-                </header>
-                <div className="grid grid-cols-[1fr_auto_auto_auto] bg-surface-container-low/40 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">
-                  <span>Сесс</span><span>Ангилал</span><span>Магадлал</span><span className="text-right">Хэзээ</span>
+              <Card
+                title={L.recentPredictions}
+                icon={Workflow}
+                headerAction={<span className="text-[11px] text-muted">ML Service</span>}
+                noPadding
+              >
+                <div className="grid grid-cols-[1fr_auto_auto_auto] bg-bg border-b border-surface-muted px-5 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-muted">
+                  <span>{L.session}</span>
+                  <span>{L.classLabel}</span>
+                  <span>{L.prob}</span>
+                  <span className="text-right">{L.when}</span>
                 </div>
                 {data.latest_predictions.map((p) => (
-                  <div key={p.session_id} className="grid grid-cols-[1fr_auto_auto_auto] gap-3 border-t border-outline-variant/[0.06] px-4 py-2 text-[12px]">
-                    <span className="truncate font-mono text-on-surface">{p.session_id}</span>
-                    <span className="text-on-surface-variant">{predictionClassLabel(p.prediction)}</span>
-                    <span className="tabular-nums text-on-surface-variant">{(p.abandonment_probability * 100).toFixed(1)}%</span>
-                    <span className="text-right tabular-nums text-on-surface-variant">{timeShort(p.created_at)}</span>
+                  <div
+                    key={p.session_id}
+                    className="grid grid-cols-[1fr_auto_auto_auto] gap-3 border-b border-surface-muted/60 last:border-b-0 px-5 py-2.5 text-xs"
+                  >
+                    <span className="truncate font-mono text-text">{p.session_id}</span>
+                    <span className="text-muted">{predictionClassLabel(p.prediction)}</span>
+                    <span className="tabular-nums text-muted">
+                      {(p.abandonment_probability * 100).toFixed(1)}%
+                    </span>
+                    <span className="text-right tabular-nums text-muted">{timeShort(p.created_at)}</span>
                   </div>
                 ))}
-              </section>
+              </Card>
             </div>
 
-            <section className="rounded-md border border-outline-variant/[0.08] bg-surface-container-lowest">
-              <header className="flex items-center justify-between border-b border-outline-variant/[0.06] px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className="size-4 text-on-surface-variant" strokeWidth={1.75} aria-hidden />
-                  <h2 className="text-[13px] font-semibold text-on-surface">Сүүлийн алдаа ба lag</h2>
-                </div>
-                <span className="text-[11px] text-on-surface-variant">Сүүлийн 24ц</span>
-              </header>
+            <Card
+              title={L.recentFailures}
+              icon={AlertTriangle}
+              headerAction={<span className="text-[11px] text-muted">{L.last24h}</span>}
+              noPadding
+            >
               {data.recent_failures.length ? (
                 <ul>
                   {data.recent_failures.map((failure, i) => (
-                    <li key={i} className="grid grid-cols-[120px_1fr_auto] gap-3 border-t border-outline-variant/[0.06] px-4 py-2.5 text-[12px]">
-                      <span className="font-mono text-on-surface">{failure.service}</span>
-                      <span className="truncate text-on-surface-variant">{failure.message}</span>
-                      <span className="text-right tabular-nums text-on-surface-variant">{timeShort(failure.occurred_at)}</span>
+                    <li
+                      key={i}
+                      className="grid grid-cols-[120px_1fr_auto] gap-3 border-b border-surface-muted/60 last:border-b-0 px-5 py-3 text-xs"
+                    >
+                      <span className="font-mono text-text">{failure.service}</span>
+                      <span className="truncate text-muted">{failure.message}</span>
+                      <span className="text-right tabular-nums text-muted">
+                        {timeShort(failure.occurred_at)}
+                      </span>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <div className="px-4 py-6 text-center text-[12px] text-on-surface-variant">
-                  Сүүлийн 24 цагт алдаа бүртгэгдээгүй.
-                </div>
+                <div className="px-5 py-8 text-center text-sm text-muted">{L.noFailures}</div>
               )}
-            </section>
+            </Card>
           </>
         )}
       </div>

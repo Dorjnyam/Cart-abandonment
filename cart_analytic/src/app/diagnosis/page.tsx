@@ -14,6 +14,7 @@ import {
 import { RefreshCw, Sigma, Sparkles } from "lucide-react";
 import EditorialShell from "@/components/editorial/EditorialShell";
 import { useLanguage } from "@/components/editorial/LanguageContext";
+import { Badge, Card } from "@/components/ui/Card";
 import {
   fetchDashboardReasons,
   SCORE_ORDER,
@@ -21,59 +22,35 @@ import {
   type ReasonsResponse,
 } from "@/lib/services/dashboard-mvp";
 import { riskLabel } from "@/lib/mn-labels";
+import { cn } from "@/lib/utils";
 
 const REASON_BLURB: Record<ReasonCode, string> = {
   S1: "Сэтгэлзүйн эргэлзээ: checkout дуусахаас өмнө эргэлзэх дохио илэрсэн.",
-  S2: "Техникийн саатал: алдаа, удаан харилцан үйлдэл эсвэл checkout доголдол явцыг хаасан.",
-  S3: "Итгэлцлийн асуудал: худалдаачин, төлбөр эсвэл бүтээгдэхүүний баталгааг илүү тодруулах шаардлагатай.",
-  S4: "Мобайл хэрэглээний хүндрэл: гар утас дээрх харилцан үйлдлийн чанар дуусгалтад нөлөөлж байна.",
-  S5: "Үнийн мэдрэмж: сагсны нийт дүн, хүргэлт эсвэл хөнгөлөлтийн хүлээлт худалдан авалтыг саатуулж байна.",
-  S6: "Шийдвэргүй байдал / навигацийн төөрөгдөл: давтан шилжилт, харьцуулалт нь эргэлзээг харуулж байна.",
-  S7: "Гадны нөлөө / эх сурвалжийн эффект: referral эсвэл гадны контекст худалдан авалтад нөлөөлж байна.",
+  S2: "Техникийн саатал: алдаа, удаан харилцан үйлдэл эсвэл checkout доголдол.",
+  S3: "Итгэлцлийн асуудал: худалдаачин, төлбөр эсвэл бүтээгдэхүүний баталгаа дутмаг.",
+  S4: "Мобайл хэрэглээний хүндрэл: гар утсан дээрх UX дуусгалтад нөлөөлж байна.",
+  S5: "Үнийн мэдрэмж: сагсны нийт дүн, хүргэлт эсвэл хөнгөлөлтийн хүлээлт.",
+  S6: "Шийдвэргүй байдал / навигацийн төөрөгдөл: давтан шилжилт, харьцуулалт.",
+  S7: "Гадны нөлөө / эх сурвалжийн эффект: referral эсвэл гадны контекст.",
 };
 
-function severityTone(severity: string) {
-  if (severity === "high") return { bg: "rgb(160 53 33 / 0.08)", fg: "#7E2A1A", dot: "#A03521" };
-  if (severity === "medium") return { bg: "rgb(156 107 20 / 0.10)", fg: "#7C5410", dot: "#9C6B14" };
-  return { bg: "rgb(31 77 62 / 0.08)", fg: "#1F4D3E", dot: "#1F4D3E" };
+function severityVariant(severity: string): "error" | "warning" | "success" {
+  if (severity === "high") return "error";
+  if (severity === "medium") return "warning";
+  return "success";
 }
 
-function SectionCard({
-  title,
-  hint,
-  right,
-  children,
-  className = "",
-  pad = true,
-}: {
-  title?: string;
-  hint?: string;
-  right?: React.ReactNode;
-  children: React.ReactNode;
-  className?: string;
-  pad?: boolean;
-}) {
-  return (
-    <section className={`tile rounded-md ${className}`}>
-      {title ? (
-        <header className="flex items-center justify-between gap-3 px-5 py-3 hairline-b">
-          <div>
-            <h2 className="text-[13px] font-semibold tracking-[-0.005em] text-on-surface">{title}</h2>
-            {hint ? <p className="mt-0.5 text-[11px] text-on-surface-variant">{hint}</p> : null}
-          </div>
-          {right}
-        </header>
-      ) : null}
-      <div className={pad ? "px-5 py-4" : ""}>{children}</div>
-    </section>
-  );
+function severityBarColor(severity: string): string {
+  if (severity === "high") return "#A03521";
+  if (severity === "medium") return "#9C6B14";
+  return "#1F4D3E";
 }
 
 export default function DiagnosisPage() {
   const [data, setData] = useState<ReasonsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
 
   async function load() {
     setLoading(true);
@@ -81,7 +58,13 @@ export default function DiagnosisPage() {
     try {
       setData(await fetchDashboardReasons());
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Шалтгааны шинжилгээний API хүсэлт амжилтгүй боллоо.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : lang === "EN"
+            ? "Reasons API request failed."
+            : "Шалтгааны шинжилгээний API хүсэлт амжилтгүй боллоо.",
+      );
       setData(null);
     } finally {
       setLoading(false);
@@ -90,6 +73,7 @@ export default function DiagnosisPage() {
 
   useEffect(() => {
     void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const reasons = useMemo(() => {
@@ -113,7 +97,6 @@ export default function DiagnosisPage() {
   );
 
   const top = sortedByScore[0];
-
   const totalDominant = reasons.reduce((acc, r) => acc + (r.dominant_sessions ?? 0), 0);
 
   const chartData = reasons.map((row) => ({
@@ -122,6 +105,42 @@ export default function DiagnosisPage() {
     score: row.average_score,
     dominant: row.dominant_sessions,
   }));
+
+  const labels = {
+    formula: lang === "EN" ? "Dominant reason formula" : "Давамгай шалтгааны томьёо",
+    formulaHint:
+      lang === "EN"
+        ? "Pick the maximum of the seven standard scores"
+        : "Долоон стандарт онооноос хамгийн ихийг сонгоно",
+    topReason: lang === "EN" ? "Highest scoring reason" : "Хамгийн өндөр оноотой шалтгаан",
+    diagnosed:
+      lang === "EN"
+        ? `${totalDominant} sessions diagnosed`
+        : `${totalDominant} сесс оношлогдсон`,
+    avgScore: lang === "EN" ? "Average score" : "Дундаж оноо",
+    dominantSessions: lang === "EN" ? "Dominant sessions" : "Давамгай сесс",
+    chartTitle:
+      lang === "EN" ? "Average S1–S7 score across diagnosed sessions" : "S1–S7 дундаж оноо",
+    chartHint:
+      lang === "EN"
+        ? "Higher means the reason is showing up more strongly"
+        : "Өндөр байх тусам шалтгаан илүү хүчтэй илэрч байна",
+    suggested: lang === "EN" ? "Suggested action" : "Санал болгосон арга хэмжээ",
+    dominantSuffix: lang === "EN" ? "sessions dominant" : "сесс давамгай",
+    share: lang === "EN" ? "share" : "эзлэх хувь",
+    noDiag:
+      lang === "EN"
+        ? "No diagnosis yet. Generate demo sessions and wait for predictions to land."
+        : "Оношлогоо одоогоор алга. Demo сесс үүсгээд таамаглал боловсруулагдахыг хүлээнэ үү.",
+    noSessions:
+      lang === "EN"
+        ? "No sessions diagnosed yet."
+        : "Оношлогдсон сесс одоогоор алга.",
+    formulaExplain:
+      lang === "EN"
+        ? "Argmax keeps the dashboard truthful: every dominant label here came from the Main service, not a local recompute."
+        : "Argmax зарчим нь dashboard-ийг үнэн зөв байлгана: давамгай label бүр Main сервисээс ирсэн утга.",
+  };
 
   return (
     <EditorialShell
@@ -134,118 +153,78 @@ export default function DiagnosisPage() {
           onClick={() => void load()}
           className="inline-flex items-center gap-1.5 rounded-xl bg-surface-muted px-3 py-1.5 text-xs font-bold text-text hover:bg-surface-muted/70"
         >
-          <RefreshCw className={`size-3.5 ${loading ? "animate-spin" : ""}`} />
+          <RefreshCw className={cn("size-3.5", loading && "animate-spin")} />
           {t.common.refresh}
         </button>
       }
     >
       <div className="space-y-6">
-
         {error ? (
-          <div className="mt-6 rounded-md border border-error/25 bg-error/[0.05] px-4 py-3 text-[12.5px] text-error">
+          <div className="rounded-xl bg-error/10 border border-error/30 px-4 py-3 text-sm text-error">
             {error}
           </div>
         ) : null}
 
-        {/* Дээд хэсэг: formula ба top reason summary */}
-        <div className="mt-6 grid gap-4 lg:grid-cols-12 stagger-children">
-          <SectionCard
+        <div className="grid gap-4 lg:grid-cols-12 stagger-children">
+          <Card
             className="lg:col-span-7"
-            title="Давамгай шалтгааны томьёо"
-            hint="Долоон стандарт онооноос хамгийн ихийг сонгоно"
-            right={<Sigma className="size-3.5 text-on-surface-variant/60" aria-hidden />}
+            title={labels.formula}
+            subtitle={labels.formulaHint}
+            icon={Sigma}
           >
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
-              <pre
-                className="m-0 rounded-md hairline bg-surface-container-low/50 px-4 py-3 font-mono text-[12.5px] leading-[1.6] text-on-surface"
-                style={{ overflowX: "auto" }}
-              >
+              <pre className="m-0 flex-1 rounded-xl bg-bg border border-surface-muted px-4 py-3 font-mono text-xs leading-relaxed text-text overflow-x-auto">
                 {data?.dominant_reason_formula ??
                   "dominant_reason = argmax(S1, S2, S3, S4, S5, S6, S7)"}
               </pre>
-              <p className="max-w-[42ch] text-[11.5px] leading-[1.55] text-on-surface-variant">
-                Argmax зарчим нь dashboard-ийг үнэн зөв байлгана: энд харагдах давамгай label бүр
-                Main сервисээс ирсэн утга бөгөөд локал дахин тооцоолол биш.
+              <p className="max-w-[42ch] text-xs leading-relaxed text-muted">
+                {labels.formulaExplain}
               </p>
             </div>
-          </SectionCard>
+          </Card>
 
-          <SectionCard className="lg:col-span-5" title="Хамгийн өндөр оноотой шалтгаан" hint={`${totalDominant} сесс оношлогдсон`}>
+          <Card className="lg:col-span-5" title={labels.topReason} subtitle={labels.diagnosed}>
             {top ? (
               <>
                 <div className="flex items-baseline gap-3">
-                  <span
-                    className="font-mono"
-                    style={{
-                      fontFamily: "var(--font-display)",
-                      fontVariationSettings: '"opsz" 144, "SOFT" 30',
-                      fontSize: 38,
-                      lineHeight: 1,
-                      fontWeight: 400,
-                      color: "#1F4D3E",
-                      letterSpacing: "-0.025em",
-                    }}
-                  >
+                  <span className="font-display font-extrabold text-primary text-4xl leading-none tracking-tight">
                     {top.code}
                   </span>
-                  <span className="text-[15px] font-medium text-on-surface">{top.label}</span>
+                  <span className="text-base font-bold text-text">{top.label}</span>
                 </div>
-                <p className="mt-3 text-[12.5px] leading-[1.6] text-on-surface-variant">
+                <p className="mt-3 text-sm leading-relaxed text-muted">
                   {REASON_BLURB[top.code as ReasonCode] ?? top.explanation}
                 </p>
                 <dl className="mt-4 grid grid-cols-2 gap-4">
                   <div>
-                    <dt className="text-[10px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant/70">
-                      Дундаж оноо
+                    <dt className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted">
+                      {labels.avgScore}
                     </dt>
-                    <dd
-                      className="mt-1 font-mono tabular-nums text-on-surface"
-                      style={{
-                        fontFamily: "var(--font-display)",
-                        fontVariationSettings: '"opsz" 96',
-                        fontSize: 22,
-                        fontWeight: 400,
-                        letterSpacing: "-0.02em",
-                      }}
-                    >
+                    <dd className="mt-1 font-display font-extrabold tabular-nums text-text text-xl">
                       {top.average_score.toFixed(2)}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-[10px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant/70">
-                      Давамгай сесс
+                    <dt className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted">
+                      {labels.dominantSessions}
                     </dt>
-                    <dd
-                      className="mt-1 tabular-nums text-on-surface"
-                      style={{
-                        fontFamily: "var(--font-display)",
-                        fontVariationSettings: '"opsz" 96',
-                        fontSize: 22,
-                        fontWeight: 400,
-                        letterSpacing: "-0.02em",
-                      }}
-                    >
+                    <dd className="mt-1 font-display font-extrabold tabular-nums text-text text-xl">
                       {top.dominant_sessions}
                     </dd>
                   </div>
                 </dl>
               </>
             ) : (
-              <p className="text-[12.5px] text-on-surface-variant">Оношлогдсон сесс одоогоор алга.</p>
+              <p className="text-sm text-muted">{labels.noSessions}</p>
             )}
-          </SectionCard>
+          </Card>
         </div>
 
-        {/* Chart хэсэг */}
-        <SectionCard
-          className="mt-4"
-          title="Оношлогдсон сессүүдийн S1–S7 дундаж оноо"
-          hint="Өндөр байх тусам тухайн шалтгаан илүү хүчтэй илэрч байна"
-        >
+        <Card title={labels.chartTitle} subtitle={labels.chartHint} noPadding>
           {loading ? (
-            <div className="skeleton h-72 rounded-md" />
+            <div className="h-72 m-6 rounded-xl bg-surface-muted animate-pulse" />
           ) : chartData.length ? (
-            <div className="h-[320px]">
+            <div className="h-[320px] px-4 py-4">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={chartData}
@@ -253,124 +232,114 @@ export default function DiagnosisPage() {
                   margin={{ left: 16, right: 24, top: 8, bottom: 8 }}
                   barCategoryGap={10}
                 >
-                  <CartesianGrid horizontal={false} stroke="rgb(28 25 23 / 0.06)" />
+                  <CartesianGrid horizontal={false} stroke="rgb(0 0 0 / 0.06)" />
                   <XAxis
                     type="number"
                     domain={[0, 1]}
                     tickFormatter={(v) => v.toFixed(1)}
-                    tick={{ fontSize: 10.5 }}
+                    tick={{ fontSize: 10.5, fill: "rgb(107 107 99)" }}
                     axisLine={false}
                     tickLine={false}
                   />
                   <YAxis
                     type="category"
                     dataKey="code"
-                    tick={{ fontSize: 11, fontFamily: "var(--font-mono)" }}
+                    tick={{ fontSize: 11, fill: "rgb(107 107 99)" }}
                     axisLine={false}
                     tickLine={false}
                     width={36}
                   />
                   <Tooltip
                     formatter={(value) => Number(value ?? 0).toFixed(3)}
-                    cursor={{ fill: "rgb(28 25 23 / 0.04)" }}
+                    cursor={{ fill: "rgb(0 0 0 / 0.04)" }}
+                    contentStyle={{
+                      background: "rgb(255 255 255 / 0.95)",
+                      border: "1px solid rgb(0 0 0 / 0.08)",
+                      borderRadius: 12,
+                      fontSize: 12,
+                    }}
                   />
-                  <Bar dataKey="score" radius={[0, 3, 3, 0]} barSize={14}>
+                  <Bar dataKey="score" radius={[0, 6, 6, 0]} barSize={16}>
                     {chartData.map((row) => {
-                      const tone = row.score >= 0.66 ? "#A03521" : row.score >= 0.33 ? "#9C6B14" : "#1F4D3E";
-                      return <Cell key={row.code} fill={tone} fillOpacity={0.85} />;
+                      const tone =
+                        row.score >= 0.66 ? "#A03521" : row.score >= 0.33 ? "#9C6B14" : "#1F4D3E";
+                      return <Cell key={row.code} fill={tone} fillOpacity={0.9} />;
                     })}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="rounded-md hairline bg-surface-container-low/40 px-6 py-12 text-center">
-              <Sparkles className="mx-auto size-5 text-on-surface-variant/60" aria-hidden />
-              <p className="mt-3 text-[12.5px] text-on-surface-variant">
-                Оношлогоо одоогоор алга. Demo сесс үүсгээд таамаглал боловсруулагдахыг хүлээнэ үү.
-              </p>
+            <div className="m-6 rounded-xl bg-surface-muted/40 px-6 py-12 text-center">
+              <Sparkles className="mx-auto size-5 text-muted" />
+              <p className="mt-3 text-sm text-muted">{labels.noDiag}</p>
             </div>
           )}
-        </SectionCard>
+        </Card>
 
-        {/* Reason card-ууд */}
-        <section className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3 stagger-children">
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 stagger-children">
           {reasons.map((reason) => {
             const code = reason.code as ReasonCode;
-            const tone = severityTone(reason.severity);
             return (
-              <article
+              <Card
                 key={code}
-                className="tile rounded-md card-lift flex flex-col"
-              >
-                <header className="flex items-start justify-between gap-3 px-5 pt-4 pb-3 hairline-b">
-                  <div className="min-w-0 flex items-baseline gap-3">
-                    <span
-                      className="font-mono"
-                      style={{
-                        fontFamily: "var(--font-display)",
-                        fontVariationSettings: '"opsz" 96, "SOFT" 30',
-                        fontSize: 26,
-                        lineHeight: 1,
-                        fontWeight: 400,
-                        color: "#1F4D3E",
-                        letterSpacing: "-0.022em",
-                      }}
-                    >
+                title={
+                  <span className="inline-flex items-baseline gap-3">
+                    <span className="font-display font-extrabold text-primary text-2xl leading-none tracking-tight">
                       {code}
                     </span>
-                    <span className="truncate text-[13px] font-medium text-on-surface">{reason.label}</span>
-                  </div>
-                  <span
-                    className="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-[0.14em]"
-                    style={{ background: tone.bg, color: tone.fg }}
-                  >
-                    <span aria-hidden className="size-1.5 rounded-full" style={{ background: tone.dot }} />
-                    {riskLabel(reason.severity)}
+                    <span className="text-sm font-bold text-text truncate">{reason.label}</span>
                   </span>
-                </header>
-
-                <div className="flex flex-col gap-4 px-5 py-4 flex-1">
+                }
+                headerAction={<Badge variant={severityVariant(reason.severity)}>{riskLabel(reason.severity)}</Badge>}
+              >
+                <div className="space-y-4">
                   <div>
                     <div className="flex items-baseline justify-between">
-                      <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant/70">
-                        Дундаж оноо
+                      <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted">
+                        {labels.avgScore}
                       </span>
-                      <span className="font-mono tabular-nums text-[12.5px] text-on-surface">
+                      <span className="font-mono tabular-nums text-xs text-text">
                         {reason.average_score.toFixed(2)}
                       </span>
                     </div>
-                    <div className="mt-1.5 h-1 rounded-full" style={{ background: "rgb(28 25 23 / 0.05)" }}>
+                    <div className="mt-2 h-1.5 rounded-full bg-surface-muted overflow-hidden">
                       <div
-                        className="h-full rounded-full transition-bar"
-                        style={{ width: `${reason.average_score * 100}%`, background: tone.dot }}
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${reason.average_score * 100}%`,
+                          background: severityBarColor(reason.severity),
+                        }}
                       />
                     </div>
                   </div>
 
-                  <p className="text-[12.5px] leading-[1.6] text-on-surface-variant">
+                  <p className="text-xs leading-relaxed text-muted">
                     {reason.explanation || REASON_BLURB[code]}
                   </p>
 
-                  <div className="rounded-md hairline bg-surface-container-low/40 p-3">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant/70">
-                      Санал болгосон арга хэмжээ
+                  <div className="rounded-xl bg-surface-muted/50 p-3">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted">
+                      {labels.suggested}
                     </p>
-                    <p className="mt-1 text-[12px] leading-[1.55] text-on-surface">{reason.recommended_action}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-text">{reason.recommended_action}</p>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-3 pt-3 border-t border-surface-muted">
+                    <span className="text-xs text-muted">
+                      <span className="font-bold tabular-nums text-text">
+                        {reason.dominant_sessions}
+                      </span>{" "}
+                      {labels.dominantSuffix}
+                    </span>
+                    <span className="text-xs text-muted">
+                      {totalDominant > 0
+                        ? `${((reason.dominant_sessions / totalDominant) * 100).toFixed(0)}% ${labels.share}`
+                        : "—"}
+                    </span>
                   </div>
                 </div>
-
-                <footer className="mt-auto flex items-center justify-between gap-3 px-5 py-3 hairline-t">
-                  <span className="text-[11px] text-on-surface-variant">
-                    <span className="tabular-nums text-on-surface">{reason.dominant_sessions}</span> сесс давамгай
-                  </span>
-                  <span className="text-[11px] text-on-surface-variant">
-                    {totalDominant > 0
-                      ? `${((reason.dominant_sessions / totalDominant) * 100).toFixed(0)}% эзлэх хувь`
-                      : "—"}
-                  </span>
-                </footer>
-              </article>
+              </Card>
             );
           })}
         </section>
