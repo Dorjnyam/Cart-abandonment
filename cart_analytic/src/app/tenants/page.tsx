@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Search, TrendingUp, ChevronLeft, ChevronRight } from "lucide-react";
 import EditorialShell from "@/components/editorial/EditorialShell";
 import RoleGuard from "@/components/editorial/RoleGuard";
+import { useLanguage } from "@/components/editorial/LanguageContext";
 import { fetchTenants } from "@/lib/services/tenants";
 import type { Tenant } from "@/types/api";
 
@@ -205,9 +206,16 @@ function TenantsContent() {
 export default function TenantsPage() {
   return (
     <RoleGuard allow={["admin"]}>
-      <EditorialShell activeNav="admin" title="Дэлгүүрийн удирдлага" subtitle="Админ самбар: дэлгүүрүүд">
-        <TenantsContent />
-      </EditorialShell>
+      <TenantsInner />
     </RoleGuard>
+  );
+}
+
+function TenantsInner() {
+  const { t } = useLanguage();
+  return (
+    <EditorialShell activeNav="tenants" title={t.admin.tenants} subtitle={t.admin.subtitle}>
+      <TenantsContent />
+    </EditorialShell>
   );
 }

@@ -19,6 +19,7 @@ import {
   YAxis,
 } from "recharts";
 import EditorialShell from "@/components/editorial/EditorialShell";
+import { useLanguage } from "@/components/editorial/LanguageContext";
 import {
   fetchMLInsights,
   type FeatureContribution,
@@ -144,6 +145,7 @@ export default function MLInsightsPage() {
   const [data, setData] = useState<MLInsights | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useLanguage();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -195,29 +197,11 @@ export default function MLInsightsPage() {
   return (
     <EditorialShell
       activeNav="ml-insights"
-      title="Аналитик"
-      subtitle="Загварын чанар"
-      breadcrumbs={[{ label: "Аналитик", href: "/ml-insights" }, { label: "Загварын гүйцэтгэл" }]}
+      title={t.analytics.title}
+      subtitle={t.analytics.subtitle}
       right={right}
     >
-      <div className="mx-auto max-w-[1480px] space-y-6 px-5 py-6 sm:px-7 page-enter">
-        {/* Header хэсэг */}
-        <header className="flex flex-wrap items-end justify-between gap-4">
-          <div className="space-y-1.5">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant/80">
-              Загварын аналитик · сагс орхилтын ангилагч
-            </p>
-            <h1
-              className="font-display text-[34px] font-medium tracking-[-0.025em] text-on-surface leading-[1.05]"
-              style={{ fontVariationSettings: '"opsz" 144, "SOFT" 30' }}
-            >
-              Аналитик
-            </h1>
-            <p className="max-w-2xl text-[13px] text-on-surface-variant">
-              Идэвхтэй сагс орхилтын ангилагчийн гүйцэтгэл, магадлалын тархалт болон онцлогийн тайлбар.
-            </p>
-          </div>
-        </header>
+      <div className="space-y-6">
 
         {error ? (
           <div className="rounded-[6px] border border-error/25 bg-error-container/40 px-4 py-3 text-[12px] text-error">

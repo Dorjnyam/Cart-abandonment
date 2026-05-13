@@ -1,10 +1,46 @@
 @import "tailwindcss";
 
+/* ── Example-style semantic palette ────────────────────────────────
+ * Бүх page-д ашиглах энгийн semantic токенууд (bg / surface / muted /
+ * primary / secondary / warning / error / success). Tailwind v4 @theme
+ * directive нь эдгээрийг bg-bg, bg-surface гэх мэт utility болгоно.
+ */
+@theme {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-text: var(--text);
+  --color-muted: var(--text-muted);
+  --color-text-muted: var(--text-muted);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  --color-success: var(--success);
+
+  /* Шинэ palette font-ыг одоогийн Geist/Fraunces дээрээ үлдээнэ */
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
 /* ── Design token-ууд: Light (default / :root) ───────────────────────
  * Гоо зүй: warm-linen өнгөтэй цэмцгэр B2B analytics.
  * Editorial print болон premium SaaS data product-оос санаа авсан.
  */
 :root {
+  /* ── Example-style semantic palette: Light ── */
+  --bg:             #F7F7F4;
+  --surface:        #FFFFFF;
+  --surface-muted:  #F0F1EC;
+  --text:           #1C1917;
+  --text-muted:     #6B6B63;
+  --primary:        #1F4D3E;
+  --secondary:      #3E6E8E;
+  --warning:        #9C6B14;
+  --error:          #A03521;
+  --success:        #1F4D3E;
+
   --font-body:    var(--font-geist), "Söhne", "Helvetica Neue", system-ui, sans-serif;
   --font-display: var(--font-fraunces), "Tiempos Headline", Georgia, serif;
   --font-mono:    var(--font-geist-mono), "JetBrains Mono", ui-monospace, monospace;
@@ -108,6 +144,18 @@
 
 /* ── Dark mode (ажилладаг хэвээр, warm-slate) ────────────────────── */
 .dark {
+  /* ── Example-style semantic palette: Dark ── */
+  --bg:             #0E1110;
+  --surface:        #151917;
+  --surface-muted:  #1D2421;
+  --text:           #F4F4EF;
+  --text-muted:     #A9AEA8;
+  --primary:        #86D9A7;
+  --secondary:      #7FB1D1;
+  --warning:        #E0B05C;
+  --error:          #E07A64;
+  --success:        #86D9A7;
+
   --canvas-rgb:                    20 20 18;
   --background-rgb:                20 20 18;
   --surface-rgb:                   28 28 25;
@@ -432,3 +480,24 @@ input, select, textarea, button {
 }
 button { cursor: pointer; }
 button:disabled { cursor: not-allowed; }
+
+/* ── Example-style helpers ─────────────────────────────────────────
+ * Шинэ shell ба page-уудад зориулсан utility class-ууд.
+ */
+.custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgb(0 0 0 / 0.12);
+  border-radius: 999px;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgb(255 255 255 / 0.14);
+}
+
+/* `bg-opacity-10` ба `bg-current` хослолтой example pattern-ыг дэмжих:
+ * Tailwind v4-д bg-opacity-10 class шууд ажиллахгүй, тэгээд бид
+ * энэ helper-ийг ашиглана. */
+.bg-opacity-10 { --tw-bg-opacity: 0.1; }
+.bg-opacity-5  { --tw-bg-opacity: 0.05; }
+.bg-opacity-20 { --tw-bg-opacity: 0.2; }
+

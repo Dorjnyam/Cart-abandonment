@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import EditorialShell from "@/components/editorial/EditorialShell";
+import { useLanguage } from "@/components/editorial/LanguageContext";
 import AbandonmentTrendChart from "@/components/charts/AbandonmentTrendChart";
 import FeatureImportanceBarChart from "@/components/charts/FeatureImportanceBarChart";
 import PredictionHistogram from "@/components/charts/PredictionHistogram";
@@ -204,6 +205,7 @@ function AnalyticsPageContent() {
 
   const [data, setData] = useState<AnalyticsOverview>(EMPTY_ANALYTICS);
   const [loading, setLoading] = useState(true);
+  const { t } = useLanguage();
 
   useEffect(() => {
     let cancelled = false;
@@ -214,44 +216,32 @@ function AnalyticsPageContent() {
   }, []);
 
   return (
-      <EditorialShell activeNav="analytics" title="Аналитик" subtitle="Орхилтын дүн шинжилгээ">
-      <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6 max-w-400 mx-auto page-enter">
-        {/* Хуудасны header */}
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <h1 className="text-[1.1rem] font-semibold text-on-surface tracking-tight">Аналитикийн нарийвчилсан шинжилгээ</h1>
-            <p className="text-[13px] text-on-surface-variant mt-0.5">
-              Орхилтын жолоодогч болон сессийн эрсдэлийн профайлын нарийвчилсан тайлбар.
-            </p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="inline-flex items-center rounded-full border border-outline-variant/[0.1] bg-surface-container-low px-2.5 py-1 text-[11px] font-semibold text-on-surface-variant">
-              Q3 сессийн өгөгдөл
-            </span>
-            <span className="inline-flex items-center rounded-full border border-[#10b981]/20 bg-[#10b981]/8 px-2.5 py-1 text-[11px] font-semibold text-[#10b981]">
-              Баталгаажсан
-            </span>
-          </div>
-        </div>
-
-        {/* Tab navigation хэсэг */}
-        <div className="inline-flex rounded-lg border border-outline-variant/[0.09] bg-surface-container-lowest p-0.5" role="tablist">
-          {TABS.map((t) => (
-            <a
-              key={t.key}
-              href={`/analytics${t.key === "overview" ? "" : `?tab=${t.key}`}`}
-              className={[
-                "px-4 py-1.5 rounded-md text-sm font-semibold transition-colors duration-150",
-                tab === t.key
-                  ? "bg-primary text-on-primary shadow-sm"
-                  : "text-on-surface-variant hover:text-on-surface",
-              ].join(" ")}
-              role="tab"
-              aria-selected={tab === t.key}
-            >
-              {t.label}
-            </a>
-          ))}
+    <EditorialShell
+      activeNav="analytics"
+      title={t.analytics.title}
+      subtitle={t.analytics.subtitle}
+    >
+      <div className="space-y-6">
+        <div className="inline-flex rounded-xl border border-surface-muted bg-surface p-1" role="tablist">
+          {TABS.map((tabItem) => {
+            const label = tabItem.key === "ablation" ? t.analytics.ablationTab : t.analytics.overviewTab;
+            return (
+              <a
+                key={tabItem.key}
+                href={`/analytics${tabItem.key === "overview" ? "" : `?tab=${tabItem.key}`}`}
+                className={[
+                  "px-4 py-1.5 rounded-lg text-sm font-bold transition-colors duration-150",
+                  tab === tabItem.key
+                    ? "bg-primary text-white shadow-sm"
+                    : "text-muted hover:text-text",
+                ].join(" ")}
+                role="tab"
+                aria-selected={tab === tabItem.key}
+              >
+                {label}
+              </a>
+            );
+          })}
         </div>
 
         {tab === "ablation" ? (

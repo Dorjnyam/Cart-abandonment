@@ -11,6 +11,7 @@ import {
   XCircle,
 } from "lucide-react";
 import EditorialShell from "@/components/editorial/EditorialShell";
+import { useLanguage } from "@/components/editorial/LanguageContext";
 import {
   fetchDashboardRecommendations,
   updateDashboardRecommendationStatus,
@@ -76,6 +77,23 @@ export default function RecommendationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
+  const { t } = useLanguage();
+
+  const COLUMNS = useMemo(
+    () =>
+      STATUS_COLUMNS.map((col) => ({
+        ...col,
+        label:
+          col.key === "new"
+            ? t.recommendations.new
+            : col.key === "in_progress"
+              ? t.recommendations.inProgress
+              : col.key === "done"
+                ? t.recommendations.done
+                : t.recommendations.dismissed,
+      })),
+    [t],
+  );
 
   async function load() {
     setLoading(true);
@@ -253,50 +271,28 @@ export default function RecommendationsPage() {
   }
 
   return (
-    <EditorialShell activeNav="recommendations" title="Дараа нь юу засах вэ" subtitle="Gemini / нөөц дүрмийн ажлын самбар">
-      <div className="mx-auto max-w-[1400px] px-6 py-8 sm:px-8 lg:px-10">
-        <header className="page-enter">
-          <p className="text-[10.5px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant/70">
-            Зөвлөмжүүд · хийх ажлын дараалал
-          </p>
-          <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <h1
-                className="text-[36px] leading-[1.05] text-on-surface"
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontVariationSettings: '"opsz" 144, "SOFT" 30',
-                  fontWeight: 400,
-                  letterSpacing: "-0.024em",
-                }}
-              >
-                Дараа нь юу засах вэ
-              </h1>
-              <p className="mt-1.5 max-w-[68ch] text-[12.5px] text-on-surface-variant">
-                Gemini болон нөөц дүрмүүд давамгай шалтгааныг бодит хэрэгжүүлэх ажлууд болгон хувиргана.
-                Багийн гүйцэтгэлийг хянахын тулд картуудыг багануудын хооронд шилжүүлнэ. Төлөвийн өөрчлөлт Main сервист хадгалагдана.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => void load()}
-              className="inline-flex items-center gap-1.5 rounded-md hairline bg-surface-container-lowest px-3 py-1.5 text-[12px] font-medium text-on-surface hover:bg-surface-container-low transition-colors"
-            >
-              <RefreshCw className={`size-3.5 ${loading ? "animate-spin" : ""}`} aria-hidden />
-              Шинэчлэх
-            </button>
-          </div>
-        </header>
-
-        <div className="editorial-rule mt-6" />
-
-        {/* Stats хэсэг */}
-        <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5 stagger-children">
-          <MetricCell label="Нийт" value={data?.stats?.total ?? 0} hint="Идэвхтэй зүйлс" />
-          <MetricCell label="Шинэ" value={data?.stats?.new ?? 0} hint="Хянах шаардлагатай" />
-          <MetricCell label="Хийгдэж байна" value={data?.stats?.in_progress ?? 0} hint="Баг хэрэгжүүлж байна" />
-          <MetricCell label="Дууссан" value={data?.stats?.done ?? 0} hint="Дууссанаар тэмдэглэсэн" />
-          <MetricCell label="Хассан" value={data?.stats?.dismissed ?? 0} hint="Тусад нь тавьсан" />
+    <EditorialShell
+      activeNav="recommendations"
+      title={t.recommendations.title}
+      subtitle={t.recommendations.subtitle}
+      right={
+        <button
+          type="button"
+          onClick={() => void load()}
+          className="inline-flex items-center gap-1.5 rounded-xl bg-surface-muted px-3 py-1.5 text-xs font-bold text-text hover:bg-surface-muted/70"
+        >
+          <RefreshCw className={`size-3.5 ${loading ? "animate-spin" : ""}`} />
+          {t.common.refresh}
+        </button>
+      }
+    >
+      <div className="space-y-6">
+        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5 stagger-children">
+          <MetricCell label={t.common.total} value={data?.stats?.total ?? 0} />
+          <MetricCell label={t.recommendations.new} value={data?.stats?.new ?? 0} />
+          <MetricCell label={t.recommendations.inProgress} value={data?.stats?.in_progress ?? 0} />
+          <MetricCell label={t.recommendations.done} value={data?.stats?.done ?? 0} />
+          <MetricCell label={t.recommendations.dismissed} value={data?.stats?.dismissed ?? 0} />
         </section>
 
         {error ? (
@@ -313,8 +309,8 @@ export default function RecommendationsPage() {
             ))}
           </div>
         ) : data?.results.length ? (
-          <div className="mt-6 grid gap-4 xl:grid-cols-4">
-            {STATUS_COLUMNS.map(({ key, label, Icon, accent }) => (
+          <div className="grid gap-4 xl:grid-cols-4">
+            {COLUMNS.map(({ key, label, Icon, accent }) => (
               <section key={key} className="rounded-md hairline bg-surface-container-low/30 p-3 flex flex-col">
                 <header className="flex items-center justify-between gap-3 px-1 pb-2.5 mb-2 hairline-b">
                   <h2 className="inline-flex items-center gap-2 text-[12.5px] font-medium text-on-surface">

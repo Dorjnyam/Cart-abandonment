@@ -13,6 +13,7 @@ import {
   Tablet,
 } from "lucide-react";
 import EditorialShell from "@/components/editorial/EditorialShell";
+import { useLanguage } from "@/components/editorial/LanguageContext";
 import {
   fetchDashboardSessions,
   formatPct,
@@ -124,6 +125,7 @@ function SessionsContent() {
   const [predictedClass, setPredictedClass] = useState("");
   const [dominantReason, setDominantReason] = useState("");
   const [highRiskOnly, setHighRiskOnly] = useState(false);
+  const { t } = useLanguage();
 
   const query = useMemo(() => {
     const params = new URLSearchParams();
@@ -162,44 +164,22 @@ function SessionsContent() {
   }, [data]);
 
   return (
-    <EditorialShell activeNav="sessions" title="Сессүүд" subtitle="Таамаглал бүрийн нотолгоо">
-      <div className="mx-auto max-w-[1400px] px-6 py-8 sm:px-8 lg:px-10">
-        {/* Header хэсэг */}
-        <header className="page-enter">
-          <p className="text-[10.5px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant/70">
-            Сессийн бүртгэл · таамаглал бүрийн нотолгоо
-          </p>
-          <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <h1
-                className="text-[36px] leading-[1.05] text-on-surface"
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontVariationSettings: '"opsz" 144, "SOFT" 30',
-                  fontWeight: 400,
-                  letterSpacing: "-0.024em",
-                }}
-              >
-                Сессүүд
-              </h1>
-              <p className="mt-1.5 max-w-[60ch] text-[12.5px] text-on-surface-variant">
-                Сесс хайж эвентийн дараалал, загварын гаралт, S1–S7 оношлогоо болон үүссэн зөвлөмжийг шалгана.
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => void load()}
-                className="inline-flex items-center gap-1.5 rounded-md hairline bg-surface-container-lowest px-3 py-1.5 text-[12px] font-medium text-on-surface hover:bg-surface-container-low transition-colors"
-              >
-                <RefreshCw className={`size-3.5 ${loading ? "animate-spin" : ""}`} aria-hidden />
-                Шинэчлэх
-              </button>
-            </div>
-          </div>
-        </header>
-
-        <div className="editorial-rule mt-6" />
+    <EditorialShell
+      activeNav="sessions"
+      title={t.sessions.sessionsOverview}
+      subtitle={t.sessions.subtitle}
+      right={
+        <button
+          type="button"
+          onClick={() => void load()}
+          className="inline-flex items-center gap-1.5 rounded-xl bg-surface-muted px-3 py-1.5 text-xs font-bold text-text hover:bg-surface-muted/70"
+        >
+          <RefreshCw className={`size-3.5 ${loading ? "animate-spin" : ""}`} />
+          {t.common.refresh}
+        </button>
+      }
+    >
+      <div className="space-y-6">
 
         {/* Stat мөр */}
         <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 stagger-children">

@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import EditorialShell from "@/components/editorial/EditorialShell";
 import { useAuth } from "@/components/editorial/AuthContext";
+import { useLanguage } from "@/components/editorial/LanguageContext";
 import { useToast } from "@/components/ui/Toast";
 import {
   fetchStoreSettings,
@@ -176,6 +177,7 @@ function SettingsInner() {
   const initialTab: SettingsTab = TABS.some((t) => t.id === tabParam) ? (tabParam as SettingsTab) : "profile";
 
   const { role } = useAuth();
+  const { t } = useLanguage();
   const { showToast } = useToast();
   const isOwner = role === "owner" || role === "admin";
 
@@ -361,53 +363,27 @@ function SettingsInner() {
   return (
     <EditorialShell
       activeNav="settings"
-      title="Тохиргоо"
-      subtitle={TABS.find((t) => t.id === tab)?.label}
-      breadcrumbs={[{ label: "Тохиргоо", href: "/settings" }, { label: TABS.find((t) => t.id === tab)?.label ?? "" }]}
+      title={t.settings.title}
+      subtitle={TABS.find((tabItem) => tabItem.id === tab)?.label}
     >
-      <div className="mx-auto max-w-[1400px] px-6 py-8 sm:px-8 lg:px-10">
-        <header className="page-enter">
-          <p className="text-[10.5px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant/70">
-            Ажлын орчин · {TABS.find((t) => t.id === tab)?.label}
-          </p>
-          <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <h1
-                className="text-[36px] leading-[1.05] text-on-surface"
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontVariationSettings: '"opsz" 144, "SOFT" 30',
-                  fontWeight: 400,
-                  letterSpacing: "-0.024em",
-                }}
-              >
-                Тохиргоо
-              </h1>
-              <p className="mt-1.5 max-w-[68ch] text-[12.5px] text-on-surface-variant">
-                {TABS.find((t) => t.id === tab)?.description}
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-md hairline bg-surface-container-lowest px-2.5 py-1 text-[11.5px] text-on-surface">
-                <Building2 className="size-3.5 text-on-surface-variant/70" aria-hidden />
-                {store.name || "Компани"}
-              </span>
-              <StatusPill tone={trackingActive ? "success" : "warn"}>
-                <span
-                  aria-hidden
-                  className="size-1.5 rounded-full"
-                  style={{ background: trackingActive ? "#1F4D3E" : "#9C6B14" }}
-                />
-                Хяналт {serviceStatusLabel(store.tracking_status ?? "pending")}
-              </StatusPill>
-              <span className="text-[11.5px] text-on-surface-variant">Төлөвлөгөө · {planLabel}</span>
-            </div>
-          </div>
-        </header>
+      <div className="space-y-6">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-xl bg-surface-muted px-3 py-1.5 text-xs font-bold text-text">
+            <Building2 className="w-3.5 h-3.5 text-muted" />
+            {store.name || (t.settings.tabs.company)}
+          </span>
+          <StatusPill tone={trackingActive ? "success" : "warn"}>
+            <span
+              aria-hidden
+              className="size-1.5 rounded-full"
+              style={{ background: trackingActive ? "#1F4D3E" : "#9C6B14" }}
+            />
+            {serviceStatusLabel(store.tracking_status ?? "pending")}
+          </StatusPill>
+          <span className="text-xs text-muted">· {planLabel}</span>
+        </div>
 
-        <div className="editorial-rule mt-6" />
-
-        <div className="mt-6 grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
+        <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
           <aside className="lg:sticky lg:top-20 lg:self-start">
             <nav className="flex overflow-x-auto rounded-md tile p-1 lg:flex-col lg:overflow-visible">
               {TABS.map((t) => {

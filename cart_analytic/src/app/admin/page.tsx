@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle, XCircle, AlertCircle, RefreshCw, Shield } from "lucide-react";
+import { CheckCircle, XCircle, AlertCircle, RefreshCw } from "lucide-react";
 import EditorialShell from "@/components/editorial/EditorialShell";
 import RoleGuard from "@/components/editorial/RoleGuard";
+import { useLanguage } from "@/components/editorial/LanguageContext";
 import { AblationBadge } from "@/components/ui/AblationBadge";
 import ExportModal from "@/components/ui/ExportModal";
 import { useToast } from "@/components/ui/Toast";
+import { Card } from "@/components/ui/Card";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/api-config";
 import { apiClient } from "@/lib/api-client";
 import { fetchAblationSummary, type AblationSummary } from "@/lib/services/ablation";
@@ -321,54 +323,37 @@ function AdminContent() {
   const [tab, setTab] = useState<Tab>("health");
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
-      {/* Header хэсэг */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-3">
-          <span className="flex size-9 items-center justify-center rounded-xl border border-outline-variant/[0.09] bg-surface-container-lowest">
-            <Shield className="size-4 text-primary" strokeWidth={1.75} aria-hidden />
-          </span>
-          <div>
-            <h1 className="text-[1.1rem] font-semibold text-on-surface tracking-tight">
-              Системийн удирдлага
-            </h1>
-            <p className="text-[13px] text-on-surface-variant mt-0.5">
-              Pipeline, загвар, экспортын хяналтын самбар
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Tab navigation хэсэг */}
+    <div className="space-y-6">
       <div
-        className="inline-flex rounded-lg border border-outline-variant/[0.09] bg-surface-container-lowest p-0.5"
+        className="inline-flex rounded-xl border border-surface-muted bg-surface p-1"
         role="tablist"
       >
-        {TABS.map((t) => (
+        {TABS.map((tabItem) => (
           <button
-            key={t.key}
+            key={tabItem.key}
             type="button"
             role="tab"
-            aria-selected={tab === t.key}
-            onClick={() => setTab(t.key)}
+            aria-selected={tab === tabItem.key}
+            onClick={() => setTab(tabItem.key)}
             className={[
-              "px-4 py-1.5 rounded-md text-[13px] font-semibold transition-colors",
-              tab === t.key
-                ? "bg-primary text-on-primary shadow-sm"
-                : "text-on-surface-variant hover:text-on-surface",
+              "px-4 py-1.5 rounded-lg text-sm font-bold transition-colors",
+              tab === tabItem.key
+                ? "bg-primary text-white shadow-sm"
+                : "text-muted hover:text-text",
             ].join(" ")}
           >
-            {t.label}
+            {tabItem.label}
           </button>
         ))}
       </div>
 
-      {/* Tab content хэсэг */}
-      <div className="rounded-xl border border-outline-variant/[0.09] bg-surface-container-lowest p-5">
-        {tab === "health"  && <PipelineHealthTab />}
-        {tab === "metrics" && <ModelMetricsTab />}
-        {tab === "export"  && <ExportHistoryTab />}
-      </div>
+      <Card noPadding>
+        <div className="p-6">
+          {tab === "health" && <PipelineHealthTab />}
+          {tab === "metrics" && <ModelMetricsTab />}
+          {tab === "export" && <ExportHistoryTab />}
+        </div>
+      </Card>
     </div>
   );
 }
@@ -376,9 +361,16 @@ function AdminContent() {
 export default function AdminPage() {
   return (
     <RoleGuard allow={["admin"]}>
-      <EditorialShell activeNav="admin" title="Системийн удирдлага" subtitle="Зөвхөн админ">
-        <AdminContent />
-      </EditorialShell>
+      <AdminInner />
     </RoleGuard>
+  );
+}
+
+function AdminInner() {
+  const { t } = useLanguage();
+  return (
+    <EditorialShell activeNav="admin" title={t.admin.title} subtitle={t.admin.subtitle}>
+      <AdminContent />
+    </EditorialShell>
   );
 }

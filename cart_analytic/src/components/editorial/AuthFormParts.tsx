@@ -2,7 +2,7 @@ import { ArrowRight, Loader2 } from "lucide-react";
 import type { ReactNode } from "react";
 
 export const authInputClass =
-  "w-full rounded-xl border border-[#cfdeda] bg-[#f8fbfa] px-4 py-3 text-[15px] text-[#13201e] placeholder:text-[#7f918d] outline-none transition focus:border-[#0f766e] focus:bg-white focus:ring-4 focus:ring-[#0f766e]/10 disabled:cursor-not-allowed disabled:opacity-60";
+  "w-full rounded-2xl border border-surface-muted bg-bg px-4 py-3.5 text-sm font-medium text-text placeholder:text-muted outline-none transition-all focus:border-primary/40 focus:bg-surface focus:ring-4 focus:ring-primary/10 disabled:cursor-not-allowed disabled:opacity-60";
 
 export function FieldGroup({
   label,
@@ -17,7 +17,7 @@ export function FieldGroup({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-3">
-        <label className="text-sm font-medium text-[#243330]">{label}</label>
+        <label className="text-[11px] font-bold text-muted uppercase tracking-[0.2em] pl-1">{label}</label>
         {right}
       </div>
       {children}
@@ -38,7 +38,7 @@ export function SubmitButton({
     <button
       type="submit"
       disabled={isLoading}
-      className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#0f766e] px-5 py-3.5 text-[15px] font-semibold text-white transition hover:bg-[#115e59] disabled:cursor-not-allowed disabled:opacity-65"
+      className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-3.5 text-sm font-extrabold text-white shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-65 disabled:hover:scale-100"
     >
       {isLoading ? (
         <>

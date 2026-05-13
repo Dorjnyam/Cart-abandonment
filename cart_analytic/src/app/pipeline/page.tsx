@@ -12,6 +12,7 @@ import {
   Zap,
 } from "lucide-react";
 import EditorialShell from "@/components/editorial/EditorialShell";
+import { useLanguage } from "@/components/editorial/LanguageContext";
 import {
   fetchPipelineMonitor,
   type PipelineMonitor,
@@ -156,6 +157,7 @@ export default function PipelinePage() {
   const [data, setData] = useState<PipelineMonitor | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useLanguage();
 
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
@@ -178,33 +180,25 @@ export default function PipelinePage() {
   return (
     <EditorialShell
       activeNav="pipeline"
-      title="Pipeline"
-      subtitle="Шууд монитор"
-      breadcrumbs={[{ label: "Pipeline шууд монитор" }]}
-    >
-      <div className="mx-auto max-w-7xl space-y-5 px-4 py-5 sm:px-6">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h1 className="text-[18px] font-semibold tracking-tight text-on-surface">Pipeline шууд монитор</h1>
-            <p className="mt-1 max-w-2xl text-[13px] text-on-surface-variant">
-              Сагс орхилтын аналитикийн pipeline-ийн төлөв ба throughput:
-              Observer → Session Service → Feature Service → ML Service → Main Consumer.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] text-on-surface-variant">
-              {data ? `Шинэчилсэн ${timeShort(data.refreshed_at)}` : "—"}
-            </span>
-            <button
-              type="button"
-              onClick={() => void load()}
-              className="inline-flex items-center gap-2 rounded-md border border-outline-variant/[0.12] bg-surface-container-lowest px-3 py-1.5 text-[12px] font-medium text-on-surface hover:bg-surface-container-low"
-            >
-              <RefreshCw className="size-3.5" aria-hidden />
-              Шинэчлэх
-            </button>
-          </div>
+      title={t.pipeline.title}
+      subtitle={t.pipeline.subtitle}
+      right={
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] text-muted">
+            {data ? timeShort(data.refreshed_at) : "—"}
+          </span>
+          <button
+            type="button"
+            onClick={() => void load()}
+            className="inline-flex items-center gap-2 rounded-xl bg-surface-muted px-3 py-1.5 text-xs font-bold text-text hover:bg-surface-muted/70"
+          >
+            <RefreshCw className="size-3.5" />
+            {t.common.refresh}
+          </button>
         </div>
+      }
+    >
+      <div className="space-y-5">
 
         {error ? (
           <div className="rounded-md border border-error/25 bg-error/5 px-4 py-3 text-[12.5px] text-error">{error}</div>

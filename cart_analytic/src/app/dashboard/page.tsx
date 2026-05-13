@@ -25,6 +25,7 @@ import {
   YAxis,
 } from "recharts";
 import EditorialShell from "@/components/editorial/EditorialShell";
+import { useLanguage } from "@/components/editorial/LanguageContext";
 import {
   fetchDashboardOverview,
   formatPct,
@@ -249,6 +250,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [range, setRange] = useState<"7d" | "14d" | "30d">("7d");
+  const { t } = useLanguage();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -314,38 +316,25 @@ export default function DashboardPage() {
   );
 
   return (
-    <EditorialShell activeNav="dashboard" title="Тойм" breadcrumbs={[{ label: "Тойм" }]} right={right}>
-      <div className="mx-auto max-w-[1480px] space-y-6 px-5 py-6 sm:px-7 page-enter">
-        {/* Хуудасны header */}
-        <header className="flex flex-wrap items-end justify-between gap-4">
-          <div className="space-y-1.5">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant/80">
-              Ажлын орчин · Сагс орхилтын аналитик
-            </p>
-            <h1
-              className="font-display text-[34px] font-medium tracking-[-0.025em] text-on-surface leading-[1.05]"
-              style={{ fontVariationSettings: '"opsz" 144, "SOFT" 30' }}
-            >
-              Тойм
-            </h1>
-            <p className="max-w-2xl text-[13px] text-on-surface-variant">
-              Эвент, таамаглал, давамгай орхилтын шалтгаан болон дараагийн хэрэгжүүлэх зөвлөмжийг нэг дор харуулна.
-            </p>
+    <EditorialShell
+      activeNav="dashboard"
+      title={t.dashboard.title}
+      subtitle={t.dashboard.subtitle}
+      right={right}
+    >
+      <div className="space-y-6">
+        {data?.model ? (
+          <div className="flex flex-wrap items-center gap-3 text-xs">
+            <div className="inline-flex items-center gap-2 rounded-xl bg-surface-muted px-3 py-1.5 text-text">
+              <span className="size-1.5 rounded-full bg-primary" />
+              <span className="font-bold">{data.model.active_model}</span>
+              <span className="text-muted">·</span>
+              <span className="font-mono text-[10.5px] text-muted">{data.model.model_version}</span>
+              <span className="text-muted">·</span>
+              <span className="text-muted">τ {data.model.threshold}</span>
+            </div>
           </div>
-
-          <div className="flex flex-wrap items-center gap-3 text-[11.5px] text-on-surface-variant">
-            {data?.model ? (
-              <div className="inline-flex items-center gap-2 rounded-md hairline bg-surface-container-lowest px-2.5 py-1.5">
-                <span className="size-1.5 rounded-full" style={{ background: "rgb(var(--primary-rgb))" }} aria-hidden />
-                <span className="font-medium text-on-surface">{data.model.active_model}</span>
-                <span className="text-on-surface-variant/70">·</span>
-                <span className="font-mono text-[10.5px] text-on-surface-variant">{data.model.model_version}</span>
-                <span className="text-on-surface-variant/70">·</span>
-                <span className="text-on-surface-variant">τ {data.model.threshold}</span>
-              </div>
-            ) : null}
-          </div>
-        </header>
+        ) : null}
 
         {error ? (
           <div className="rounded-[6px] border border-error/25 bg-error-container/40 px-4 py-3 text-[12px] text-error">

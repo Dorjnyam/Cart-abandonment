@@ -13,6 +13,7 @@ import {
 } from "recharts";
 import { RefreshCw, Sigma, Sparkles } from "lucide-react";
 import EditorialShell from "@/components/editorial/EditorialShell";
+import { useLanguage } from "@/components/editorial/LanguageContext";
 import {
   fetchDashboardReasons,
   SCORE_ORDER,
@@ -72,6 +73,7 @@ export default function DiagnosisPage() {
   const [data, setData] = useState<ReasonsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useLanguage();
 
   async function load() {
     setLoading(true);
@@ -122,43 +124,22 @@ export default function DiagnosisPage() {
   }));
 
   return (
-    <EditorialShell activeNav="diagnosis" title="Хэрэглэгч яагаад орхиж байна" subtitle="S1–S7 шалтгааны шинжилгээ">
-      <div className="mx-auto max-w-[1400px] px-6 py-8 sm:px-8 lg:px-10">
-        {/* Header хэсэг */}
-        <header className="page-enter">
-          <p className="text-[10.5px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant/70">
-            Оношлогоо · S1–S7 стандарт тайлбар
-          </p>
-          <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <h1
-                className="text-[36px] leading-[1.05] text-on-surface"
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontVariationSettings: '"opsz" 144, "SOFT" 30',
-                  fontWeight: 400,
-                  letterSpacing: "-0.024em",
-                }}
-              >
-                Хэрэглэгч яагаад орхиж байна
-              </h1>
-              <p className="mt-1.5 max-w-[68ch] text-[12.5px] text-on-surface-variant">
-                Сесс бүрийг долоон стандарт шалтгаанаар 0–1 хооронд оноолно. Main сервис давамгай
-                шалтгааныг тооцоолж, dashboard тухайн үр дүнг өөрчлөхгүйгээр харуулна.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => void load()}
-              className="inline-flex items-center gap-1.5 rounded-md hairline bg-surface-container-lowest px-3 py-1.5 text-[12px] font-medium text-on-surface hover:bg-surface-container-low transition-colors"
-            >
-              <RefreshCw className={`size-3.5 ${loading ? "animate-spin" : ""}`} aria-hidden />
-              Шинэчлэх
-            </button>
-          </div>
-        </header>
-
-        <div className="editorial-rule mt-6" />
+    <EditorialShell
+      activeNav="diagnosis"
+      title={t.diagnosis.title}
+      subtitle={t.diagnosis.subtitle}
+      right={
+        <button
+          type="button"
+          onClick={() => void load()}
+          className="inline-flex items-center gap-1.5 rounded-xl bg-surface-muted px-3 py-1.5 text-xs font-bold text-text hover:bg-surface-muted/70"
+        >
+          <RefreshCw className={`size-3.5 ${loading ? "animate-spin" : ""}`} />
+          {t.common.refresh}
+        </button>
+      }
+    >
+      <div className="space-y-6">
 
         {error ? (
           <div className="mt-6 rounded-md border border-error/25 bg-error/[0.05] px-4 py-3 text-[12.5px] text-error">
