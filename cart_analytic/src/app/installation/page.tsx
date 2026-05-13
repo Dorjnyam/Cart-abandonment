@@ -49,22 +49,24 @@ export default function InstallationPage() {
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
-    try {
-      const [i, p] = await Promise.all([fetchDashboardIntegration(), fetchPipelineMonitor()]);
-      setIntegration(i);
-      setPipeline(p);
-    } catch (err) {
+    const [iRes, pRes] = await Promise.allSettled([
+      fetchDashboardIntegration(),
+      fetchPipelineMonitor(),
+    ]);
+    if (iRes.status === "fulfilled") {
+      setIntegration(iRes.value);
+    } else {
+      setIntegration(null);
       setError(
-        err instanceof Error
-          ? err.message
+        iRes.reason instanceof Error
+          ? iRes.reason.message
           : lang === "EN"
             ? "Failed to load integration."
             : "Интеграцийн хүсэлт амжилтгүй боллоо.",
       );
-      setIntegration(null);
-    } finally {
-      setLoading(false);
     }
+    setPipeline(pRes.status === "fulfilled" ? pRes.value : null);
+    setLoading(false);
   }, [lang]);
 
   useEffect(() => {
@@ -253,7 +255,7 @@ export default function InstallationPage() {
                     <StatusPill health={(integration.kafka.health as ServiceHealth) ?? "unknown"} />
                   </div>
                   <div className="flex flex-wrap gap-1.5">
-                    {integration.kafka.topics.map((tp) => (
+                    {(integration.kafka?.topics ?? []).map((tp) => (
                       <span
                         key={tp}
                         className="rounded-md border border-surface-muted bg-bg px-2 py-0.5 font-mono text-[11px] text-text"
@@ -287,14 +289,14 @@ export default function InstallationPage() {
                 headerAction={<span className="text-[11px] text-muted">{stepLabels.last10}</span>}
                 noPadding
               >
-                {integration.last_events.length ? (
+                {(integration.last_events?.length ?? 0) > 0 ? (
                   <div className="divide-y divide-surface-muted">
                     <div className="grid grid-cols-[1fr_1fr_auto] gap-3 px-6 py-2 text-[10px] font-bold uppercase tracking-wider text-muted bg-bg">
                       <span>{t.sessions.table.session}</span>
                       <span>{lang === "EN" ? "Event" : "Эвент"}</span>
                       <span className="text-right">{lang === "EN" ? "When" : "Үүссэн"}</span>
                     </div>
-                    {integration.last_events.map((event, i) => (
+                    {(integration.last_events ?? []).map((event, i) => (
                       <div
                         key={`${event.session_id}-${i}`}
                         className="grid grid-cols-[1fr_1fr_auto] gap-3 px-6 py-2.5 text-xs"
