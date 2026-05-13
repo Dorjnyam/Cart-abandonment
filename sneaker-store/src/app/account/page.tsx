@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import type { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatMnt } from "@/lib/format";
@@ -10,13 +9,35 @@ import ThesisDemoPanel from "@/components/ThesisDemoPanel";
 
 export const dynamic = "force-dynamic";
 
-type AccountUser = Prisma.UserGetPayload<{
-  include: {
-    orders: { include: { items: { include: { product: true } } } };
-    wishlist: { include: { product: { include: { brand: true } } } };
-    addresses: true;
-  };
-}>;
+type AccountUser = {
+  id: string;
+  name: string | null;
+  email: string;
+  orders: Array<{
+    id: string;
+    orderNumber: string;
+    totalPrice: number;
+    status: string;
+    items: Array<{ id: string }>;
+  }>;
+  wishlist: Array<{
+    id: string;
+    product: {
+      slug: string;
+      images: string[];
+      name: string;
+      salePrice: number | null;
+      price: number;
+      brand: { name: string };
+    };
+  }>;
+  addresses: Array<{
+    id: string;
+    label: string | null;
+    street: string;
+    district: string;
+  }>;
+};
 
 export default async function AccountPage() {
   const session = await getServerSession(authOptions);
