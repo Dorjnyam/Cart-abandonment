@@ -121,6 +121,7 @@ export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T
       updateStoredToken(refreshed);
       currentToken = refreshed;
     } else {
+      // Зөвхөн бодит session дуусахад redirect хийнэ; нэвтрээгүй хэрэглэгчийг автоматаар хөөхгүй.
       if (typeof window !== "undefined") window.location.href = "/login";
       throw new ApiError("Session expired", 401, "SESSION_EXPIRED");
     }
@@ -142,7 +143,9 @@ export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T
   }
 
   // 401 үед token нэг удаа шинэчлээд хүсэлтийг дахин оролдоно.
+  // Хэрэв одоо token огт байхгүй бол redirect хийхгүй — caller (мок fallback гэх мэт) өөрөө шийднэ.
   if (response.status === 401) {
+    const hadSession = Boolean(currentToken);
     const refreshed = await refreshAccessToken();
     if (refreshed) {
       updateStoredToken(refreshed);
@@ -152,11 +155,11 @@ export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T
           headers: buildHeaders(refreshed, init?.headers),
         });
       } catch {
-        if (typeof window !== "undefined") window.location.href = "/login";
+        if (hadSession && typeof window !== "undefined") window.location.href = "/login";
         throw new ApiError("Session expired", 401, "SESSION_EXPIRED");
       }
     } else {
-      if (typeof window !== "undefined") window.location.href = "/login";
+      if (hadSession && typeof window !== "undefined") window.location.href = "/login";
       throw new ApiError("Session expired", 401, "SESSION_EXPIRED");
     }
   }
