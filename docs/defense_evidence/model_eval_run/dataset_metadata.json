@@ -1,0 +1,9 @@
+{
+  "rows": 1200,
+  "features": 38,
+  "positive_abandoned": 600,
+  "negative_converted": 600,
+  "label_definition": "1 = abandoned checkout/session, 0 = converted purchase_success",
+  "synthetic": true,
+  "future_leakage_guard": "Outcome columns are excluded from feature_order."
+}

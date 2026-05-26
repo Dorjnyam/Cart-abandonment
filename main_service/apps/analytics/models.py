@@ -53,6 +53,7 @@ class PredictionResult(models.Model):
     predicted_class = models.CharField(max_length=64, db_index=True)
 
     shap_values = models.JSONField()
+    feature_vector = models.JSONField(default=dict, blank=True)
 
     model_variant = models.CharField(max_length=64, default='baseline', db_index=True)
     abandonment_probability = models.FloatField(null=True, blank=True)

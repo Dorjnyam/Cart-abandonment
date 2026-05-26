@@ -3,11 +3,16 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
+  Activity,
   ArrowDownRight,
   ArrowRight,
   ArrowUpRight,
+  Lightbulb,
   Loader2,
   RefreshCw,
+  ShoppingCart,
+  TrendingDown,
+  Users,
 } from "lucide-react";
 import {
   Area,
@@ -25,6 +30,8 @@ import {
   YAxis,
 } from "recharts";
 import EditorialShell from "@/components/editorial/EditorialShell";
+import { useLanguage } from "@/components/editorial/LanguageContext";
+import { Badge, Card } from "@/components/ui/Card";
 import {
   fetchDashboardOverview,
   formatPct,
@@ -33,109 +40,154 @@ import {
   type DashboardOverview,
   type DashboardSession,
 } from "@/lib/services/dashboard-mvp";
-import { predictionClassLabel, priorityLabel, recommendationStatusLabel, sourceLabel } from "@/lib/mn-labels";
-
-const SERIES = ["#1F4D3E", "#3E6E8E", "#9C6B14", "#7A4FA0", "#A03521", "#5A6E5C", "#8B7355"] as const;
+import {
+  predictionClassLabel,
+  priorityLabel,
+  recommendationStatusLabel,
+  sourceLabel,
+} from "@/lib/mn-labels";
+import { CHART_TOKENS, chartSeries } from "@/lib/chart-tokens";
+import { cn } from "@/lib/utils";
 
 const intFmt = new Intl.NumberFormat("en-US");
-
-function clsx(...parts: Array<string | false | null | undefined>): string {
-  return parts.filter(Boolean).join(" ");
-}
 
 function formatNumber(n: number | null | undefined): string {
   if (n == null || Number.isNaN(n)) return "—";
   return intFmt.format(n);
 }
 
-function formatRelativeTime(iso: string | null | undefined): string {
+function formatRelativeTime(iso: string | null | undefined, lang: "EN" | "MN"): string {
   if (!iso) return "—";
   const d = new Date(iso).getTime();
   if (Number.isNaN(d)) return "—";
   const diff = Math.floor((Date.now() - d) / 1000);
-  if (diff < 60) return `${diff} сек`;
-  if (diff < 3600) return `${Math.floor(diff / 60)} мин`;
-  if (diff < 86_400) return `${Math.floor(diff / 3600)} цаг`;
-  return `${Math.floor(diff / 86_400)} өдөр`;
+  const u = (s: string, m: string) => (lang === "EN" ? s : m);
+  if (diff < 60) return `${diff}${u("s", " сек")}`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}${u("m", " мин")}`;
+  if (diff < 86_400) return `${Math.floor(diff / 3600)}${u("h", " цаг")}`;
+  return `${Math.floor(diff / 86_400)}${u("d", " өдөр")}`;
 }
 
-function HeroMetric({
+function KpiTile({
   label,
   value,
   delta,
   spark,
   tone = "neutral",
   helper,
+  Icon,
 }: {
   label: string;
   value: string;
-  delta?: { value: string; direction: "up" | "down" | "flat"; positive?: boolean };
+  delta?: { value: string; direction: "up" | "down"; positive: boolean };
   spark?: number[];
   tone?: "neutral" | "risk" | "good";
   helper?: string;
+  Icon?: React.ComponentType<{ className?: string }>;
 }) {
   const valueColor =
-    tone === "risk" ? "text-error" : tone === "good" ? "text-primary" : "text-on-surface";
-  const sparkColor = tone === "risk" ? "#A03521" : tone === "good" ? "#1F4D3E" : "#3E6E8E";
-  const deltaTone = delta?.positive ? "text-primary" : delta?.positive === false ? "text-error" : "text-on-surface-variant";
-
+    tone === "risk" ? "text-error" : tone === "good" ? "text-primary" : "text-text";
+  const sparkColor =
+    tone === "risk" ? CHART_TOKENS.riskHigh : tone === "good" ? CHART_TOKENS.primary : CHART_TOKENS.secondary;
   const sparkData = (spark ?? []).map((v, i) => ({ i, v }));
+  const id = `sg-${label.replace(/\s/g, "")}`;
+  const toneVars =
+    tone === "risk"
+      ? { fg: "var(--error)", bg: "rgb(var(--error-rgb) / 0.12)" }
+      : tone === "good"
+        ? { fg: "var(--primary)", bg: "rgb(var(--primary-rgb) / 0.12)" }
+        : { fg: "var(--secondary)", bg: "rgb(var(--secondary-rgb) / 0.12)" };
+  const deltaVars = delta?.positive
+    ? { fg: "var(--primary)", bg: "rgb(var(--primary-rgb) / 0.10)" }
+    : { fg: "var(--error)", bg: "rgb(var(--error-rgb) / 0.10)" };
 
   return (
-    <div className="tile group flex flex-col gap-3 rounded-[6px] px-5 py-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="space-y-1">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant/85">
-            {label}
-          </p>
-          <p
-            className={clsx("tabular-nums", valueColor)}
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "30px",
-              fontWeight: 400,
-              letterSpacing: "-0.02em",
-              fontVariationSettings: '"opsz" 144, "SOFT" 30',
-              lineHeight: 1.05,
-            }}
+    <Card className="hover:shadow-md hover:border-primary/30 transition-all group">
+      <div className="flex justify-between items-start mb-2 gap-3">
+        <span className="text-xs font-bold text-muted tracking-tight uppercase">{label}</span>
+        {Icon ? (
+          <div
+            className="p-2 rounded-lg"
+            style={{ background: toneVars.bg, color: toneVars.fg }}
           >
-            {value}
-          </p>
+            <Icon className="w-5 h-5" />
+          </div>
+        ) : null}
+      </div>
+      <div className="flex items-end justify-between gap-4">
+        <div
+          className={cn("font-display font-extrabold tracking-tight tabular-nums", valueColor)}
+          style={{ fontSize: 30, lineHeight: 1.05 }}
+        >
+          {value}
         </div>
         {sparkData.length > 1 ? (
-          <div className="h-9 w-20 shrink-0 opacity-90 transition-opacity group-hover:opacity-100">
+          <div className="h-10 w-20 shrink-0 opacity-90 group-hover:opacity-100 transition-opacity">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={sparkData} margin={{ top: 2, right: 0, bottom: 2, left: 0 }}>
                 <defs>
-                  <linearGradient id={`sg-${label}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={sparkColor} stopOpacity={0.22} />
+                  <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={sparkColor} stopOpacity={0.3} />
                     <stop offset="100%" stopColor={sparkColor} stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <Area type="monotone" dataKey="v" stroke={sparkColor} strokeWidth={1.4} fill={`url(#sg-${label})`} />
+                <Area type="monotone" dataKey="v" stroke={sparkColor} strokeWidth={1.6} fill={`url(#${id})`} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         ) : null}
       </div>
-      <div className="flex items-baseline justify-between gap-3">
-        <span className="text-[11px] text-on-surface-variant">{helper}</span>
+      <div className="flex items-center justify-between gap-3 mt-3">
+        {helper ? <span className="text-xs text-muted truncate">{helper}</span> : <span />}
         {delta ? (
-          <span className={clsx("inline-flex items-center gap-0.5 text-[11px] font-medium tabular-nums", deltaTone)}>
-            {delta.direction === "up" ? (
-              <ArrowUpRight className="size-3" aria-hidden />
-            ) : delta.direction === "down" ? (
-              <ArrowDownRight className="size-3" aria-hidden />
-            ) : null}
-            {delta.value}
+          <span
+            className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-bold tabular-nums"
+            style={{ background: deltaVars.bg, color: deltaVars.fg }}
+          >
+              {delta.direction === "up" ? (
+                <ArrowUpRight className="size-3 inline" />
+              ) : (
+                <ArrowDownRight className="size-3 inline" />
+              )}
+              {delta.value}
           </span>
         ) : null}
       </div>
-    </div>
+    </Card>
   );
 }
 
-function CompactMetric({
+function metricDelta(
+  values: number[],
+  format: "percent-change" | "percentage-points",
+  positiveWhen: "up" | "down",
+): { value: string; direction: "up" | "down"; positive: boolean } | undefined {
+  const valid = values.filter((v) => Number.isFinite(v));
+  if (valid.length < 2) return undefined;
+
+  const first = valid[0];
+  const last = valid[valid.length - 1];
+  const diff = last - first;
+  const direction = diff >= 0 ? "up" : "down";
+  const positive = positiveWhen === direction || Math.abs(diff) < 0.0001;
+
+  if (format === "percent-change") {
+    if (first === 0) return undefined;
+    return {
+      value: `${Math.abs((diff / Math.abs(first)) * 100).toFixed(1)}%`,
+      direction,
+      positive,
+    };
+  }
+
+  return {
+    value: `${Math.abs(diff * 100).toFixed(1)} pp`,
+    direction,
+    positive,
+  };
+}
+
+function CompactTile({
   label,
   value,
   helper,
@@ -147,57 +199,21 @@ function CompactMetric({
   tone?: "neutral" | "risk" | "good";
 }) {
   const valueColor =
-    tone === "risk" ? "text-error" : tone === "good" ? "text-primary" : "text-on-surface";
+    tone === "risk" ? "text-error" : tone === "good" ? "text-primary" : "text-text";
   return (
-    <div className="tile rounded-[6px] px-4 py-3">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant/85">{label}</p>
-      <p className={clsx("mt-1.5 text-[18px] font-medium tabular-nums leading-none", valueColor)}>{value}</p>
-      {helper ? <p className="mt-1.5 text-[11px] text-on-surface-variant">{helper}</p> : null}
-    </div>
-  );
-}
-
-function SectionCard({
-  title,
-  hint,
-  right,
-  children,
-  className,
-  pad = true,
-}: {
-  title: string;
-  hint?: string;
-  right?: React.ReactNode;
-  children: React.ReactNode;
-  className?: string;
-  pad?: boolean;
-}) {
-  return (
-    <section className={clsx("tile rounded-[8px]", className)}>
-      <header className="flex items-center justify-between gap-3 px-5 py-3.5 hairline-b">
-        <div>
-          <h2 className="text-[13px] font-semibold tracking-[-0.005em] text-on-surface">{title}</h2>
-          {hint ? <p className="mt-0.5 text-[11.5px] text-on-surface-variant">{hint}</p> : null}
-        </div>
-        {right}
-      </header>
-      <div className={pad ? "px-5 py-4" : ""}>{children}</div>
-    </section>
+    <Card>
+      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted">{label}</p>
+      <p className={cn("mt-2 text-2xl font-display font-extrabold tabular-nums leading-none", valueColor)}>
+        {value}
+      </p>
+      {helper ? <p className="mt-2 text-xs text-muted truncate">{helper}</p> : null}
+    </Card>
   );
 }
 
 function RiskChip({ p }: { p: number }) {
-  const tone =
-    p >= 0.75
-      ? "bg-error-container/60 text-error border-error/30"
-      : p >= 0.5
-        ? "bg-tertiary-container/70 text-on-tertiary-container border-tertiary/30"
-        : "bg-primary-container/60 text-on-primary-container border-primary/25";
-  return (
-    <span className={`inline-flex items-center rounded-[4px] border px-1.5 py-0.5 text-[11px] font-medium tabular-nums ${tone}`}>
-      {formatPct(p)}
-    </span>
-  );
+  const variant: "error" | "warning" | "success" = p >= 0.75 ? "error" : p >= 0.5 ? "warning" : "success";
+  return <Badge variant={variant}>{formatPct(p)}</Badge>;
 }
 
 function ReasonScoreRow({
@@ -206,40 +222,40 @@ function ReasonScoreRow({
   value,
   dominant,
   highlight,
+  dominantLabel,
 }: {
   code: string;
   label: string;
   value: number;
   dominant: number;
   highlight?: boolean;
+  dominantLabel: string;
 }) {
   return (
-    <div className="grid grid-cols-[40px_minmax(0,1fr)_44px] items-center gap-3 py-1">
+    <div className="grid grid-cols-[44px_minmax(0,1fr)_48px] items-center gap-3 py-1.5">
       <span
-        className={clsx(
-          "rounded-[4px] px-1.5 py-0.5 text-center text-[11px] font-semibold tabular-nums",
-          highlight
-            ? "bg-primary text-on-primary"
-            : "bg-primary-container/60 text-on-primary-container",
+        className={cn(
+          "rounded-md px-1.5 py-0.5 text-center text-[11px] font-extrabold tabular-nums",
+          highlight ? "bg-primary text-white" : "bg-primary/10 text-primary",
         )}
       >
         {code}
       </span>
       <div>
-        <div className="mb-1 flex items-center justify-between text-[11.5px]">
-          <span className="truncate text-on-surface">{label}</span>
-          <span className="tabular-nums text-on-surface-variant">{dominant} давамгай</span>
+        <div className="mb-1 flex items-center justify-between text-xs">
+          <span className="truncate text-text">{label}</span>
+          <span className="tabular-nums text-muted">
+            {dominant} {dominantLabel}
+          </span>
         </div>
-        <div className="h-[5px] overflow-hidden rounded-full bg-[rgb(28_25_23/0.06)]">
+        <div className="h-1.5 overflow-hidden rounded-full bg-surface-muted">
           <div
-            className="h-full rounded-full transition-bar"
-            style={{ width: `${Math.min(100, value * 100)}%`, background: "rgb(var(--primary-rgb))" }}
+            className="h-full rounded-full bg-primary transition-all duration-500"
+            style={{ width: `${Math.min(100, value * 100)}%` }}
           />
         </div>
       </div>
-      <span className="text-right text-[11.5px] font-medium tabular-nums text-on-surface">
-        {value.toFixed(2)}
-      </span>
+      <span className="text-right text-xs font-bold tabular-nums text-text">{value.toFixed(2)}</span>
     </div>
   );
 }
@@ -249,6 +265,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [range, setRange] = useState<"7d" | "14d" | "30d">("7d");
+  const { t, lang } = useLanguage();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -256,12 +273,18 @@ export default function DashboardPage() {
     try {
       setData(await fetchDashboardOverview());
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Хяналтын самбарын хүсэлт амжилтгүй боллоо.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : lang === "EN"
+            ? "Dashboard request failed."
+            : "Хяналтын самбарын хүсэлт амжилтгүй боллоо.",
+      );
       setData(null);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [lang]);
 
   useEffect(() => {
     void load();
@@ -274,28 +297,52 @@ export default function DashboardPage() {
       .map((r) => ({ name: r.code, value: r.dominant_sessions, label: r.label }));
   }, [data]);
 
+  const rangeDays = range === "30d" ? 30 : range === "14d" ? 14 : 7;
+  const trendWindow = useMemo(
+    () => (data?.trend ?? []).slice(-rangeDays),
+    [data, rangeDays],
+  );
   const sessionsSpark = useMemo(
-    () => (data?.trend ?? []).slice(-14).map((p) => p.sessions),
-    [data],
+    () => trendWindow.map((p) => p.sessions),
+    [trendWindow],
   );
   const rateSpark = useMemo(
-    () => (data?.trend ?? []).slice(-14).map((p) => p.abandonment_rate),
-    [data],
+    () => trendWindow.map((p) => p.abandonment_rate),
+    [trendWindow],
   );
+  const conversionSpark = useMemo(
+    () => rateSpark.map((v) => Math.max(0, 1 - v)),
+    [rateSpark],
+  );
+  const sessionsDelta = useMemo(
+    () => metricDelta(sessionsSpark, "percent-change", "up"),
+    [sessionsSpark],
+  );
+  const abandonmentDelta = useMemo(
+    () => metricDelta(rateSpark, "percentage-points", "down"),
+    [rateSpark],
+  );
+  const conversionDelta = useMemo(
+    () => metricDelta(conversionSpark, "percentage-points", "up"),
+    [conversionSpark],
+  );
+
+  const dominantWord = lang === "EN" ? "dominant" : "давамгай";
+  const trendDataLabel = lang === "EN" ? "Sessions" : "Сесс";
+  const trendRateLabel = lang === "EN" ? "Abandon rate" : "Орхилт";
+  const inactiveActionLabel = lang === "EN" ? "No recommendations yet." : "Зөвлөмж одоогоор алга.";
 
   const right = (
     <div className="flex items-center gap-2">
-      <div className="hidden md:inline-flex rounded-md hairline bg-surface-container-lowest p-0.5 text-[11.5px]">
+      <div className="hidden md:inline-flex rounded-xl bg-surface-muted p-1 text-xs">
         {(["7d", "14d", "30d"] as const).map((r) => (
           <button
             key={r}
             type="button"
             onClick={() => setRange(r)}
-            className={clsx(
-              "rounded-[5px] px-2.5 py-1 font-medium tracking-wide transition-colors",
-              range === r
-                ? "bg-on-surface text-canvas"
-                : "text-on-surface-variant hover:text-on-surface",
+            className={cn(
+              "rounded-lg px-2.5 py-1 font-bold transition-colors",
+              range === r ? "bg-surface text-text shadow-sm" : "text-muted hover:text-text",
             )}
           >
             {r}
@@ -305,231 +352,205 @@ export default function DashboardPage() {
       <button
         type="button"
         onClick={() => void load()}
-        className="inline-flex items-center gap-1.5 rounded-md hairline bg-surface-container-lowest px-2.5 py-1 text-[11.5px] font-medium text-on-surface hover:bg-surface-container-low"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-muted text-text text-xs font-bold hover:bg-surface-muted/70"
       >
-        <RefreshCw className={clsx("size-3", loading && "animate-spin")} aria-hidden />
-        Шинэчлэх
+        <RefreshCw className={cn("size-3.5", loading && "animate-spin")} />
+        {t.common.refresh}
       </button>
     </div>
   );
 
   return (
-    <EditorialShell activeNav="dashboard" title="Тойм" breadcrumbs={[{ label: "Тойм" }]} right={right}>
-      <div className="mx-auto max-w-[1480px] space-y-6 px-5 py-6 sm:px-7 page-enter">
-        {/* Хуудасны header */}
-        <header className="flex flex-wrap items-end justify-between gap-4">
-          <div className="space-y-1.5">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant/80">
-              Ажлын орчин · Сагс орхилтын аналитик
-            </p>
-            <h1
-              className="font-display text-[34px] font-medium tracking-[-0.025em] text-on-surface leading-[1.05]"
-              style={{ fontVariationSettings: '"opsz" 144, "SOFT" 30' }}
-            >
-              Тойм
-            </h1>
-            <p className="max-w-2xl text-[13px] text-on-surface-variant">
-              Эвент, таамаглал, давамгай орхилтын шалтгаан болон дараагийн хэрэгжүүлэх зөвлөмжийг нэг дор харуулна.
-            </p>
+    <EditorialShell
+      activeNav="dashboard"
+      title={t.dashboard.title}
+      subtitle={t.dashboard.subtitle}
+      right={right}
+    >
+      <div className="space-y-6">
+        {data?.model ? (
+          <div className="flex flex-wrap items-center gap-3 text-xs">
+            <div className="inline-flex items-center gap-2 rounded-xl bg-surface-muted px-3 py-1.5 text-text">
+              <span className="size-1.5 rounded-full bg-primary" />
+              <span className="font-extrabold">{data.model.active_model}</span>
+              <span className="text-muted">·</span>
+              <span className="font-mono text-[10.5px] text-muted">{data.model.model_version}</span>
+              <span className="text-muted">·</span>
+              <span className="text-muted">τ {data.model.threshold}</span>
+            </div>
           </div>
-
-          <div className="flex flex-wrap items-center gap-3 text-[11.5px] text-on-surface-variant">
-            {data?.model ? (
-              <div className="inline-flex items-center gap-2 rounded-md hairline bg-surface-container-lowest px-2.5 py-1.5">
-                <span className="size-1.5 rounded-full" style={{ background: "rgb(var(--primary-rgb))" }} aria-hidden />
-                <span className="font-medium text-on-surface">{data.model.active_model}</span>
-                <span className="text-on-surface-variant/70">·</span>
-                <span className="font-mono text-[10.5px] text-on-surface-variant">{data.model.model_version}</span>
-                <span className="text-on-surface-variant/70">·</span>
-                <span className="text-on-surface-variant">τ {data.model.threshold}</span>
-              </div>
-            ) : null}
-          </div>
-        </header>
+        ) : null}
 
         {error ? (
-          <div className="rounded-[6px] border border-error/25 bg-error-container/40 px-4 py-3 text-[12px] text-error">
+          <div className="rounded-xl bg-error/10 border border-error/30 px-4 py-3 text-sm text-error">
             {error}
           </div>
         ) : null}
 
         {loading || !data ? (
-          <div className="flex h-72 items-center justify-center text-on-surface-variant">
-            <Loader2 className="size-4 animate-spin" aria-hidden />
+          <div className="flex h-72 items-center justify-center text-muted">
+            <Loader2 className="size-6 animate-spin" />
           </div>
         ) : (
           <>
-            {/* Гол KPI мөр */}
-            <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <HeroMetric
-                label="Нийт сесс"
+            <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <KpiTile
+                label={t.dashboard.totalSessions}
                 value={formatNumber(data.summary.total_sessions)}
-                helper="Сүүлийн 30 өдөр"
+                helper={t.common.last30d}
                 spark={sessionsSpark}
-                delta={{ value: "+12.4%", direction: "up", positive: true }}
+                Icon={Users}
+                delta={sessionsDelta}
               />
-              <HeroMetric
-                label="Орхилтын хувь"
+              <KpiTile
+                label={t.dashboard.abandonmentRate}
                 value={formatPct(data.summary.abandonment_rate)}
-                helper={`${formatNumber(data.summary.abandoned_sessions)} сесс орхисон`}
+                helper={`${formatNumber(data.summary.abandoned_sessions)} · ${t.common.abandoned.toLowerCase()}`}
                 spark={rateSpark}
                 tone="risk"
-                delta={{ value: "−1.8 pp", direction: "down", positive: true }}
+                Icon={TrendingDown}
+                delta={abandonmentDelta}
               />
-              <HeroMetric
-                label="Хөрвөлтийн хувь"
+              <KpiTile
+                label={t.dashboard.conversionRate}
                 value={formatPct(data.summary.conversion_rate)}
-                helper={`${formatNumber(data.summary.converted_sessions)} сесс худалдан авсан`}
+                helper={`${formatNumber(data.summary.converted_sessions)} · ${t.common.completed.toLowerCase()}`}
                 tone="good"
-                spark={rateSpark.map((v) => Math.max(0, 1 - v))}
-                delta={{ value: "+1.8 pp", direction: "up", positive: true }}
+                Icon={ShoppingCart}
+                spark={conversionSpark}
+                delta={conversionDelta}
               />
-              <HeroMetric
-                label="Дундаж P(орхих)"
+              <KpiTile
+                label={t.dashboard.avgAbandonProb}
                 value={formatPct(data.summary.average_abandonment_probability)}
-                helper={`Босго τ = ${data.model.threshold.toFixed(2)}`}
-                spark={rateSpark}
-                delta={{ value: "+0.3 pp", direction: "up", positive: false }}
+                helper={`τ = ${data.model.threshold.toFixed(2)}`}
+                Icon={Activity}
               />
             </section>
 
-            {/* Товч secondary metrics */}
-            <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <CompactMetric
-                label="Өндөр эрсдэлтэй"
+            <section className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              <CompactTile
+                label={t.dashboard.highRiskSessions}
                 value={formatNumber(data.summary.high_risk_sessions)}
                 helper={`P ≥ ${data.model.threshold}`}
                 tone="risk"
               />
-              <CompactMetric
-                label="Нээлттэй зөвлөмж"
+              <CompactTile
+                label={t.dashboard.activeRecommendations}
                 value={formatNumber(data.summary.active_recommendations)}
-                helper="Хянах шаардлагатай"
               />
-              <CompactMetric
-                label="Гол шалтгаан"
+              <CompactTile
+                label={t.dashboard.topReason}
                 value={data.top_reason.score}
                 helper={data.top_reason.label}
               />
-              <CompactMetric
-                label="Дундаж оноо"
+              <CompactTile
+                label={t.dashboard.averageReason}
                 value={data.top_reason.value.toFixed(2)}
-                helper="Сүүлийн оношлогоон дээр"
               />
             </section>
 
-            {/* Trend ба top reason */}
             <section className="grid gap-4 lg:grid-cols-3">
-              <SectionCard
+              <Card
                 className="lg:col-span-2"
-                title="Орхилтын тренд"
-                hint="Өдөр бүр боловсруулсан сесс болон орхилтын хувь."
-                right={
-                  <div className="flex items-center gap-3 text-[11px] text-on-surface-variant">
+                title={t.dashboard.abandonmentTrend}
+                subtitle={
+                  lang === "EN"
+                    ? "Sessions processed daily and the abandonment rate."
+                    : "Өдөр бүр боловсруулсан сесс ба орхилтын хувь."
+                }
+                headerAction={
+                  <div className="hidden md:flex items-center gap-3 text-xs text-muted">
                     <span className="inline-flex items-center gap-1.5">
-                      <span className="inline-block size-2 rounded-[2px]" style={{ background: "#3E6E8E", opacity: 0.35 }} />
-                      Сесс
+                      <span className="size-2 rounded-sm bg-secondary/40" />
+                      {trendDataLabel}
                     </span>
                     <span className="inline-flex items-center gap-1.5">
-                      <span className="inline-block h-[2px] w-3" style={{ background: "#A03521" }} />
-                      Орхилтын хувь
+                      <span className="h-0.5 w-3 bg-error" />
+                      {trendRateLabel}
                     </span>
                   </div>
                 }
-                pad={false}
+                noPadding
               >
-                {data.trend.length ? (
-                  <div className="h-[280px] px-3 pb-4 pt-3">
+                {trendWindow.length ? (
+                  <div className="h-[280px] px-4 pb-4 pt-3">
                     <ResponsiveContainer width="100%" height="100%">
-                      <ComposedChart data={data.trend} margin={{ top: 8, right: 12, bottom: 8, left: 0 }}>
-                        <CartesianGrid strokeDasharray="2 4" vertical={false} />
-                        <XAxis dataKey="date" tickLine={false} axisLine={false} stroke="rgb(28 25 23 / 0.2)" tick={{ fontSize: 10.5, fontFamily: "var(--font-mono)", fill: "rgb(87 83 78)" }} />
-                        <YAxis yAxisId="rate" tickLine={false} axisLine={false} stroke="rgb(28 25 23 / 0.2)" tick={{ fontSize: 10.5, fontFamily: "var(--font-mono)", fill: "rgb(87 83 78)" }} tickFormatter={(v) => `${Math.round(Number(v) * 100)}%`} />
-                        <YAxis yAxisId="sessions" orientation="right" tickLine={false} axisLine={false} stroke="rgb(28 25 23 / 0.2)" tick={{ fontSize: 10.5, fontFamily: "var(--font-mono)", fill: "rgb(87 83 78)" }} />
+                      <ComposedChart data={trendWindow} margin={{ top: 8, right: 12, bottom: 8, left: 0 }}>
+                        <CartesianGrid strokeDasharray="2 4" vertical={false} stroke={CHART_TOKENS.gridSoft} />
+                        <XAxis dataKey="date" tickLine={false} axisLine={false} tick={{ fontSize: 10.5, fill: CHART_TOKENS.tick }} />
+                        <YAxis yAxisId="rate" tickLine={false} axisLine={false} tick={{ fontSize: 10.5, fill: CHART_TOKENS.tick }} tickFormatter={(v) => `${Math.round(Number(v) * 100)}%`} />
+                        <YAxis yAxisId="sessions" orientation="right" tickLine={false} axisLine={false} tick={{ fontSize: 10.5, fill: CHART_TOKENS.tick }} />
                         <Tooltip
-                          cursor={{ stroke: "rgb(28 25 23 / 0.2)", strokeDasharray: "2 4" }}
+                          cursor={{ stroke: CHART_TOKENS.tooltipBorder, strokeDasharray: "2 4" }}
+                          contentStyle={{
+                            background: CHART_TOKENS.tooltipBg,
+                            border: `1px solid ${CHART_TOKENS.tooltipBorder}`,
+                            borderRadius: 12,
+                            fontSize: 12,
+                            backdropFilter: "blur(6px)",
+                          }}
                           formatter={(value, name) =>
-                            name === "abandonment_rate" ? [formatPct(Number(value)), "Хувь"] : [intFmt.format(Number(value)), "Сесс"]
+                            name === "abandonment_rate"
+                              ? [formatPct(Number(value)), trendRateLabel]
+                              : [intFmt.format(Number(value)), trendDataLabel]
                           }
                         />
-                        <Bar yAxisId="sessions" dataKey="sessions" fill="#3E6E8E" fillOpacity={0.32} radius={[2, 2, 0, 0]} barSize={20} />
-                        <Line yAxisId="rate" type="monotone" dataKey="abandonment_rate" stroke="#A03521" strokeWidth={1.6} dot={{ r: 2.5, fill: "#A03521" }} activeDot={{ r: 3.5 }} />
+                        <Bar yAxisId="sessions" dataKey="sessions" fill={CHART_TOKENS.secondary} fillOpacity={0.35} radius={[4, 4, 0, 0]} barSize={20} />
+                        <Line yAxisId="rate" type="monotone" dataKey="abandonment_rate" stroke={CHART_TOKENS.riskHigh} strokeWidth={1.8} dot={{ r: 2.5, fill: CHART_TOKENS.riskHigh }} activeDot={{ r: 3.5 }} />
                       </ComposedChart>
                     </ResponsiveContainer>
                   </div>
                 ) : (
-                  <div className="flex h-72 items-center justify-center px-5 py-8 text-center text-[12px] text-on-surface-variant">
-                    Сессүүд pipeline-аар орж эхлэхэд тренд энд харагдана.
+                  <div className="flex h-72 items-center justify-center text-sm text-muted">
+                    {lang === "EN"
+                      ? "Trend will appear once sessions start flowing."
+                      : "Сесс орж эхлэхэд тренд гарч ирнэ."}
                   </div>
                 )}
-              </SectionCard>
+              </Card>
 
-              <SectionCard title="Орхилтын гол хөдөлгөгч" hint="Сүүлийн 30 өдрийн S1–S7 онооны хамгийн их утга.">
+              <Card title={t.dashboard.topReason} subtitle={data.top_reason.label}>
                 <div className="space-y-4">
                   <div className="flex items-baseline justify-between gap-3">
-                    <span className="rounded-[4px] bg-primary px-2 py-0.5 text-[12px] font-semibold tracking-wide text-on-primary">
-                      {data.top_reason.score}
-                    </span>
-                    <span
-                      className="font-display tabular-nums text-on-surface"
-                      style={{
-                        fontSize: "32px",
-                        fontWeight: 400,
-                        letterSpacing: "-0.02em",
-                        fontVariationSettings: '"opsz" 144, "SOFT" 30',
-                        lineHeight: 1,
-                      }}
-                    >
+                    <Badge variant="primary">{data.top_reason.score}</Badge>
+                    <span className="font-display font-extrabold tabular-nums text-text" style={{ fontSize: 32, lineHeight: 1 }}>
                       {data.top_reason.value.toFixed(2)}
                     </span>
                   </div>
-
-                  <div>
-                    <h3
-                      className="font-display text-[20px] font-medium leading-tight text-on-surface"
-                      style={{ letterSpacing: "-0.02em", fontVariationSettings: '"opsz" 36, "SOFT" 30' }}
-                    >
-                      {data.top_reason.label}
-                    </h3>
-                    <p className="mt-2 text-[12.5px] leading-relaxed text-on-surface-variant">
-                      {data.top_reason.explanation}
-                    </p>
-                  </div>
-
+                  <p className="text-sm leading-relaxed text-muted">{data.top_reason.explanation}</p>
                   <Link
                     href="/diagnosis"
-                    className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-primary hover:underline"
+                    className="inline-flex items-center gap-1.5 text-xs font-extrabold text-primary hover:underline"
                   >
-                    Оношлогоо шалгах
-                    <ArrowRight className="size-3" aria-hidden />
+                    {lang === "EN" ? "Open diagnosis" : "Оношлогоо нээх"}
+                    <ArrowRight className="size-3" />
                   </Link>
                 </div>
-              </SectionCard>
+              </Card>
             </section>
 
-            {/* Funnel, reason scores, reason mix */}
             <section className="grid gap-4 lg:grid-cols-3">
-              <SectionCard title="Хөрвөлтийн funnel" hint="Алхам бүр дээрх сессийн бууралт.">
+              <Card title={t.dashboard.conversionFunnel}>
                 {data.funnel.length ? (
                   <div className="space-y-3">
                     {data.funnel.map((point, index) => {
                       const max = Math.max(...data.funnel.map((f) => f.sessions), 1);
                       return (
                         <div key={point.step}>
-                          <div className="mb-1.5 flex items-center justify-between text-[11.5px]">
-                            <span className="text-on-surface">
-                              <span className="mr-1.5 inline-block w-4 text-right tabular-nums text-on-surface-variant">{index + 1}.</span>
+                          <div className="mb-1.5 flex items-center justify-between text-xs">
+                            <span className="text-text">
+                              <span className="mr-1.5 inline-block w-4 text-right tabular-nums text-muted">{index + 1}.</span>
                               {point.step}
                             </span>
-                            <span className="tabular-nums text-on-surface-variant">{intFmt.format(point.sessions)}</span>
+                            <span className="tabular-nums text-muted">{intFmt.format(point.sessions)}</span>
                           </div>
-                          <div className="h-1.5 overflow-hidden rounded-full bg-[rgb(28_25_23/0.06)]">
+                          <div className="h-2 overflow-hidden rounded-full bg-surface-muted">
                             <div
-                              className="h-full rounded-full transition-bar"
+                              className="h-full rounded-full bg-primary transition-all duration-500"
                               style={{
                                 width: `${(point.sessions / max) * 100}%`,
-                                background: "rgb(var(--primary-rgb))",
-                                opacity: 0.85 - index * 0.07,
+                                opacity: 0.9 - index * 0.07,
                               }}
                             />
                           </div>
@@ -538,11 +559,13 @@ export default function DashboardPage() {
                     })}
                   </div>
                 ) : (
-                  <p className="py-8 text-center text-[12px] text-on-surface-variant">Funnel өгөгдөл одоогоор алга.</p>
+                  <p className="py-8 text-center text-sm text-muted">
+                    {lang === "EN" ? "Funnel will appear soon." : "Funnel өгөгдөл одоогоор алга."}
+                  </p>
                 )}
-              </SectionCard>
+              </Card>
 
-              <SectionCard title="Шалтгааны оноо (S1–S7)" hint="Орхилтын стандарт шалтгаан бүрийн дундаж оноо.">
+              <Card title={t.dashboard.reasonScores}>
                 <div className="space-y-1">
                   {SCORE_ORDER.map((code) => {
                     const reason = data.reasons.find((r) => r.code === code);
@@ -554,103 +577,113 @@ export default function DashboardPage() {
                         value={reason?.average_score ?? 0}
                         dominant={reason?.dominant_sessions ?? 0}
                         highlight={code === data.top_reason.score}
+                        dominantLabel={dominantWord}
                       />
                     );
                   })}
                 </div>
-              </SectionCard>
+              </Card>
 
-              <SectionCard title="Давамгай шалтгааны бүтэц" hint="Сессүүд дээр давамгайлсан шалтгааны тархалт." pad={false}>
+              <Card title={t.dashboard.dominantReasonMix} noPadding>
                 {reasonDistribution.length ? (
                   <div className="grid grid-cols-1 gap-3 px-5 py-4 sm:grid-cols-[1fr_auto] items-center">
                     <div className="h-44">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
-                          <Pie data={reasonDistribution} dataKey="value" nameKey="name" innerRadius={42} outerRadius={68} paddingAngle={1.2} stroke="rgb(255 255 255)" strokeWidth={1.5}>
+                          <Pie
+                            data={reasonDistribution}
+                            dataKey="value"
+                            nameKey="name"
+                            innerRadius={42}
+                            outerRadius={68}
+                            paddingAngle={1.5}
+                            stroke={CHART_TOKENS.pieStroke}
+                            strokeWidth={2}
+                          >
                             {reasonDistribution.map((_, i) => (
-                              <Cell key={i} fill={SERIES[i % SERIES.length]} />
+                              <Cell key={i} fill={chartSeries(i)} />
                             ))}
                           </Pie>
-                          <Tooltip formatter={(value, name) => [`${value} сесс`, String(name)]} />
+                          <Tooltip
+                            contentStyle={{
+                              background: CHART_TOKENS.tooltipBg,
+                              border: `1px solid ${CHART_TOKENS.tooltipBorder}`,
+                              borderRadius: 12,
+                              fontSize: 12,
+                            }}
+                            formatter={(value, name) => [`${value}`, String(name)]}
+                          />
                         </PieChart>
                       </ResponsiveContainer>
                     </div>
-                    <ul className="space-y-1.5 text-[11.5px] sm:min-w-[110px]">
+                    <ul className="space-y-1.5 text-xs sm:min-w-[110px]">
                       {reasonDistribution.map((d, i) => (
                         <li key={d.name} className="flex items-center justify-between gap-3">
-                          <span className="inline-flex items-center gap-1.5 text-on-surface">
-                            <span className="size-2 rounded-[2px]" style={{ background: SERIES[i % SERIES.length] }} aria-hidden />
+                          <span className="inline-flex items-center gap-1.5 text-text">
+                            <span className="size-2 rounded-sm" style={{ background: chartSeries(i) }} />
                             {d.name}
                           </span>
-                          <span className="tabular-nums text-on-surface-variant">{d.value}</span>
+                          <span className="tabular-nums text-muted">{d.value}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
                 ) : (
-                  <div className="flex h-48 items-center justify-center px-5 text-center text-[12px] text-on-surface-variant">
-                    Оношлогоо одоогоор алга.
+                  <div className="flex h-48 items-center justify-center px-5 text-center text-sm text-muted">
+                    {lang === "EN" ? "No diagnosis yet." : "Оношлогоо одоогоор алга."}
                   </div>
                 )}
-              </SectionCard>
+              </Card>
             </section>
 
-            {/* Сүүлийн өндөр эрсдэлтэй session ба next best action */}
             <section className="grid gap-4 lg:grid-cols-3">
-              <SectionCard
+              <Card
                 className="lg:col-span-2"
-                title="Сүүлийн өндөр эрсдэлтэй сессүүд"
-                hint="Загвар орхилтын босгыг давсан хамгийн сүүлийн таамаглалууд."
-                right={
-                  <Link href="/sessions?high_risk=true" className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-primary hover:underline">
-                    Бүгдийг харах
-                    <ArrowRight className="size-3" aria-hidden />
+                title={t.dashboard.recentHighRisk}
+                headerAction={
+                  <Link
+                    href="/sessions?high_risk=true"
+                    className="inline-flex items-center gap-1 text-xs font-extrabold text-primary hover:underline"
+                  >
+                    {t.dashboard.viewAllSessions}
+                    <ArrowRight className="size-3" />
                   </Link>
                 }
-                pad={false}
+                noPadding
               >
-                <RecentSessionsTable sessions={data.recent_sessions.slice(0, 6)} />
-              </SectionCard>
+                <RecentSessionsTable sessions={data.recent_sessions.slice(0, 6)} lang={lang} t={t} />
+              </Card>
 
-              <SectionCard title="Дараагийн шилдэг арга хэмжээ" hint="Ажлын орчны хамгийн өндөр ач холбогдолтой зөвлөмж.">
+              <Card title={t.dashboard.nextBestAction} icon={Lightbulb}>
                 {data.latest_recommendation ? (
                   <div className="space-y-4">
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="rounded-[4px] bg-primary-container/70 px-1.5 py-0.5 text-[11px] font-semibold tabular-nums text-on-primary-container">
-                        {data.latest_recommendation.reason_code}
-                      </span>
-                      <span className="rounded-[4px] hairline px-1.5 py-0.5 text-[11px] font-medium uppercase tracking-wide text-on-surface-variant">
-                        {priorityLabel(data.latest_recommendation.priority)}
-                      </span>
-                      <span className="rounded-[4px] hairline px-1.5 py-0.5 text-[10.5px] font-mono text-on-surface-variant">
+                      <Badge variant="primary">{data.latest_recommendation.reason_code}</Badge>
+                      <Badge>{priorityLabel(data.latest_recommendation.priority)}</Badge>
+                      <span className="rounded-full bg-surface-muted px-2 py-0.5 text-[10px] font-mono text-muted">
                         {sourceLabel(data.latest_recommendation.source)}
                       </span>
                     </div>
-                    <h3
-                      className="font-display text-[19px] font-medium leading-snug text-on-surface"
-                      style={{ letterSpacing: "-0.02em", fontVariationSettings: '"opsz" 36, "SOFT" 30' }}
-                    >
+                    <h3 className="font-display font-extrabold text-lg leading-snug text-text">
                       {data.latest_recommendation.title}
                     </h3>
-                    <p className="text-[12.5px] leading-relaxed text-on-surface-variant">
+                    <p className="text-sm leading-relaxed text-muted">
                       {data.latest_recommendation.summary}
                     </p>
                     <Link
                       href="/recommendations"
-                      className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-primary hover:underline"
+                      className="inline-flex items-center gap-1.5 text-xs font-extrabold text-primary hover:underline"
                     >
-                      Зөвлөмжийн самбар нээх
-                      <ArrowRight className="size-3" aria-hidden />
+                      {lang === "EN" ? "Open recommendations" : "Зөвлөмжийн самбар"}
+                      <ArrowRight className="size-3" />
                     </Link>
                   </div>
                 ) : (
                   <div className="py-6 text-center">
-                    <p className="text-[12.5px] text-on-surface-variant">
-                      Зөвлөмж одоогоор алга. Эхний оношлогооны дараа энд харагдана.
-                    </p>
+                    <p className="text-sm text-muted">{inactiveActionLabel}</p>
                   </div>
                 )}
-              </SectionCard>
+              </Card>
             </section>
           </>
         )}
@@ -659,60 +692,71 @@ export default function DashboardPage() {
   );
 }
 
-function RecentSessionsTable({ sessions }: { sessions: DashboardSession[] }) {
+function RecentSessionsTable({
+  sessions,
+  lang,
+  t,
+}: {
+  sessions: DashboardSession[];
+  lang: "EN" | "MN";
+  t: ReturnType<typeof useLanguage>["t"];
+}) {
   if (!sessions.length) {
     return (
-      <div className="px-5 py-10 text-center text-[12px] text-on-surface-variant">
-        Энэ хугацаанд өндөр эрсдэлтэй сесс алга.
+      <div className="px-5 py-10 text-center text-sm text-muted">
+        {lang === "EN" ? "No high-risk sessions in this window." : "Энэ хугацаанд өндөр эрсдэлтэй сесс алга."}
       </div>
     );
   }
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[680px] text-[12px]">
+      <table className="w-full min-w-[680px] text-sm">
         <thead>
-          <tr className="hairline-b text-left text-[10px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant/80">
-            <th className="px-5 py-2.5 font-semibold">Сесс</th>
-            <th className="px-3 py-2.5 font-semibold">Ангилал</th>
-            <th className="px-3 py-2.5 font-semibold">P(abandon)</th>
-            <th className="px-3 py-2.5 font-semibold">Шалтгаан</th>
-            <th className="px-3 py-2.5 font-semibold">Сүүлд</th>
-            <th className="px-5 py-2.5 text-right font-semibold">Зөвлөмж</th>
+          <tr className="border-b border-surface-muted bg-bg text-left text-[10px] font-extrabold uppercase tracking-[0.18em] text-muted">
+            <th className="px-5 py-2.5">{t.sessions.table.session}</th>
+            <th className="px-3 py-2.5">{t.sessions.table.class}</th>
+            <th className="px-3 py-2.5">{t.sessions.table.probability}</th>
+            <th className="px-3 py-2.5">{t.sessions.table.reason}</th>
+            <th className="px-3 py-2.5">{t.common.time}</th>
+            <th className="px-5 py-2.5 text-right">{t.sessions.table.recommendation}</th>
           </tr>
         </thead>
         <tbody>
           {sessions.map((s) => (
-            <tr key={s.session_id} className="group hairline-b transition-colors hover:bg-surface-container-low/60">
-              <td className="px-5 py-2.5">
-                <Link href={`/sessions/${s.session_id}`} className="font-mono text-[11.5px] text-on-surface hover:text-primary">
+            <tr key={s.session_id} className="border-b border-surface-muted/60 hover:bg-surface-muted/40 transition-colors">
+              <td className="px-5 py-3">
+                <Link
+                  href={`/sessions/${s.session_id}`}
+                  className="font-mono text-xs text-text hover:text-primary"
+                >
                   {s.session_id.slice(0, 18)}{s.session_id.length > 18 ? "…" : ""}
                 </Link>
               </td>
-              <td className="px-3 py-2.5 capitalize text-on-surface-variant">
+              <td className="px-3 py-3 capitalize text-muted">
                 {predictionClassLabel(s.prediction?.predicted_class)}
               </td>
-              <td className="px-3 py-2.5">
+              <td className="px-3 py-3">
                 <RiskChip p={s.prediction?.abandonment_probability ?? 0} />
               </td>
-              <td className="px-3 py-2.5 text-on-surface-variant">
+              <td className="px-3 py-3 text-muted">
                 {s.diagnosis ? (
                   <span className="inline-flex items-center gap-1.5">
-                    <span className="rounded-[3px] bg-primary-container/60 px-1 py-0 text-[10.5px] font-semibold text-on-primary-container">
-                      {s.diagnosis.dominant_reason}
-                    </span>
-                    <span className="truncate">{s.diagnosis.reason_label}</span>
+                    <Badge variant="primary">{s.diagnosis.dominant_reason}</Badge>
+                    <span className="truncate text-xs">{s.diagnosis.reason_label}</span>
                   </span>
-                ) : "—"}
+                ) : (
+                  "—"
+                )}
               </td>
-              <td className="px-3 py-2.5 font-mono text-[11px] text-on-surface-variant">
-                {formatRelativeTime(s.ended_at ?? s.started_at)}
+              <td className="px-3 py-3 font-mono text-xs text-muted">
+                {formatRelativeTime(s.ended_at ?? s.started_at, lang)}
               </td>
-              <td className="px-5 py-2.5 text-right text-on-surface-variant">
+              <td className="px-5 py-3 text-right text-muted">
                 {s.recommendation_status ? (
-                  <span className="rounded-[3px] hairline px-1.5 py-0.5 text-[10.5px] uppercase tracking-wide">
-                    {recommendationStatusLabel(s.recommendation_status)}
-                  </span>
-                ) : "—"}
+                  <Badge>{recommendationStatusLabel(s.recommendation_status)}</Badge>
+                ) : (
+                  "—"
+                )}
               </td>
             </tr>
           ))}

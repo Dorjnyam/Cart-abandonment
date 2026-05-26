@@ -2,12 +2,12 @@
 
 | Area | Path | Exists? | Main files | Status | Notes |
 |------|------|---------|------------|--------|-------|
-| Main service | `main_service` | yes | .claude, .env.example, .gitignore, .vscode, analytics.duckdb, apps, conftest.py, data, db.sqlite3, docker-compose.main-only.yml, docker-compose.yml, Dockerfile | present | static discovery |
-| Observer service | `observer_experiment` | yes | .claude, .dockerignore, .env.example, .gitignore, .vscode, database.py, docker-compose.redis.yml, docker-compose.yml, Dockerfile, docs, documentation, integration | present | static discovery |
+| Main service | `main_service` | yes | .env.example, .gitignore, .vscode, analytics.duckdb, apps, conftest.py, data, db.sqlite3, docker-compose.main-only.yml, docker-compose.yml, Dockerfile | present | static discovery |
+| Observer service | `observer_experiment` | yes | .dockerignore, .env.example, .gitignore, .vscode, database.py, docker-compose.redis.yml, docker-compose.yml, Dockerfile, docs, documentation, integration | present | static discovery |
 | Session service | `session/session` | yes | .env.example, app, celery_app.py, docker-compose.yml, Dockerfile, migrations, pytest.ini, README.md, requirements.txt, tests | present | static discovery |
-| Feature service | `feature/feature_svc` | yes | .claude, .dockerignore, .env.example, .gitignore, config.py, docker-compose.yaml, Dockerfile, features, kafka_consumer.py, kafka_producer.py, main.py, models.py | present | static discovery |
-| ML service | `ml` | yes | .claude, .dockerignore, .env.example, .gitignore, .vscode, app, docker-compose.yaml, Dockerfile, models, pytest.ini, requirements.txt, scripts | present | static discovery |
-| Analytics dashboard | `cart_analytic` | yes | .claude, .dockerignore, .env.example, .env.local.example, .gitignore, AGENTS.md, CLAUDE.md, DESIGN_BORDER_LITE_SPEC.md, Dockerfile, eslint.config.mjs, next-env.d.ts, next.config.ts | present | static discovery |
+| Feature service | `feature/feature_svc` | yes | .dockerignore, .env.example, .gitignore, config.py, docker-compose.yaml, Dockerfile, features, kafka_consumer.py, kafka_producer.py, main.py, models.py | present | static discovery |
+| ML service | `ml` | yes | .dockerignore, .env.example, .gitignore, .vscode, app, docker-compose.yaml, Dockerfile, models, pytest.ini, requirements.txt, scripts | present | static discovery |
+| Analytics dashboard | `cart_analytic` | yes | .dockerignore, .env.example, .env.local.example, .gitignore, Dockerfile, eslint.config.mjs, next-env.d.ts, next.config.ts, README.md, src | present | static discovery |
 | Demo ecommerce | `sneaker-store` | yes | .dockerignore, .env.example, .gitignore, components, DESIGN.md, Dockerfile, docs, eslint.config.mjs, next-env.d.ts, next.config.ts, package-lock.json, package.json | present | static discovery |
 | Docs | `docs` | yes | defense_evidence, final_audit, thesis_claim_patch.md | present | static discovery |
 | Root scripts | `scripts` | yes | audit, e2e_mvp.py | present | static discovery |

@@ -27,10 +27,10 @@ class LSTMClassifier(nn.Module):
 
 class LSTMModel:
     """
-    Future work placeholder.
+    Дараагийн шатанд sequence model туршихад ашиглах LSTM wrapper.
 
-    Thesis MVP-ийн active inference path LSTM ашиглахгүй. Энэ class нь дараагийн судалгаанд
-    sequence model туршихад үлдээсэн код бөгөөд `PredictionPipeline` дотор ачаалагдахгүй.
+    Дипломын MVP inference path XGBoost дээр ажиллаж байгаа тул энэ class
+    `PredictionPipeline` дотор идэвхтэй ачаалагдахгүй.
     """
 
     def __init__(self) -> None:

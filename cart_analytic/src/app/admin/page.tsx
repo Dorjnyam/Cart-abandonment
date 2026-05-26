@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle, XCircle, AlertCircle, RefreshCw, Shield } from "lucide-react";
+import { CheckCircle, XCircle, AlertCircle, RefreshCw } from "lucide-react";
 import EditorialShell from "@/components/editorial/EditorialShell";
 import RoleGuard from "@/components/editorial/RoleGuard";
+import { useLanguage } from "@/components/editorial/LanguageContext";
 import { AblationBadge } from "@/components/ui/AblationBadge";
 import ExportModal from "@/components/ui/ExportModal";
 import { useToast } from "@/components/ui/Toast";
+import { Card } from "@/components/ui/Card";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/api-config";
 import { apiClient } from "@/lib/api-client";
 import { fetchAblationSummary, type AblationSummary } from "@/lib/services/ablation";
@@ -75,6 +77,14 @@ function statusLabel(s: ServiceStatus) {
   return "Тохируулаагүй";
 }
 
+function formatRatioPct(value: number | null | undefined): string {
+  return typeof value === "number" && Number.isFinite(value) ? `${Math.round(value * 100)}%` : "—";
+}
+
+function formatDecimal(value: number | null | undefined): string {
+  return typeof value === "number" && Number.isFinite(value) ? value.toFixed(2) : "—";
+}
+
 function PipelineHealthTab() {
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -118,11 +128,11 @@ function PipelineHealthTab() {
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <StatusDot status={allOk ? "ok" : "failed"} />
-          <span className="text-[12.5px] font-semibold text-on-surface">
+          <span className="text-[12.5px] font-semibold text-text">
             {allOk ? "Бүх сервис хэвийн" : "Зарим сервист асуудал байна"}
           </span>
           {lastChecked && (
-            <span className="text-[11px] text-on-surface-variant">
+            <span className="text-[11px] text-muted">
               · {lastChecked.toLocaleTimeString("mn-MN")}
             </span>
           )}
@@ -131,7 +141,7 @@ function PipelineHealthTab() {
           type="button"
           onClick={() => void fetchHealth()}
           disabled={loading}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant/[0.1] px-3 py-1.5 text-[12px] font-semibold text-on-surface hover:bg-surface-container-low transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-surface-muted px-3 py-1.5 text-[12px] font-semibold text-text hover:bg-surface-muted transition-colors disabled:opacity-50"
         >
           <RefreshCw className={`size-3.5 ${loading ? "animate-spin" : ""}`} aria-hidden />
           Шинэчлэх
@@ -145,7 +155,7 @@ function PipelineHealthTab() {
           return (
             <div
               key={svc}
-              className="flex items-center gap-3 rounded-xl border border-outline-variant/[0.09] bg-surface-container-lowest p-4"
+              className="flex items-center gap-3 rounded-xl border border-surface-muted bg-surface p-4"
             >
               <span
                 className={`flex size-9 shrink-0 items-center justify-center rounded-lg text-[10px] font-bold text-white ${
@@ -156,10 +166,10 @@ function PipelineHealthTab() {
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="text-[13px] font-semibold text-on-surface">{SERVICE_LABELS[svc]}</p>
+                  <p className="text-[13px] font-semibold text-text">{SERVICE_LABELS[svc]}</p>
                   <StatusDot status={status} />
                 </div>
-                <p className="text-[11px] text-on-surface-variant mt-0.5">
+                <p className="text-[11px] text-muted mt-0.5">
                   {statusLabel(status)}
                   {info?.latency_ms !== undefined ? ` · ${info.latency_ms}ms` : ""}
                 </p>
@@ -188,7 +198,7 @@ function ModelMetricsTab() {
 
   if (!summary) {
     return (
-      <div className="rounded-lg border border-outline-variant/15 bg-surface-container-lowest p-5 text-sm text-on-surface-variant">
+      <div className="rounded-lg border border-surface-muted bg-surface p-5 text-sm text-muted">
         Загварын хэмжилт одоогоор боломжгүй байна.
       </div>
     );
@@ -197,9 +207,9 @@ function ModelMetricsTab() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-[12.5px] text-on-surface-variant">
+        <p className="text-[12.5px] text-muted">
           Одоогийн загвар:{" "}
-          <span className="font-semibold text-on-surface">
+          <span className="font-semibold text-text">
             {summary.variants.at(-1)?.model_variant ?? "—"}
           </span>
         </p>
@@ -207,34 +217,34 @@ function ModelMetricsTab() {
           type="button"
           disabled
           title="main_service одоогоор model reload endpoint өгөөгүй байна"
-          className="inline-flex items-center gap-1.5 rounded-lg bg-surface-container-high px-3 py-1.5 text-[12px] font-semibold text-on-surface-variant opacity-70"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-surface-muted px-3 py-1.5 text-[12px] font-semibold text-muted opacity-70"
         >
           <RefreshCw className="size-3.5" aria-hidden />
           Reload endpoint байхгүй
         </button>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-outline-variant/[0.09]">
+      <div className="overflow-x-auto rounded-xl border border-surface-muted">
         <table className="w-full text-[13px] min-w-120">
           <thead>
-            <tr className="border-b border-outline-variant/[0.09] bg-surface-alt/60">
+            <tr className="border-b border-surface-muted bg-surface-muted/60">
               {["Хувилбар", "Таамаглал", "Орхилтын хувь", "Итгэл", "Оноо"].map((h) => (
-                <th key={h} className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
+                <th key={h} className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-muted">
                   {h}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-outline-variant/[0.07]">
+          <tbody className="divide-y divide-surface-muted">
             {summary.variants.map((v) => (
-              <tr key={v.model_variant} className="hover:bg-surface-alt/40 transition-colors">
+              <tr key={v.model_variant} className="hover:bg-surface-muted/40 transition-colors">
                 <td className="px-4 py-3">
                   <AblationBadge variant={v.model_variant} size="sm" />
                 </td>
-                <td className="px-4 py-3 tabular-nums text-on-surface">{v.count.toLocaleString()}</td>
-                <td className="px-4 py-3 tabular-nums text-on-surface">{Math.round(v.abandonment_rate * 100)}%</td>
-                <td className="px-4 py-3 tabular-nums text-on-surface">{v.avg_confidence.toFixed(2)}</td>
-                <td className="px-4 py-3 tabular-nums text-on-surface">{v.avg_score.toFixed(2)}</td>
+                <td className="px-4 py-3 tabular-nums text-text">{v.count.toLocaleString()}</td>
+                <td className="px-4 py-3 tabular-nums text-text">{formatRatioPct(v.abandonment_rate)}</td>
+                <td className="px-4 py-3 tabular-nums text-text">{formatDecimal(v.avg_confidence)}</td>
+                <td className="px-4 py-3 tabular-nums text-text">{formatDecimal(v.avg_score)}</td>
               </tr>
             ))}
           </tbody>
@@ -269,7 +279,7 @@ function ExportHistoryTab() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-[13px] text-on-surface-variant">Экспорт эхлүүлэх</p>
+        <p className="text-[13px] text-muted">Экспорт эхлүүлэх</p>
         <ExportModal />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -278,12 +288,12 @@ function ExportHistoryTab() {
           const isLoading = isAnalytics ? analyticsLoading : sessionsLoading;
           const taskId = taskIds.find((t) => t.type === type)?.id;
           return (
-            <div key={type} className="rounded-xl border border-outline-variant/[0.09] bg-surface-container-lowest p-5 space-y-3">
+            <div key={type} className="rounded-xl border border-surface-muted bg-surface p-5 space-y-3">
               <div>
-                <p className="text-[13px] font-semibold text-on-surface">
+                <p className="text-[13px] font-semibold text-text">
                   {isAnalytics ? "Аналитик экспорт" : "Сесс экспорт"}
                 </p>
-                <p className="text-[11px] text-on-surface-variant mt-0.5">
+                <p className="text-[11px] text-muted mt-0.5">
                   {isAnalytics
                     ? "Сесс, таамаглал болон оношлогооны өгөгдөл"
                     : "Сессийн нэгтгэл өгөгдлийн багц"}
@@ -297,7 +307,7 @@ function ExportHistoryTab() {
                 onClick={() => void handleExport(type)}
                 disabled={isLoading}
                 className={`inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-[13px] font-semibold disabled:opacity-60 hover:opacity-90 transition-opacity ${
-                  isAnalytics ? "bg-primary text-on-primary" : "bg-secondary text-on-secondary"
+                  isAnalytics ? "bg-primary text-white" : "bg-secondary text-white"
                 }`}
               >
                 <RefreshCw className={`size-4 ${isLoading ? "animate-spin" : ""}`} aria-hidden />
@@ -321,54 +331,37 @@ function AdminContent() {
   const [tab, setTab] = useState<Tab>("health");
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
-      {/* Header хэсэг */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-3">
-          <span className="flex size-9 items-center justify-center rounded-xl border border-outline-variant/[0.09] bg-surface-container-lowest">
-            <Shield className="size-4 text-primary" strokeWidth={1.75} aria-hidden />
-          </span>
-          <div>
-            <h1 className="text-[1.1rem] font-semibold text-on-surface tracking-tight">
-              Системийн удирдлага
-            </h1>
-            <p className="text-[13px] text-on-surface-variant mt-0.5">
-              Pipeline, загвар, экспортын хяналтын самбар
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Tab navigation хэсэг */}
+    <div className="space-y-6">
       <div
-        className="inline-flex rounded-lg border border-outline-variant/[0.09] bg-surface-container-lowest p-0.5"
+        className="inline-flex rounded-xl border border-surface-muted bg-surface p-1"
         role="tablist"
       >
-        {TABS.map((t) => (
+        {TABS.map((tabItem) => (
           <button
-            key={t.key}
+            key={tabItem.key}
             type="button"
             role="tab"
-            aria-selected={tab === t.key}
-            onClick={() => setTab(t.key)}
+            aria-selected={tab === tabItem.key}
+            onClick={() => setTab(tabItem.key)}
             className={[
-              "px-4 py-1.5 rounded-md text-[13px] font-semibold transition-colors",
-              tab === t.key
-                ? "bg-primary text-on-primary shadow-sm"
-                : "text-on-surface-variant hover:text-on-surface",
+              "px-4 py-1.5 rounded-lg text-sm font-bold transition-colors",
+              tab === tabItem.key
+                ? "bg-primary text-white shadow-sm"
+                : "text-muted hover:text-text",
             ].join(" ")}
           >
-            {t.label}
+            {tabItem.label}
           </button>
         ))}
       </div>
 
-      {/* Tab content хэсэг */}
-      <div className="rounded-xl border border-outline-variant/[0.09] bg-surface-container-lowest p-5">
-        {tab === "health"  && <PipelineHealthTab />}
-        {tab === "metrics" && <ModelMetricsTab />}
-        {tab === "export"  && <ExportHistoryTab />}
-      </div>
+      <Card noPadding>
+        <div className="p-6">
+          {tab === "health" && <PipelineHealthTab />}
+          {tab === "metrics" && <ModelMetricsTab />}
+          {tab === "export" && <ExportHistoryTab />}
+        </div>
+      </Card>
     </div>
   );
 }
@@ -376,9 +369,16 @@ function AdminContent() {
 export default function AdminPage() {
   return (
     <RoleGuard allow={["admin"]}>
-      <EditorialShell activeNav="admin" title="Системийн удирдлага" subtitle="Зөвхөн админ">
-        <AdminContent />
-      </EditorialShell>
+      <AdminInner />
     </RoleGuard>
+  );
+}
+
+function AdminInner() {
+  const { t } = useLanguage();
+  return (
+    <EditorialShell activeNav="admin" title={t.admin.title} subtitle={t.admin.subtitle}>
+      <AdminContent />
+    </EditorialShell>
   );
 }

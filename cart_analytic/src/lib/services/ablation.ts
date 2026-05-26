@@ -5,18 +5,18 @@ import type { ModelVariant } from "@/lib/constants";
 export interface VariantMetrics {
   model_variant: ModelVariant;
   count: number;
-  abandonment_rate: number;
-  avg_confidence: number;
-  avg_score: number;
+  abandonment_rate: number | null;
+  avg_confidence: number | null;
+  avg_score: number | null;
 }
 
 export interface AblationSummary {
-  tenant_id: number;
-  date_range: { from: string | null; to: string | null };
+  tenant_id?: number;
+  date_range?: { from: string | null; to: string | null };
   variants: VariantMetrics[];
   comparison: {
-    abandonment_rate_delta: number;
-    confidence_delta: number;
+    abandonment_rate_delta: number | null;
+    confidence_delta: number | null;
   } | null;
 }
 
@@ -31,6 +31,37 @@ export const MOCK_ABLATION: AblationSummary = {
   comparison: { abandonment_rate_delta: -0.07, confidence_delta: 0.13 },
 };
 
+function numberOrNull(value: unknown): number | null {
+  if (value == null || value === "") return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+function normalizeVariant(value: Partial<VariantMetrics> & { model_variant: string; count?: number }): VariantMetrics {
+  return {
+    model_variant: value.model_variant as ModelVariant,
+    count: Number.isFinite(Number(value.count)) ? Number(value.count) : 0,
+    abandonment_rate: numberOrNull(value.abandonment_rate),
+    avg_confidence: numberOrNull(value.avg_confidence),
+    avg_score: numberOrNull(value.avg_score),
+  };
+}
+
+function normalizeAblationSummary(value: AblationSummary): AblationSummary {
+  const comparison = value.comparison
+    ? {
+        abandonment_rate_delta: numberOrNull(value.comparison.abandonment_rate_delta),
+        confidence_delta: numberOrNull(value.comparison.confidence_delta),
+      }
+    : null;
+
+  return {
+    ...value,
+    variants: (value.variants ?? []).map(normalizeVariant),
+    comparison,
+  };
+}
+
 export async function fetchAblationSummary(
   dateFrom?: string,
   dateTo?: string,
@@ -40,7 +71,8 @@ export async function fetchAblationSummary(
   if (dateTo)   params.set("date_to", dateTo);
   const endpoint = `${API_ENDPOINTS.ablationSummary}?${params.toString()}`;
   try {
-    return await apiClient.get<AblationSummary>(endpoint);
+    const raw = await apiClient.get<AblationSummary>(endpoint);
+    return normalizeAblationSummary(raw);
   } catch (error) {
     if (error instanceof ApiError && isMockFallback()) {
       console.warn("[mock]", endpoint);

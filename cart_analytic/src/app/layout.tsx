@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Fraunces, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/editorial/AuthContext";
+import { LanguageProvider } from "@/components/editorial/LanguageContext";
 import { ToastProvider } from "@/components/ui/Toast";
 
 const fraunces = Fraunces({
@@ -60,7 +61,9 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <AuthProvider>
-          <ToastProvider>{children}</ToastProvider>
+          <LanguageProvider>
+            <ToastProvider>{children}</ToastProvider>
+          </LanguageProvider>
         </AuthProvider>
       </body>
     </html>

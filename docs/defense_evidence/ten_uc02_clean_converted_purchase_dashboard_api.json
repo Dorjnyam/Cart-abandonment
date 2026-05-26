@@ -1,0 +1,239 @@
+{
+  "status": 200,
+  "body": {
+    "session_id": "871a9d36-ff60-562a-b382-cc2a3844a406",
+    "organization_id": "00000000-0000-0000-0000-000000000001",
+    "tenant_id": 1,
+    "visitor_id": "unknown",
+    "started_at": "2026-05-13T18:39:33.989092Z",
+    "ended_at": "2026-05-13T18:39:33.989092Z",
+    "device_type": "desktop",
+    "event_count": 6,
+    "page_views": 4,
+    "session_state": "CONVERTED",
+    "has_purchase_success": true,
+    "prediction": {
+      "predicted_class": "converted",
+      "predicted_label": 0,
+      "ml_predicted_class": "abandoned",
+      "business_outcome": "converted",
+      "prediction_overridden": true,
+      "override_reason": "session_state is CONVERTED",
+      "abandonment_probability": 0.5073,
+      "model_name": "xgboost",
+      "model_version": "xgboost-synthetic-mvp",
+      "threshold": 0.5,
+      "confidence": 0.5073
+    },
+    "diagnosis": null,
+    "top_features": [
+      {
+        "feature": "active_time_ms",
+        "value": null,
+        "importance": 0.708641
+      },
+      {
+        "feature": "mouse_distance",
+        "value": null,
+        "importance": 0.491206
+      },
+      {
+        "feature": "mongolian_trust_barrier",
+        "value": null,
+        "importance": 0.367484
+      },
+      {
+        "feature": "avg_price_in_session",
+        "value": null,
+        "importance": 0.347688
+      },
+      {
+        "feature": "direction_changes",
+        "value": null,
+        "importance": 0.294184
+      },
+      {
+        "feature": "price_hesitation_score",
+        "value": null,
+        "importance": 0.281282
+      },
+      {
+        "feature": "session_duration_sec",
+        "value": null,
+        "importance": 0.2808
+      },
+      {
+        "feature": "time_on_page_sec",
+        "value": null,
+        "importance": 0.2777
+      }
+    ],
+    "events": [
+      {
+        "id": "1",
+        "type": "page_view",
+        "timestamp": null,
+        "page": ""
+      },
+      {
+        "id": "2",
+        "type": "product_view",
+        "timestamp": null,
+        "page": ""
+      },
+      {
+        "id": "3",
+        "type": "add_to_cart",
+        "timestamp": null,
+        "page": ""
+      },
+      {
+        "id": "4",
+        "type": "cart_view",
+        "timestamp": null,
+        "page": ""
+      },
+      {
+        "id": "5",
+        "type": "checkout_start",
+        "timestamp": null,
+        "page": ""
+      },
+      {
+        "id": "6",
+        "type": "purchase_success",
+        "timestamp": null,
+        "page": ""
+      }
+    ],
+    "recommendation": null,
+    "developer_details": {
+      "session": {
+        "session_id": "871a9d36-ff60-562a-b382-cc2a3844a406",
+        "visitor_id": "unknown",
+        "created_at": "2026-05-13T18:39:34.014593Z",
+        "started_at": "2026-05-13T18:39:33.989092Z",
+        "ended_at": "2026-05-13T18:39:33.989092Z",
+        "device_type": "desktop",
+        "event_count": 6,
+        "page_views": 4,
+        "cart_value": null,
+        "session_state": "CONVERTED",
+        "has_purchase_success": true,
+        "business_outcome": "converted",
+        "prediction": {
+          "predicted_class": "converted",
+          "predicted_label": 0,
+          "ml_predicted_class": "abandoned",
+          "business_outcome": "converted",
+          "prediction_overridden": true,
+          "override_reason": "session_state is CONVERTED",
+          "abandonment_probability": 0.5073,
+          "model_name": "xgboost",
+          "model_version": "xgboost-synthetic-mvp",
+          "threshold": 0.5,
+          "confidence": 0.5073
+        },
+        "diagnosis": null,
+        "recommendation_status": null
+      },
+      "shap_values": {
+        "order_total": -0.20359347760677338,
+        "page_load_ms": -0.24631842970848083,
+        "active_time_ms": 0.7086407542228699,
+        "mouse_distance": 0.4912055730819702,
+        "time_on_page_sec": 0.2776995003223419,
+        "direction_changes": -0.2941840589046478,
+        "avg_price_in_session": -0.3476879298686981,
+        "session_duration_sec": 0.2807997167110443,
+        "price_hesitation_score": -0.2812815308570862,
+        "mongolian_trust_barrier": 0.36748385429382324
+      },
+      "feature_vector": {
+        "url": "http://localhost:3000/audit/audit10_uc02_clean_converted_purchase_20260513183927",
+        "path": "/audit/audit10_uc02_clean_converted_purchase_20260513183927",
+        "bounce": false,
+        "dow_cos": -0.22252093395631434,
+        "dow_sin": 0.9749279121818236,
+        "is_sale": false,
+        "hour_cos": -1.8369701987210297e-16,
+        "hour_sin": -1.0,
+        "js_error": 0,
+        "language": "mn",
+        "referrer": "http://localhost:3000",
+        "timezone": "Asia/Irkutsk",
+        "abandoned": false,
+        "is_mobile": false,
+        "cart_value": 249000.0,
+        "copy_count": 0,
+        "end_reason": "purchase",
+        "page_views": 0,
+        "product_id": "audit-sneaker-001",
+        "rage_click": 0,
+        "session_id": "",
+        "visitor_id": "",
+        "click_count": 0,
+        "device_type": "desktop",
+        "event_count": 6,
+        "filter_name": "",
+        "mouse_speed": 0.0,
+        "order_total": 0.0,
+        "visit_count": 0,
+        "is_logged_in": true,
+        "page_load_ms": 1600.0,
+        "product_slug": "",
+        "search_query": "",
+        "checkout_step": 2,
+        "customer_type": "",
+        "discount_code": "",
+        "hedonic_ratio": 0.0,
+        "product_price": 249000.0,
+        "product_stock": 0,
+        "selected_size": "",
+        "tab_hidden_ms": 0.0,
+        "active_time_ms": 232500.0,
+        "coupon_entered": false,
+        "max_scroll_pct": 0.0,
+        "mouse_distance": 0.0,
+        "outbound_click": 0,
+        "payment_method": "qpay",
+        "action_detected": "cart_add",
+        "back_navigation": 0,
+        "cart_item_count": 1,
+        "page_view_count": 4,
+        "product_variant": "",
+        "scroll_up_count": 0,
+        "shipping_method": "",
+        "cart_churn_count": 0,
+        "commitment_depth": 0.625,
+        "is_order_success": true,
+        "product_category": "sneakers",
+        "tab_hidden_count": 0,
+        "time_on_page_sec": 0.0,
+        "direction_changes": 0,
+        "form_fields_count": 6,
+        "frustration_index": 0.0,
+        "selected_quantity": 0,
+        "detected_page_type": "",
+        "dist_product_count": 0,
+        "form_fields_touched": 6,
+        "avg_price_in_session": 0.0,
+        "product_availability": "in_stock",
+        "session_duration_sec": 1.25,
+        "search_query_from_url": "",
+        "checkout_step_detected": 2,
+        "price_hesitation_score": 0.0,
+        "cart_abandonment_signal": false,
+        "mongolian_trust_barrier": 0.0,
+        "time_to_first_action_ms": 0.0
+      },
+      "outcome_metadata": {
+        "session_state": "CONVERTED",
+        "final_event_type": "purchase_success",
+        "has_cart_activity": true,
+        "has_checkout_start": true,
+        "has_purchase_success": true
+      }
+    }
+  }
+}

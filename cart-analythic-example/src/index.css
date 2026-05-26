@@ -1,0 +1,77 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Light Theme Colors */
+  --color-bg-light: #F7F7F4;
+  --color-surface-light: #FFFFFF;
+  --color-surface-muted-light: #F0F1EC;
+  --color-text-light: #171717;
+  --color-text-muted-light: #6B6B63;
+  --color-primary-light: #1F4D3E;
+  --color-secondary-light: #3E6E8E;
+  --color-warning-light: #9C6B14;
+  --color-error-light: #A03521;
+
+  /* Dark Theme Colors */
+  --color-bg-dark: #0E1110;
+  --color-surface-dark: #151917;
+  --color-surface-muted-dark: #1D2421;
+  --color-text-dark: #F4F4EF;
+  --color-text-muted-dark: #A9AEA8;
+  --color-primary-dark: #86D9A7;
+  --color-secondary-dark: #7FB1D1;
+  --color-warning-dark: #E0B05C;
+  --color-error-dark: #E07A64;
+  
+  /* Semantic Variables Mapping */
+  --color-bg: var(--color-bg);
+  --color-surface: var(--color-surface);
+  --color-surface-muted: var(--color-surface-muted);
+  --color-text: var(--color-text);
+  --color-text-muted: var(--color-text-muted);
+  --color-primary: var(--color-primary);
+  --color-secondary: var(--color-secondary);
+  --color-warning: var(--color-warning);
+  --color-error: var(--color-error);
+  --color-success: var(--color-success);
+}
+
+@layer base {
+  :root {
+    --color-bg: #F1F5F9;
+    --color-surface: #FFFFFF;
+    --color-surface-muted: #E2E8F0;
+    --color-text: #0F172A;
+    --color-text-muted: #64748B;
+    --color-primary: #0F172A;
+    --color-secondary: #334155;
+    --color-warning: #B45309;
+    --color-error: #BE123C;
+    --color-success: #15803D;
+    color-scheme: light;
+  }
+
+  .dark {
+    --color-bg: var(--color-bg-dark);
+    --color-surface: var(--color-surface-dark);
+    --color-surface-muted: var(--color-surface-muted-dark);
+    --color-text: var(--color-text-dark);
+    --color-text-muted: var(--color-text-muted-dark);
+    --color-primary: var(--color-primary-dark);
+    --color-secondary: var(--color-secondary-dark);
+    --color-warning: var(--color-warning-dark);
+    --color-error: var(--color-error-dark);
+    --color-success: #86D9A7;
+    color-scheme: dark;
+  }
+
+  body {
+    @apply transition-colors duration-200 font-sans bg-bg text-text;
+  }
+}
+

@@ -1,7 +1,7 @@
 import { Sparkles } from "lucide-react";
 import type { ReactNode } from "react";
 
-export default function Fab({ onClick, label = "AI" }: { onClick?: () => void; label?: string }) {
+export default function Fab({ onClick, label = "Туслах" }: { onClick?: () => void; label?: string }) {
   return (
     <button
       type="button"

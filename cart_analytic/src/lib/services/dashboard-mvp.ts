@@ -277,8 +277,45 @@ export async function updateDashboardRecommendationStatus(
   });
 }
 
+const MOCK_INTEGRATION: IntegrationResponse = {
+  observer: {
+    url: "https://ingest.cart.local/v1/events",
+    health: "healthy",
+    demo_api_key: "ck_demo_•••••••••",
+    snippet: `<!-- CartAnalytics Observer -->
+<script>
+  (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'ca.start':
+  new Date().getTime(),event:'ca.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s);j.async=true;
+  j.src='https://cdn.cart.local/v1/observer.js?id='+i;
+  f.parentNode.insertBefore(j,f);
+  })(window,document,'script','caData','ck_demo_•••');
+</script>`,
+  },
+  kafka: {
+    health: "healthy",
+    topics: ["events.raw", "sessions.aggregated", "features.vector", "predictions.scored"],
+  },
+  demo_shop: { url: "https://shop.demo.cart.local" },
+  dashboard: { url: "https://dash.demo.cart.local" },
+  last_events: [
+    { session_id: "sess_demo_001", event_type: "page_view", created_at: "2s ago" },
+    { session_id: "sess_demo_001", event_type: "product_view", created_at: "10s ago" },
+    { session_id: "sess_demo_002", event_type: "cart_add", created_at: "30s ago" },
+  ],
+};
+
 export async function fetchDashboardIntegration(): Promise<IntegrationResponse> {
-  return apiRequest<IntegrationResponse>(API_ENDPOINTS.dashboardIntegration);
+  if (isMockFallback()) return MOCK_INTEGRATION;
+  try {
+    return await apiRequest<IntegrationResponse>(API_ENDPOINTS.dashboardIntegration);
+  } catch (err) {
+    if (typeof window !== "undefined" && process.env.NODE_ENV !== "production") {
+      console.warn("[installation] backend unavailable, using mock integration", err);
+      return MOCK_INTEGRATION;
+    }
+    throw err;
+  }
 }
 
 export function formatPct(value: number | null | undefined, digits = 1): string {

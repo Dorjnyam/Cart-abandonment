@@ -1,4 +1,10 @@
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 import { RISK_THRESHOLDS } from "./constants";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 export function getRiskColor(p: number): string {
   if (p >= RISK_THRESHOLDS.HIGH)   return "text-red-600 bg-red-50";

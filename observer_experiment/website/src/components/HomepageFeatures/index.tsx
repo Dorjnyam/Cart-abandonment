@@ -11,32 +11,32 @@ type FeatureItem = {
 
 const FeatureList: FeatureItem[] = [
   {
-    title: 'Easy to Use',
-    Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
+    title: 'Event Capture',
+    Svg: require('@site/static/img/observer_event_capture.svg').default,
     description: (
       <>
-        Docusaurus was designed from the ground up to be easily installed and
-        used to get your website up and running quickly.
+        Browser snippet-ээс ирсэн event-үүдийг tier policy ашиглан шүүж,
+        PostgreSQL болон Kafka руу дамжуулна.
       </>
     ),
   },
   {
-    title: 'Focus on What Matters',
-    Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
+    title: 'Field Catalog',
+    Svg: require('@site/static/img/observer_field_catalog.svg').default,
     description: (
       <>
-        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-        ahead and move your docs into the <code>docs</code> directory.
+        T3, T2, T1 талбаруудын ялгаа, alias, хадгалах дүрэм болон судалгааны
+        бүлгийг нэг лавлахад цуглуулсан.
       </>
     ),
   },
   {
-    title: 'Powered by React',
-    Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
+    title: 'Integration',
+    Svg: require('@site/static/img/observer_integration.svg').default,
     description: (
       <>
-        Extend or customize your website layout by reusing React. Docusaurus can
-        be extended while reusing the same header and footer.
+        Session service, Main service болон demo shop-той холбох алхмуудыг
+        local runbook хэлбэрээр бичсэн.
       </>
     ),
   },

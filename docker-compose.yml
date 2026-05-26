@@ -108,7 +108,8 @@ services:
       DEMO_ADMIN_EMAIL: ${DEMO_ADMIN_EMAIL:-demo@example.com}
       DEMO_ADMIN_PASSWORD: ${DEMO_ADMIN_PASSWORD:-change-me-demo-password}
       DEMO_OBSERVER_API_KEY: ${DEMO_OBSERVER_API_KEY:-tk_full_demo_mvp}
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_API_KEY: ${CART_ANALYTICS_GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
       DUCKDB_PATH: /data/duckdb/analytics.duckdb
     ports:
       - "8000:8000"
@@ -140,6 +141,8 @@ services:
       KAFKA_CONSUMER_GROUP: main-service-predictions
       KAFKA_AUTO_OFFSET_RESET: earliest
       DEMO_TENANT_EXTERNAL_ID: ${DEMO_TENANT_EXTERNAL_ID:-00000000-0000-0000-0000-000000000001}
+      GEMINI_API_KEY: ${CART_ANALYTICS_GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
     depends_on:
       main_service:
         condition: service_started

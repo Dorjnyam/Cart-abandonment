@@ -15,13 +15,13 @@ title: Ерөнхий тойм
 
 | # | Нэр | Төрөл | Технологи | Port |
 |---|-----|-------|-----------|------|
-| 1 | [Observer Service](./02-observer-service) | Backend API + Event Producer | Python/FastAPI | 8001 |
-| 2 | [Session Service](./03-session-service) | Backend Hybrid (API + Kafka consumer) | Python/FastAPI + Celery | 8002 |
-| 3 | [Feature Service](./04-feature-service) | Backend Kafka worker | Python/FastAPI | 8003 |
-| 4 | [ML Prediction Service](./05-ml-prediction-service) | Backend Hybrid (Kafka + API) | Python/FastAPI + XGBoost/LSTM | 8004 |
-| 5 | [Main Service](./06-main-service) | Backend REST API + Worker | Python/Django + Celery | 8000 |
-| 6 | [KICKLAB (Sneaker Store)](./07-kicklab) | Web App (Ecommerce) | Next.js 16 + Prisma | 3000 |
-| 7 | [CartAnalytics Frontend](./08-cartanalytics) | Web App (Dashboard) | Next.js 16 + TypeScript | 3000 |
+| 1 | [Observer Service](./observer-service) | Backend API + Event Producer | Python/FastAPI | 8001 |
+| 2 | [Session Service](./session-service) | Backend Hybrid (API + Kafka consumer) | Python/FastAPI + Celery | 8002 |
+| 3 | [Feature Service](./feature-service) | Backend Kafka worker | Python/FastAPI | 8003 |
+| 4 | [ML Prediction Service](./ml-prediction-service) | Backend Hybrid (Kafka + API) | Python/FastAPI + XGBoost | 8004 |
+| 5 | [Main Service](./main-service) | Backend REST API + Worker | Python/Django + Celery | 8000 |
+| 6 | [KICKLAB (Sneaker Store)](./kicklab) | Web App (Ecommerce) | Next.js 16 + Prisma | 3000 |
+| 7 | [CartAnalytics Frontend](./cartanalytics) | Web App (Dashboard) | Next.js 16 + TypeScript | 3001 |
 
 ---
 
@@ -36,9 +36,9 @@ Session Service (8002) — Redis session state → PostgreSQL sessions
          ↓ Kafka: session_enriched topic
 Feature Service (8003) — 76-field behavioral feature vector
          ↓ Kafka: feature_ready topic
-ML Prediction Service (8004) — XGBoost + LSTM ensemble → PostgreSQL predictions
+ML Prediction Service (8004) — XGBoost inference → PostgreSQL predictions
          ↓ Kafka: prediction_done / prediction_done_v2
-Main Service (8000) — Django API + Celery + Gemini AI → DuckDB + PostgreSQL
+Main Service (8000) — Django API + Celery + Gemini fallback → DuckDB + PostgreSQL
          ↓ REST API (JWT)
 CartAnalytics Frontend — Dashboard UI
 ```
@@ -53,7 +53,7 @@ CartAnalytics Frontend — Dashboard UI
 | Redis | Session, Main Service | Session state, Celery broker, queue |
 | Kafka | Observer→Session→Feature→ML→Main | Async event streaming |
 | Docker | Бүх үйлчилгээ | Container deployment |
-| XGBoost + LSTM | ML Prediction Service | Cart abandonment prediction |
-| Google Gemini API | Main Service | AI recommendation (Монгол) |
+| XGBoost | ML Prediction Service | Cart abandonment prediction |
+| Google Gemini API | Main Service | Монгол зөвлөмжийн text generation |
 | DuckDB | Main Service | Local analytics aggregation |
 | MinIO/S3 | Main Service | Parquet export |

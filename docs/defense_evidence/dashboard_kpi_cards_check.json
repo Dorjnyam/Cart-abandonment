@@ -1,0 +1,37 @@
+{
+  "final_result": "PASS",
+  "expected_delta_text": {
+    "sessions_delta": null,
+    "abandonment_delta": {
+      "value": "77.8 pp",
+      "direction": "up",
+      "positive": false
+    },
+    "conversion_delta": {
+      "value": "77.8 pp",
+      "direction": "down",
+      "positive": false
+    }
+  },
+  "api_calls": [
+    {
+      "url": "http://localhost:8000/api/pipeline/monitor/",
+      "status": 200
+    },
+    {
+      "url": "http://localhost:8000/api/dashboard/overview/",
+      "status": 200
+    },
+    {
+      "url": "http://localhost:8000/api/pipeline/monitor/",
+      "status": 200
+    },
+    {
+      "url": "http://localhost:8000/api/dashboard/overview/",
+      "status": 200
+    }
+  ],
+  "failures": [],
+  "body_excerpt": "Cart Analytics\nТойм\nАналитик\nСессүүд\nОношлогоо\nЗөвлөмжүүд\nУрсгалын монитор\nСуулгалт\nТохиргоо\nАблацийн туршилт\nПрофайл\nБаримт бичиг\nТусламж\nГарах\nCART ANALYTICS\nСЕССҮҮДИЙН ТОЙМ\nИДЭВХТЭЙ БОЛОН ТҮҮХЭН СЕССҮҮДИЙГ ХЯНАХ.\nХэвийн\nMN\ndemo\nЭЗЭМШИГЧ\nD\n7d\n14d\n30d\nШинэчлэх\nСессүүдийн тойм\nИдэвхтэй болон түүхэн сессүүдийг хянах.\nxgboost\n·\nxgboost-synthetic-mvp\n·\nτ 0.5\nНИЙТ СЕСС\n43\nСүүлийн 30 хоног\nОРХИЛТЫН ХУВЬ\n72.1%\n31 · орхигдсон\n77.8 pp\nХӨРВӨЛТИЙН ХУВЬ\n27.9%\n12 · дуусгасан\n77.8 pp\nДУНДАЖ P(ОРХИХ)\n55.0%\nτ = 0.50\nӨНДӨР ЭРСДЭЛТЭЙ СЕССҮҮД\n29\nP ≥ 0.5\nИДЭВХТЭЙ ЗӨВЛӨМЖ\n27\nТЭРГҮҮЛЭХ ШАЛТГААН\nS7\nExternal influence/referral effect\nДУНДАЖ ШАЛТГААНЫ ОНОО\n0.26\nОрхилтын чиг хандлага\nӨдөр бүр боловсруулсан сесс ба орхилтын хувь.\nСесс\nОрхилт\n2026-05-07\n2026-05-08\n2026-05-09\n2026-05-10\n2026-05-11\n2026-05-12\n2026-05-13\n0%\n20%\n40%\n60%\n80%\n0\n9\n18\n27\n36\nТэргүүлэх шалтгаан\nExternal influence/referral effect\nS7\n0.26\nThe session is affected by external referrers, social traffic, outbound clicks, or unload behavior.\nОношлогоо нээх\nХөрвөлтийн юүлүүр\n1.page_view\n43\n2.product_view\n43\n3.add_to_cart\n40\n4.cart_view\n40\n5.checkout_start\n43\n6.purchase_success\n12\nШалтгааны оноо S1–S7\nS1\nPsychological hesitation\n3 давамгай\n0.38\nS2\nTechnical friction\n5 давамгай\n0.24\nS3\nTrust issue\n3 давамгай\n0.30\nS4\nMobile usability issue\n3 давамгай\n0.14\nS5\nPrice sensitivity\n5 давамгай\n0.27\nS6\nIndecision/navigation disorder",
+  "screenshot": "docs\\defense_evidence\\dashboard_kpi_cards_fixed.png"
+}

@@ -1,0 +1,109 @@
+{
+  "final_result": "PASS",
+  "pages": {
+    "session_s5": {
+      "url": "http://localhost:3001/sessions/4b3e6dfa-0e1e-5d9f-90f1-750bedbeec58",
+      "result": "PASS",
+      "failures": [],
+      "api": [
+        {
+          "url": "http://localhost:8000/api/pipeline/monitor/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/pipeline/monitor/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/dashboard/sessions/4b3e6dfa-0e1e-5d9f-90f1-750bedbeec58/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/pipeline/monitor/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/dashboard/sessions/4b3e6dfa-0e1e-5d9f-90f1-750bedbeec58/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/pipeline/monitor/",
+          "status": 200
+        }
+      ],
+      "body_excerpt": "Cart Analytics\nOverview\nAnalytics\nSessions\nDiagnosis\nRecommendations\nLive Pipeline\nInstallation\nSettings\nAblation Study\nProfile\nDocumentation\nHelp\nSign out\nСЕССҮҮД\n4B3E6DFA-0E1E-5D9F-90F1-750BEDBEEC58\nХэвийн\nEN\ndemo\nЭЗЭМШИГЧ\nD\nСессийн нотолгоо\n4b3e6dfa-0e1e-5d9f-90f1-750bedbeec58\nБүртгэл рүү буцах\nСЕССИЙН НОТОЛГОО · ML ТАЙЛБАРЫН ДАРААЛАЛ\nНотолгооны дэлгэц\n4b3e6dfa-0e1e-5d9f-90f1-750bedbeec58\nШинэчлэх\nML таамаглал\nТаамаглал: Орхисон\nxgboost · vxgboost-synthetic-mvp\n68.3%\nМАГАДЛАЛ\nДунд эрсдэл\nАнгилагч энэ сессийг сургасан сагс орхилтын тархалттай харьцуулж үнэлнэ. Магадлал босгоос давбал сессийг орхисон гэж тэмдэглэнэ.\nБОСГО\n0.5\nТААМАГЛАСАН АНГИЛАЛ\nОрхисон\nДЭЛГҮҮР\n00000000-0000-0000-0000-000000000001\nЭВЕНТ\n8\nДавамгай шалтгаан\nS1–S7 оношлогооноос · хамгийн их оноо\nS5\nPrice sensitivity\nThe visitor shows price sensitivity through coupon usage, high cart value, or explicit price hesitation.\nЭвентийн дараалал\n8 эвент бүртгэгдсэн\n1\npage_view\n—\n—\n2\nproduct_view\n—\n—\n3\nadd_to_cart\n—\n—\n4\ncart_view\n—\n—\n5\ncheckout_start\n—\n—\n6\ncart_view\n—\n—\n7\ncheckout_start\n—\n—\n8\nabandon_checkout\n—\n—\nS1–S7 оноо\n0–1 хооронд нормчилсон · давамгайг тодруулсан\nS1\nСэтгэлзүйн эргэлзээ\n0.35\nS2\nТехникийн саатал\n0.08\nS3\nИтгэлцлийн асуудал\n0.23\nS4\nМобайл хэрэглээний хүндрэл\n0.00\nS5\nҮнийн мэдрэмж\n0.90\nS6\nШийдвэргүй байдал / навигацийн төөрөгдөл\n0.25\nS7\nГадны нөлөө / эх сурвалжийн эффект\n0.20\nЗагварын гол онцлогууд\nXGBoost хувь нэмрийн хэмжээ\nmouse_distance\n0.509\nactive_time_ms\n0.474\ncart_value\n0.404\nfrustration_index\n0.365\ncart_churn_count\n0.350\navg_price_in_session\n-0.306\ndirection_changes"
+    },
+    "session_s7": {
+      "url": "http://localhost:3001/sessions/caedc735-dbbe-55b4-9a8e-71665390f4ab",
+      "result": "PASS",
+      "failures": [],
+      "api": [
+        {
+          "url": "http://localhost:8000/api/pipeline/monitor/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/dashboard/sessions/caedc735-dbbe-55b4-9a8e-71665390f4ab/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/dashboard/sessions/caedc735-dbbe-55b4-9a8e-71665390f4ab/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/pipeline/monitor/",
+          "status": 200
+        }
+      ],
+      "body_excerpt": "Cart Analytics\nOverview\nAnalytics\nSessions\nDiagnosis\nRecommendations\nLive Pipeline\nInstallation\nSettings\nAblation Study\nProfile\nDocumentation\nHelp\nSign out\nСЕССҮҮД\nCAEDC735-DBBE-55B4-9A8E-71665390F4AB\nХэвийн\nEN\ndemo\nЭЗЭМШИГЧ\nD\nСессийн нотолгоо\ncaedc735-dbbe-55b4-9a8e-71665390f4ab\nБүртгэл рүү буцах\nСЕССИЙН НОТОЛГОО · ML ТАЙЛБАРЫН ДАРААЛАЛ\nНотолгооны дэлгэц\ncaedc735-dbbe-55b4-9a8e-71665390f4ab\nШинэчлэх\nML таамаглал\nТаамаглал: Орхисон\nxgboost · vxgboost-synthetic-mvp\n45.7%\nМАГАДЛАЛ\nБага эрсдэл\nАнгилагч энэ сессийг сургасан сагс орхилтын тархалттай харьцуулж үнэлнэ. Магадлал босгоос давбал сессийг орхисон гэж тэмдэглэнэ.\nБОСГО\n0.5\nТААМАГЛАСАН АНГИЛАЛ\nОрхисон\nДЭЛГҮҮР\n00000000-0000-0000-0000-000000000001\nЭВЕНТ\n6\nДавамгай шалтгаан\nS1–S7 оношлогооноос · хамгийн их оноо\nS7\nExternal influence/referral effect\nThe session is affected by external referrers, social traffic, outbound clicks, or unload behavior.\nЭвентийн дараалал\n6 эвент бүртгэгдсэн\n1\npage_view\n—\n—\n2\nproduct_view\n—\n—\n3\nadd_to_cart\n—\n—\n4\ncart_view\n—\n—\n5\ncheckout_start\n—\n—\n6\nabandon_checkout\n—\n—\nS1–S7 оноо\n0–1 хооронд нормчилсон · давамгайг тодруулсан\nS1\nСэтгэлзүйн эргэлзээ\n0.50\nS2\nТехникийн саатал\n0.08\nS3\nИтгэлцлийн асуудал\n0.20\nS4\nМобайл хэрэглээний хүндрэл\n0.21\nS5\nҮнийн мэдрэмж\n0.10\nS6\nШийдвэргүй байдал / навигацийн төөрөгдөл\n0.00\nS7\nГадны нөлөө / эх сурвалжийн эффект\n1.00\nЗагварын гол онцлогууд\nXGBoost хувь нэмрийн хэмжээ\nactive_time_ms\n0.721\nmouse_distance\n0.487\navg_price_in_session\n-0.348\ntime_on_page_sec\n0.294\ndirection_changes\n-0.290\nmongolian_trust_barrier\n0.279\nprice_hesitation_score\n-0.264\nsession_duration_sec\n0.255\nЗөвлөмж\nНөөц дүрмээр үүссэн · Шинэ\nS7\nНөөц дүрэм\nFix external influence/referral effect"
+    },
+    "diagnosis_detail_35": {
+      "url": "http://localhost:3001/diagnosis/35",
+      "result": "PASS",
+      "failures": [],
+      "api": [
+        {
+          "url": "http://localhost:8000/api/pipeline/monitor/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/diagnosis/35/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/diagnosis/35/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/pipeline/monitor/",
+          "status": 200
+        }
+      ],
+      "body_excerpt": "Cart Analytics\nOverview\nAnalytics\nSessions\nDiagnosis\nRecommendations\nLive Pipeline\nInstallation\nSettings\nAblation Study\nProfile\nDocumentation\nHelp\nSign out\nCART ANALYTICS\nОНОШЛОГООНЫ ДЭЛГЭРЭНГҮЙ\nОНОШЛОГОО / 35\nХэвийн\nEN\ndemo\nЭЗЭМШИГЧ\nD\nОношлогооны дэлгэрэнгүй\nОношлогоо / 35\nЖагсаалт руу буцах\nS1-S7 оноо\nСесс: caedc735-dbbe-55b4-9a8e-71665390f4ab\nОгноо: 2026-05-13T18:55:15.656708Z\nS1\n0.50\nСэтгэлзүйн эргэлзээ\nS2\n0.08\nТехникийн саатал\nS3\n0.20\nИтгэлцлийн асуудал\nS4\n0.21\nМобайл хэрэглээний хүндрэл\nS5\n0.10\nҮнийн мэдрэмж\nS6\n0.00\nШийдвэргүй байдал / навигацийн төөрөгдөл\nS7\n1.00\nГадны нөлөө / эх сурвалжийн эффект\nFeature утгууд\nS1\n0.500\nS7\nS2\n0.080\nS7\nS3\n0.200\nS7\nS4\n0.207\nS7\nS5\n0.100\nS7\nS6\n0.000\nS7\nS7\n1.000\nS7\nЗөвлөмж\nS7\nFALLBACK\nFix external influence/referral effect\nThe session is most strongly explained by S7 - External influence/referral effect. Review the evidence, remove the strongest visible barrier, and measure conversion rate after the change.\n1\nInspect the checkout/cart step related to the dominant reason.\n2\nMake one focused UX or messaging change.\n3\nCompare abandonment rate before and after the change.\nGenerated by fallback rule because Gemini API is not configured or did not return valid JSON."
+    },
+    "diagnosis_overview": {
+      "url": "http://localhost:3001/diagnosis",
+      "result": "PASS",
+      "failures": [],
+      "api": [
+        {
+          "url": "http://localhost:8000/api/pipeline/monitor/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/dashboard/reasons/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/dashboard/reasons/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/pipeline/monitor/",
+          "status": 200
+        }
+      ],
+      "body_excerpt": "Cart Analytics\nOverview\nAnalytics\nSessions\nDiagnosis\nRecommendations\nLive Pipeline\nInstallation\nSettings\nAblation Study\nProfile\nDocumentation\nHelp\nSign out\nCART ANALYTICS\nROOT CAUSE DIAGNOSIS\nA BREAKDOWN OF WHY CUSTOMERS ARE ABANDONING CARTS BASED ON INTENT ANALYSIS.\nХэвийн\nEN\ndemo\nЭЗЭМШИГЧ\nD\nRefresh\nRoot Cause Diagnosis\nA breakdown of why customers are abandoning carts based on intent analysis.\nDominant reason formula\nPick the maximum of the seven standard scores\ndominant_reason = argmax(S1, S2, S3, S4, S5, S6, S7)\nArgmax keeps the dashboard truthful: every dominant label here came from the Main service, not a local recompute.\nHighest scoring reason\n31 sessions diagnosed\nS1\nPsychological hesitation\nСэтгэлзүйн эргэлзээ: checkout дуусахаас өмнө эргэлзэх дохио илэрсэн.\nAVERAGE SCORE\n0.38\nDOMINANT SESSIONS\n3\nAverage S1–S7 score across diagnosed sessions\nHigher means the reason is showing up more strongly\n0.0\n0.3\n0.5\n0.8\n1.0\nS1\nS2\nS3\nS4\nS5\nS6\nS7\nS1\nPsychological hesitation\nБАГА\nAVERAGE SCORE\n0.38\nThe visitor shows hesitation signals such as tab switching, copying, long dwell time, or cart abandonment.\nSUGGESTED ACTION\nInspect the affected checkout step.\n3 sessions dominant\n10% share\nS2\nTechnical friction\nБАГА\nAVERAGE SCORE\n0.24\nThe session contains technical friction such as rage clicks, JavaScript errors, slow page load, or form friction.\nSUGGESTED ACTION\nInspect the affected checkout step.\n5 sessions dominant\n16% share\nS3\nTrust issue\nБАГА\nAVERAGE SCORE\n0.30\nThe visitor shows trust barriers such as guest checkout, weak payment confidence, or product availability concerns.\nSUGGESTED ACTION\nInspect the affected checkout step.\n3 sessions dominant\n10% share\nS4\nMobile usability issue\nБАГА\nAVERAGE SCORE\n0.14\nThe session is mobile-heavy and contains mobile usability friction.\nSUGGESTED ACTION\nInspect the affected checkout step.\n3 sessions dominant\n10% share\nS5\nPrice sensitivity\nБАГА\nAVERAGE SCORE\n0.27\nThe visitor shows price sensitivity through coupon usage, high cart value, or explicit price hesitation.\nSUGGESTED ACTION\nInspect the affected checkout step.\n5 sessions dominant\n16% share\nS6\nIndecision/navigation disorder\nБАГА\nAVERAGE SCORE\n0.25\nThe visitor loops through products, cart edits, search, filters, or back navigation without committing.\nSUGGESTED ACTION\nInspect the affected checkout step.\n6 sessions dominant\n19% share\nS7\nExternal influence/referral effect\nБАГА\nAVERAGE SCORE\n0.26\nThe session is affected by external referrers, social traffic, outbound clicks, or unload behavior.\nSUGGESTED ACTION\nInspect the affected checkout step."
+    }
+  }
+}

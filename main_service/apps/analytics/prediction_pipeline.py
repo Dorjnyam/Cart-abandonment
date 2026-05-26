@@ -223,6 +223,7 @@ def handle_prediction_payload(payload: dict[str, Any]) -> dict[str, Any]:
                 "prediction_score": probability,
                 "predicted_class": predicted_class,
                 "shap_values": shap_values,
+                "feature_vector": features if isinstance(features, dict) else {},
                 "model_variant": model_variant,
                 "abandonment_probability": probability,
                 "confidence": max(probability, 1.0 - probability),

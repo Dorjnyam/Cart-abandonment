@@ -4,22 +4,26 @@ import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import {
   Activity,
-  BookOpen,
-  BrainCircuit,
+  BarChart3,
+  Building2,
+  FileText,
+  GitBranch,
+  GitCompare,
+  HelpCircle,
   LayoutDashboard,
-  LifeBuoy,
   Lightbulb,
   LogOut,
-  Plug,
-  Radio,
-  Settings,
-  Shield,
+  Menu,
+  Settings as SettingsIcon,
+  ShieldCheck,
   Stethoscope,
-  UserCircle,
+  Terminal,
+  User as UserIcon,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import { motion } from "motion/react";
 import { useAuth } from "./AuthContext";
-import { SIDEBAR_WIDTH_CLASS } from "./layoutConstants";
+import { useLanguage } from "./LanguageContext";
+import { cn } from "@/lib/utils";
 
 export type NavKey =
   | "dashboard"
@@ -36,194 +40,151 @@ export type NavKey =
   | "diagnostics"
   | "tenants"
   | "installation"
-  | "analytics";
+  | "analytics"
+  | "profile";
 
-type NavItemType = { key: NavKey; label: string; href: string; Icon: LucideIcon };
-
-const productNavItems: NavItemType[] = [
-  { key: "dashboard", label: "Тойм", href: "/dashboard", Icon: LayoutDashboard },
-  { key: "ml-insights", label: "Аналитик", href: "/ml-insights", Icon: BrainCircuit },
-  { key: "sessions", label: "Сессүүд", href: "/sessions", Icon: Activity },
-  { key: "diagnosis", label: "Оношлогоо", href: "/diagnosis", Icon: Stethoscope },
-  { key: "recommendations", label: "Зөвлөмжүүд", href: "/recommendations", Icon: Lightbulb },
-];
-
-const operationsNavItems: NavItemType[] = [
-  { key: "pipeline", label: "Урсгалын монитор", href: "/pipeline", Icon: Radio },
-];
-
-const systemNavItems: NavItemType[] = [
-  { key: "installation", label: "Суулгалт", href: "/installation", Icon: Plug },
-  { key: "settings", label: "Тохиргоо", href: "/settings", Icon: Settings },
-];
-
-function NavItem({
-  active,
-  label,
-  href,
-  Icon,
-}: {
-  active: boolean;
-  label: string;
+type NavItem = {
+  key: NavKey;
+  labelKey: keyof ReturnType<typeof useLanguage>["t"]["nav"];
   href: string;
   Icon: LucideIcon;
+};
+
+const primaryNav: NavItem[] = [
+  { key: "dashboard", labelKey: "dashboard", href: "/dashboard", Icon: LayoutDashboard },
+  { key: "analytics", labelKey: "analytics", href: "/analytics", Icon: BarChart3 },
+  { key: "sessions", labelKey: "sessions", href: "/sessions", Icon: Activity },
+  { key: "diagnosis", labelKey: "diagnosis", href: "/diagnosis", Icon: Stethoscope },
+  { key: "recommendations", labelKey: "recommendations", href: "/recommendations", Icon: Lightbulb },
+  { key: "pipeline", labelKey: "pipeline", href: "/pipeline", Icon: GitBranch },
+  { key: "installation", labelKey: "installation", href: "/installation", Icon: Terminal },
+  { key: "settings", labelKey: "settings", href: "/settings", Icon: SettingsIcon },
+  { key: "ablation", labelKey: "ablation", href: "/analytics?tab=ablation", Icon: GitCompare },
+];
+
+const adminNav: NavItem[] = [
+  { key: "admin", labelKey: "admin", href: "/admin", Icon: ShieldCheck },
+  { key: "tenants", labelKey: "tenants", href: "/tenants", Icon: Building2 },
+];
+
+const secondaryNav: NavItem[] = [
+  { key: "profile", labelKey: "profile", href: "/profile", Icon: UserIcon },
+  { key: "installation", labelKey: "documentation", href: "/installation", Icon: FileText },
+  { key: "installation", labelKey: "help", href: "/installation", Icon: HelpCircle },
+];
+
+function isActive(active: NavKey, item: NavItem): boolean {
+  if (item.key === active) return true;
+  if (item.key === "analytics" && (active === "ml-insights" || active === "ablation")) return true;
+  if (item.key === "installation" && active === "setup") return true;
+  return false;
+}
+
+export default function Sidebar({
+  active,
+  collapsed,
+  onToggle,
+}: {
+  active: NavKey;
+  collapsed: boolean;
+  onToggle: () => void;
 }) {
+  const { role, signOut } = useAuth();
+  const { t } = useLanguage();
+
+  const items = role === "admin" ? [...adminNav, ...primaryNav] : primaryNav;
+
   return (
-    <Link
-      href={href}
-      className={[
-        "group relative flex items-center gap-2.5 rounded-md py-1.5 pl-3 pr-2.5",
-        "text-[12.5px] transition-colors duration-150",
-        active
-          ? "bg-[rgb(28_25_23/0.06)] text-on-surface font-medium"
-          : "text-on-surface-variant hover:bg-[rgb(28_25_23/0.04)] hover:text-on-surface",
-      ].join(" ")}
+    <motion.aside
+      initial={false}
+      animate={{ width: collapsed ? 80 : 260 }}
+      transition={{ duration: 0.25, ease: "circOut" }}
+      className="hidden md:flex flex-col border-r border-surface-muted bg-surface sticky top-0 h-screen z-40 shrink-0"
     >
-      {active ? (
-        <span
-          aria-hidden
-          className="absolute left-0 top-1/2 h-4 w-[2px] -translate-y-1/2 rounded-r-full"
-          style={{ background: "rgb(var(--primary-rgb))" }}
-        />
-      ) : null}
-      <Icon
-        className={`size-[15px] shrink-0 ${active ? "text-primary" : "text-on-surface-variant/70 group-hover:text-on-surface-variant"}`}
-        strokeWidth={1.6}
-        aria-hidden
-      />
-      <span className="truncate whitespace-nowrap tracking-[-0.005em]">{label}</span>
-    </Link>
-  );
-}
-
-function SectionLabel({ label }: { label: string }) {
-  return (
-    <p className="px-3 pb-1.5 pt-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant/70">
-      {label}
-    </p>
-  );
-}
-
-export default function Sidebar({ active }: { active: NavKey }): ReactNode {
-  const { role, storeName, userName, signOut } = useAuth();
-
-  return (
-    <aside
-      className={`fixed bottom-0 left-0 top-0 ${SIDEBAR_WIDTH_CLASS} z-50 flex flex-col`}
-      style={{
-        background: "rgb(var(--sidebar-bg-rgb))",
-        borderRight: "1px solid rgb(28 25 23 / 0.08)",
-      }}
-    >
-      {/* Wordmark ба workspace */}
-      <div className="px-4 pt-5 pb-4 hairline-b">
-        <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5">
-          <span
-            aria-hidden
-            className="flex size-7 shrink-0 items-center justify-center rounded-[6px] text-[10.5px] font-semibold text-white"
-            style={{ background: "rgb(var(--primary-rgb))", letterSpacing: "0.02em" }}
-          >
-            CA
-          </span>
-          <div className="min-w-0">
-            <div
-              className="text-[14px] font-medium leading-tight text-on-surface"
-              style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.022em" }}
-            >
+      <div className="p-6 flex items-center justify-between overflow-hidden whitespace-nowrap">
+        <Link href="/dashboard" className="flex items-center gap-3 min-w-0">
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
+            <BarChart3 className="text-white w-5 h-5" />
+          </div>
+          {!collapsed && (
+            <span className="font-display font-extrabold text-lg tracking-tight text-text truncate">
               Cart Analytics
-            </div>
-            <div className="mt-0.5 text-[9.5px] uppercase tracking-[0.22em] text-on-surface-variant/70">
-              Сэргээх аналитик
-            </div>
-          </div>
-        </Link>
-
-        {storeName ? (
-          <div className="mt-3.5 flex items-center gap-2 rounded-md hairline px-2.5 py-1.5 bg-surface-container-lowest">
-            <span className="size-1.5 shrink-0 rounded-full" style={{ background: "rgb(var(--primary-rgb))" }} aria-hidden />
-            <span className="truncate text-[11.5px] font-medium text-on-surface">{storeName}</span>
-          </div>
-        ) : null}
-      </div>
-
-      {/* Navigation хэсэг */}
-      <nav className="no-scrollbar flex-1 overflow-y-auto px-2 py-2">
-        {role === "admin" ? (
-          <>
-            <SectionLabel label="Админ" />
-            <NavItem active={active === "admin"} label="Дэлгүүрийн удирдлага" href="/admin" Icon={Shield} />
-          </>
-        ) : null}
-
-        <SectionLabel label="Бүтээгдэхүүн" />
-        {productNavItems.map((item) => (
-          <NavItem
-            key={item.key}
-            active={
-              item.key === active ||
-              (item.key === "ml-insights" && (active === "analytics" || active === "ablation"))
-            }
-            label={item.label}
-            href={item.href}
-            Icon={item.Icon}
-          />
-        ))}
-
-        <SectionLabel label="Ажиллагаа" />
-        {operationsNavItems.map((item) => (
-          <NavItem
-            key={item.key}
-            active={item.key === active}
-            label={item.label}
-            href={item.href}
-            Icon={item.Icon}
-          />
-        ))}
-
-        <SectionLabel label="Систем" />
-        {systemNavItems.map((item) => (
-          <NavItem
-            key={item.key}
-            active={item.key === active || (item.key === "installation" && active === "setup")}
-            label={item.label}
-            href={item.href}
-            Icon={item.Icon}
-          />
-        ))}
-      </nav>
-
-      {/* Footer хэсэг */}
-      <div className="space-y-0.5 px-2 py-2.5 hairline-t">
-        <Link
-          href="/profile"
-          className="flex items-center gap-2.5 rounded-md px-3 py-1.5 text-[12.5px] text-on-surface-variant transition-colors hover:bg-[rgb(28_25_23/0.04)] hover:text-on-surface"
-        >
-          <UserCircle className="size-[15px] shrink-0 text-on-surface-variant/70" aria-hidden strokeWidth={1.6} />
-          <span className="truncate" suppressHydrationWarning>{userName || "Профайл"}</span>
-        </Link>
-        <Link
-          href="/installation"
-          className="flex items-center gap-2.5 rounded-md px-3 py-1.5 text-[12.5px] text-on-surface-variant transition-colors hover:bg-[rgb(28_25_23/0.04)] hover:text-on-surface"
-        >
-          <BookOpen className="size-[15px] shrink-0 text-on-surface-variant/70" aria-hidden strokeWidth={1.6} />
-          Баримт бичиг
-        </Link>
-        <Link
-          href="/installation"
-          className="flex items-center gap-2.5 rounded-md px-3 py-1.5 text-[12.5px] text-on-surface-variant transition-colors hover:bg-[rgb(28_25_23/0.04)] hover:text-on-surface"
-        >
-          <LifeBuoy className="size-[15px] shrink-0 text-on-surface-variant/70" aria-hidden strokeWidth={1.6} />
-          Тусламж
+            </span>
+          )}
         </Link>
         <button
           type="button"
-          onClick={signOut}
-          className="mt-0.5 flex w-full items-center gap-2.5 rounded-md px-3 py-1.5 text-[12.5px] text-on-surface-variant/80 transition-colors hover:bg-[rgb(28_25_23/0.04)] hover:text-on-surface"
+          onClick={onToggle}
+          aria-label="Toggle sidebar"
+          className="p-1 text-muted hover:text-text shrink-0"
         >
-          <LogOut className="size-[15px] shrink-0 text-on-surface-variant/70" aria-hidden strokeWidth={1.6} />
-          Гарах
+          <Menu className="w-4 h-4" />
         </button>
       </div>
-    </aside>
+
+      <nav className="flex-1 px-3 space-y-1 overflow-y-auto custom-scrollbar pt-2">
+        {items.map((item) => {
+          const activeItem = isActive(active, item);
+          return (
+            <Link
+              key={`${item.key}-${item.labelKey}-${item.href}`}
+              href={item.href}
+              className={cn(
+                "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group overflow-hidden whitespace-nowrap",
+                activeItem
+                  ? "bg-primary/10 text-primary"
+                  : "hover:bg-surface-muted text-muted",
+              )}
+            >
+              <item.Icon
+                className={cn(
+                  "w-5 h-5 shrink-0 transition-transform group-hover:scale-110",
+                  activeItem ? "text-primary" : "text-muted",
+                )}
+              />
+              {!collapsed && (
+                <span className="font-bold text-sm tracking-tight">
+                  {t.nav[item.labelKey]}
+                </span>
+              )}
+            </Link>
+          );
+        })}
+
+        <div className="pt-6 pb-2 px-3">
+          <div className="h-px bg-surface-muted w-full" />
+        </div>
+
+        {secondaryNav.map((item, idx) => {
+          const activeItem = isActive(active, item);
+          return (
+            <Link
+              key={`secondary-${idx}`}
+              href={item.href}
+              className={cn(
+                "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-muted hover:bg-surface-muted overflow-hidden whitespace-nowrap",
+                activeItem && "bg-surface-muted text-primary",
+              )}
+            >
+              <item.Icon className="w-5 h-5 shrink-0" />
+              {!collapsed && (
+                <span className="font-bold text-sm tracking-tight">{t.nav[item.labelKey]}</span>
+              )}
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div className="p-4 border-t border-surface-muted">
+        <button
+          type="button"
+          onClick={signOut}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-error hover:bg-error/10 transition-all overflow-hidden whitespace-nowrap"
+        >
+          <LogOut className="w-5 h-5 shrink-0" />
+          {!collapsed && <span className="font-bold text-sm tracking-tight">{t.nav.signOut}</span>}
+        </button>
+      </div>
+    </motion.aside>
   );
 }

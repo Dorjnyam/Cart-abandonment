@@ -1,4 +1,4 @@
-# Local editor and assistant state
+# Local editor and tool state
 .claude/
 .vscode/
 .idea/

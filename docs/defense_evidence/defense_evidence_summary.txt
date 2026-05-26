@@ -1,0 +1,25 @@
+1. Dataset
+The evaluation used `data/sessions.csv`. It is a synthetic/simulated thesis MVP dataset, not real customer behavior. The generator is `ml/scripts/generate_synthetic_sessions.py`.
+
+2. Sample size and split
+Total sessions: 1200. Positive abandoned: 600. Negative converted: 600. Split: 720 train / 240 validation / 240 test, stratified, random_state=42.
+
+3. Exact XGBoost metrics
+Accuracy: 0.825
+Precision: 0.8145161290322581
+Recall: 0.8416666666666667
+F1: 0.8278688524590164
+ROC AUC: 0.8413194444444444
+Threshold: 0.38999999999999996
+Confusion matrix: TN=97, FP=23, FN=19, TP=101
+
+4. One session example
+Session ID: session_sha256_c2c6144605
+Input behavior: session_duration_sec=279, event_count=29, cart_item_count=3, checkout_step_detected=0, rage_click=1, frustration_index=0.1974365585427105, is_mobile=True
+Prediction: abandon_probability=0.970192551612854, predicted_class=abandoned
+Top SHAP values: {"direction_changes": 0.17661264538764954, "frustration_index": 0.07956557720899582, "outbound_click": 0.07756150513887405, "page_load_ms": 0.04769526422023773, "rage_click": 0.03973197564482689, "scroll_up_count": 0.025300001725554466, "cart_value": 0.025221168994903564, "page_view_count": 0.024046825245022774}
+S1-S7: {"S1": 0.1644, "S2": 0.3249, "S3": 0.3267, "S4": 0.399, "S5": 0.479, "S6": 0.3583, "S7": 0.2}, dominant_reason=S5
+Recommendation: The session is most strongly explained by S5 - Price sensitivity. Review the evidence, remove the strongest visible barrier, and measure conversion rate after the change.
+
+5. Honest limitations
+The reported ML result is controlled MVP validation on a synthetic/simulated dataset. It must not be described as real customer performance. The feature vectors are engineered synthetic behavioral signals, and the recommendation text is deterministic fallback logic unless Gemini is configured. Real/public clickstream validation should be reported separately if added later.

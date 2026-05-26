@@ -31,6 +31,8 @@ export default function DiagnosisDetailPage() {
   }, [params.id]);
 
   const scores = entry?.scores ?? {};
+  const recommendation = entry?.recommendation ?? null;
+  const actionSteps = recommendation?.action_steps ?? [];
 
   return (
     <EditorialShell activeNav="diagnosis" title="Оношлогооны дэлгэрэнгүй" subtitle={`Оношлогоо / ${params.id}`}>
@@ -125,14 +127,47 @@ export default function DiagnosisDetailPage() {
             {/* Recommendation хэсэг */}
             <section className="lg:col-span-3 bg-surface-container-lowest p-6 rounded-xl">
               <h3 className="font-bold text-on-surface mb-4">Зөвлөмж</h3>
-              <p className="text-sm text-on-surface-variant leading-relaxed">
-                Checkout төлбөрийн хэсэг дээр хэрэглэгчийн эргэлзээ өндөр байна. Төлбөрийн алхамын өмнө итгэлцлийн
-                micro-copy болон буцаалтын баталгааг тодруулж өгнө үү.
-              </p>
-              <div className="mt-6 flex gap-2">
-                <button className="px-4 py-2 bg-secondary text-on-secondary text-xs font-bold uppercase rounded-md">Хэрэгжлээ</button>
-                <button className="px-4 py-2 bg-surface-container text-on-surface text-xs font-bold uppercase rounded-md">Хойшлуулах</button>
-              </div>
+              {recommendation ? (
+                <div className="space-y-4">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {recommendation.reason_code ? (
+                      <span className="rounded-md bg-primary/10 px-2 py-1 font-mono text-[0.6875rem] font-bold text-primary">
+                        {recommendation.reason_code}
+                      </span>
+                    ) : null}
+                    <span className="rounded-md bg-surface-container px-2 py-1 text-[0.6875rem] font-bold uppercase text-on-surface-variant">
+                      {recommendation.source ?? "fallback"}
+                    </span>
+                  </div>
+                  <div>
+                    <h4 className="text-base font-bold text-on-surface">
+                      {recommendation.title ?? "Recommendation"}
+                    </h4>
+                    <p className="mt-2 text-sm text-on-surface-variant leading-relaxed">
+                      {recommendation.summary ?? recommendation.body}
+                    </p>
+                  </div>
+                  {actionSteps.length ? (
+                    <ol className="space-y-2 text-sm text-on-surface">
+                      {actionSteps.map((step, index) => (
+                        <li key={step} className="flex gap-2">
+                          <span className="font-mono text-xs text-on-surface-variant">{index + 1}</span>
+                          <span>{step}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  ) : null}
+                  {recommendation.warning ? (
+                    <p className="rounded-md bg-tertiary/10 px-3 py-2 text-xs leading-relaxed text-on-surface-variant">
+                      {recommendation.warning}
+                    </p>
+                  ) : null}
+                </div>
+              ) : (
+                <p className="text-sm text-on-surface-variant leading-relaxed">
+                  Энэ оношлогоонд хадгалагдсан зөвлөмж хараахан алга.
+                </p>
+              )}
             </section>
           </div>
         )}

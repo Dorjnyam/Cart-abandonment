@@ -4,30 +4,35 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle, MailOpen } from "lucide-react";
 import AuthShell from "@/components/editorial/AuthShell";
+import { useLanguage } from "@/components/editorial/LanguageContext";
 import { authInputClass, FieldGroup, SubmitButton } from "@/components/editorial/AuthFormParts";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/api-config";
 
 export default function ForgotPasswordPage() {
+  const { t, lang } = useLanguage();
   const [sent, setSent] = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   return (
     <AuthShell
-      eyebrow="Нууц үг сэргээх"
-      title="Имэйлээр сэргээх"
-      description="Бүртгэлтэй имэйлээ оруулна. Холбоос ирвэл шинэ нууц үг тохируулна."
+      eyebrow={t.login.forgotPassword}
+      title={t.login.forgotTitle}
+      description={t.login.forgotSubtitle}
     >
       {sent ? (
         <div className="space-y-5">
-          <div className="rounded-2xl bg-[#e6f5ef] p-5 text-[#12352f]">
+          <div className="rounded-2xl bg-success/10 p-5 text-success">
             <div className="flex items-start gap-3">
-              <CheckCircle className="mt-0.5 size-5 shrink-0 text-[#0f766e]" aria-hidden />
+              <CheckCircle className="mt-0.5 size-5 shrink-0" aria-hidden />
               <div>
-                <p className="font-semibold">Имэйлээ шалгана уу</p>
-                <p className="mt-1 text-sm leading-6">
-                  {submittedEmail || "Таны оруулсан хаяг"} бүртгэлтэй бол сэргээх холбоос
-                  илгээгдсэн.
+                <p className="font-extrabold">
+                  {lang === "EN" ? "Check your inbox" : "Имэйлээ шалгана уу"}
+                </p>
+                <p className="mt-1 text-sm leading-6 font-medium">
+                  {lang === "EN"
+                    ? `${submittedEmail || "Your email"} — if it matches an account, a reset link has been sent.`
+                    : `${submittedEmail || "Таны оруулсан хаяг"} бүртгэлтэй бол сэргээх холбоос илгээгдсэн.`}
                 </p>
               </div>
             </div>
@@ -39,13 +44,17 @@ export default function ForgotPasswordPage() {
               setSent(false);
               setSubmittedEmail("");
             }}
-            className="flex items-center gap-2 text-sm font-medium text-[#0f766e] hover:underline"
+            className="flex items-center gap-2 text-sm font-extrabold text-primary hover:underline"
           >
-            <ArrowLeft className="size-4" aria-hidden /> Өөр имэйл оруулах
+            <ArrowLeft className="size-4" />
+            {lang === "EN" ? "Use a different email" : "Өөр имэйл оруулах"}
           </button>
 
-          <Link href="/login" className="block text-center text-sm font-semibold text-[#0f766e] hover:underline">
-            Нэвтрэх хуудас руу буцах
+          <Link
+            href="/login"
+            className="block text-center text-sm font-extrabold text-primary hover:underline"
+          >
+            {t.login.backToLogin}
           </Link>
         </div>
       ) : (
@@ -69,31 +78,37 @@ export default function ForgotPasswordPage() {
             }
           }}
         >
-          <div className="flex items-start gap-3 rounded-xl bg-[#f2f8f6] px-4 py-3 text-sm text-[#4d625d]">
-            <MailOpen className="mt-0.5 size-4 shrink-0 text-[#0f766e]" aria-hidden />
-            <p>Хаяг бүртгэлтэй бол сэргээх холбоос илгээгдэнэ.</p>
+          <div className="flex items-start gap-3 rounded-2xl bg-surface-muted px-4 py-3 text-sm text-muted">
+            <MailOpen className="mt-0.5 size-4 shrink-0 text-primary" />
+            <p className="font-medium">
+              {lang === "EN"
+                ? "If the address is registered, we'll email a reset link."
+                : "Хаяг бүртгэлтэй бол сэргээх холбоос илгээгдэнэ."}
+            </p>
           </div>
 
-          <FieldGroup label="Имэйл">
+          <FieldGroup label={t.login.email}>
             <input
               name="email"
               type="email"
               required
               disabled={isLoading}
-              placeholder="name@example.mn"
+              placeholder="name@company.mn"
               autoComplete="email"
               className={authInputClass}
             />
           </FieldGroup>
 
-          <SubmitButton isLoading={isLoading} loadingLabel="Илгээж байна">
-            Холбоос илгээх
+          <SubmitButton
+            isLoading={isLoading}
+            loadingLabel={lang === "EN" ? "Sending" : "Илгээж байна"}
+          >
+            {t.login.sendReset}
           </SubmitButton>
 
-          <p className="text-center text-sm text-[#637570]">
-            Санасан уу?{" "}
-            <Link href="/login" className="font-semibold text-[#0f766e] hover:underline">
-              Нэвтрэх
+          <p className="text-center text-sm text-muted">
+            <Link href="/login" className="font-extrabold text-primary hover:underline">
+              {t.login.backToLogin}
             </Link>
           </p>
         </form>

@@ -291,6 +291,7 @@ MINIO_USE_SSL = os.getenv('MINIO_USE_SSL', 'false').lower() == 'true'
 
 # Gemini API
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
+GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash')
 
 # Kafka
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")

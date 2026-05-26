@@ -1,0 +1,121 @@
+{
+  "dataset": {
+    "source_type": "synthetic",
+    "source_path_or_table": "data/sessions.csv",
+    "n_total": 1200,
+    "n_train": 720,
+    "n_test": 240,
+    "positive_abandoned": 600,
+    "negative_converted": 600,
+    "train_test_split": "60% train / 20% validation / 20% test; stratified by label",
+    "random_state": "42"
+  },
+  "model": {
+    "algorithm": "XGBoost",
+    "model_version": "xgboost-synthetic-mvp",
+    "threshold": 0.38999999999999996,
+    "feature_count": 38,
+    "top_features": [
+      "direction_changes",
+      "frustration_index",
+      "outbound_click",
+      "page_load_ms",
+      "rage_click",
+      "scroll_up_count",
+      "cart_value",
+      "page_view_count",
+      "bounce",
+      "price_hesitation_score"
+    ],
+    "training_command": "python ml/scripts/train.py --dataset data/sessions.csv --output docs/defense_evidence/model_eval_run/xgb_cart_abandonment.joblib",
+    "evaluation_command": "python ml/scripts/train.py --dataset data/sessions.csv --output docs/defense_evidence/model_eval_run/xgb_cart_abandonment.joblib"
+  },
+  "metrics": {
+    "accuracy": 0.825,
+    "precision": 0.8145161290322581,
+    "recall": 0.8416666666666667,
+    "f1": 0.8278688524590164,
+    "roc_auc": 0.8413194444444444,
+    "confusion_matrix": {
+      "tn": 97,
+      "fp": 23,
+      "fn": 19,
+      "tp": 101
+    }
+  },
+  "one_session_example": {
+    "session_id_masked": "session_sha256_c2c6144605",
+    "input_behavior": {
+      "session_duration_sec": 279,
+      "event_count": 29,
+      "cart_item_count": 3,
+      "checkout_step_detected": 0,
+      "rage_click": 1,
+      "frustration_index": 0.1974365585427105,
+      "is_mobile": true
+    },
+    "prediction": {
+      "abandon_probability": 0.970192551612854,
+      "predicted_class": "abandoned",
+      "shap_values": {
+        "direction_changes": 0.17661264538764954,
+        "frustration_index": 0.07956557720899582,
+        "outbound_click": 0.07756150513887405,
+        "page_load_ms": 0.04769526422023773,
+        "rage_click": 0.03973197564482689,
+        "scroll_up_count": 0.025300001725554466,
+        "cart_value": 0.025221168994903564,
+        "page_view_count": 0.024046825245022774
+      }
+    },
+    "diagnosis": {
+      "S1": 0.1644,
+      "S2": 0.3249,
+      "S3": 0.3267,
+      "S4": 0.399,
+      "S5": 0.479,
+      "S6": 0.3583,
+      "S7": 0.2,
+      "dominant_reason": "S5"
+    },
+    "recommendation_mn": "The session is most strongly explained by S5 - Price sensitivity. Review the evidence, remove the strongest visible barrier, and measure conversion rate after the change."
+  },
+  "validation_table": [
+    {
+      "case": "XGBoost test-set evaluation completed",
+      "expected": "metrics_xgboost.json contains xgboost metrics and 240-row test split",
+      "actual": "test=240, f1=0.8278688524590164",
+      "passed": true
+    },
+    {
+      "case": "Confusion matrix shape and total",
+      "expected": "2x2 matrix totaling 240 test sessions",
+      "actual": "tn=97, fp=23, fn=19, tp=101, total=240",
+      "passed": true
+    },
+    {
+      "case": "Focused pytest validation",
+      "expected": "ML pipeline, producer contract, and S1-S7 tests pass",
+      "actual": "11 passed, 1 warning",
+      "passed": true
+    },
+    {
+      "case": "Dataset limitation is explicit",
+      "expected": "dataset is marked synthetic, not real customer behavior",
+      "actual": "synthetic=True, source_type=synthetic",
+      "passed": true
+    }
+  ],
+  "evidence_files": [
+    "ml/scripts/train.py",
+    "ml/scripts/generate_synthetic_sessions.py",
+    "ml/app/xgboost_model.py",
+    "main_service/apps/analytics/s1_s7.py",
+    "docs/defense_evidence/model_eval_run/evaluation_log.txt",
+    "docs/defense_evidence/model_eval_run/test_log.txt",
+    "docs/defense_evidence/model_eval_run/metrics_xgboost.json",
+    "docs/defense_evidence/model_eval_run/confusion_matrix.json",
+    "docs/defense_evidence/model_eval_run/classification_report.json",
+    "docs/defense_evidence/model_eval_run/dataset_metadata.json"
+  ]
+}

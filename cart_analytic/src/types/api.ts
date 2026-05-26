@@ -169,9 +169,21 @@ export type HistogramBin = {
   count: number;
 };
 
+export type AnalyticsSummary = {
+  totalSessions: number;
+  abandonedSessions: number;
+  convertedSessions: number;
+  abandonmentRate: number;
+  conversionRate: number;
+  highRiskSessions: number;
+  averageAbandonmentProbability: number;
+  activeRecommendations: number;
+};
+
 export type AnalyticsOverview = {
   featureImportance: FeatureImportancePoint[];
   abandonmentTrend: TrendPoint[];
   predictionDistribution: HistogramBin[];
+  summary?: AnalyticsSummary | null;
 };
 

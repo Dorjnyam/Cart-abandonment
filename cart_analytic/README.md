@@ -1,50 +1,61 @@
-# CartAnalytics Frontend
+# Cart Analytics Dashboard
 
-Next.js App Router frontend for cart abandonment analytics dashboards, session-level diagnostics, and SHAP-based explainability views.
+Энэ frontend нь сагс орхилтын dashboard, session detail, S1-S7 diagnosis, recommendation болон model insight харах Next.js App Router application юм.
 
-## Setup
+## Асаах
 
-1. Copy env template:
+1. Environment файл бэлдэнэ.
 
 ```bash
 cp .env.local.example .env.local
 ```
 
-2. Set values in `.env.local`:
+2. `.env.local` дотор API тохиргоо өгнө.
 
-- `NEXT_PUBLIC_API_URL`: Django API base URL (example: `https://api.example.com/api`)
-- `NEXT_PUBLIC_API_AUTH_MODE`: `none` | `jwt` | `api-key` | `both`
-- `NEXT_PUBLIC_API_KEY`: optional API key when auth mode includes `api-key`
-- `NEXT_PUBLIC_API_JWT`: optional JWT when auth mode includes `jwt`
+| Variable | Тайлбар |
+|---|---|
+| `NEXT_PUBLIC_API_URL` | Main service API base URL, жишээ нь `http://localhost:8000/api` |
+| `NEXT_PUBLIC_API_AUTH_MODE` | `none`, `jwt`, `api-key`, эсвэл `both` |
+| `NEXT_PUBLIC_API_KEY` | API key ашиглах үед бөглөнө |
+| `NEXT_PUBLIC_API_JWT` | JWT ашиглах үед бөглөнө |
+| `NEXT_PUBLIC_MOCK_FALLBACK` | API байхгүй үед demo fallback зөвшөөрөх эсэх |
 
-3. Run app:
+3. App ажиллуулна.
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Implemented routes
+Default URL: `http://localhost:3001`
 
-- `/dashboard` - KPI summary, abandonment trend, drop-off, traffic blocks
-- `/sessions` - paginated session-style list with prediction score
-- `/sessions/[id]` - timeline + SHAP waterfall + feature vector view
-- `/analytics` - feature importance, abandonment trend, prediction distribution
+## Гол route-ууд
 
-## API integration notes
+| Route | Үүрэг |
+|---|---|
+| `/dashboard` | KPI, abandonment trend, drop-off, traffic summary |
+| `/sessions` | Session жагсаалт, risk score, filter |
+| `/sessions/[id]` | Event timeline, feature vector, SHAP тайлбар |
+| `/diagnosis` | S1-S7 шалтгааны задаргаа |
+| `/recommendations` | Main service-ээс ирсэн recovery task-ууд |
+| `/analytics` | Feature importance, prediction тархалт, trend |
+| `/ml-insights` | Model metric, confusion matrix, SHAP summary |
+| `/pipeline` | Service health болон event pipeline status |
+| `/settings` | Store, team, API key тохиргоо |
 
-- API layer is centralized in:
-  - `src/lib/api-client.ts`
-  - `src/lib/api-config.ts`
-  - `src/lib/services/*`
-- Domain contracts are in:
-  - `src/types/api.ts`
-- Current services include mock fallback data when API is unavailable, so UI remains demo-friendly.
+## Code бүтэц
 
-## Swapping to OpenAPI contract later
+- `src/lib/api-client.ts` - request, auth header, error handling
+- `src/lib/api-config.ts` - endpoint path-ууд
+- `src/lib/services/*` - API response mapping
+- `src/types/api.ts` - dashboard-д ашиглах DTO төрлүүд
+- `src/components/ui/*` - давтагддаг UI component-ууд
+- `src/app/*` - page-level route болон data loading
 
-When OpenAPI URL/spec is provided:
+## API contract өөрчлөгдвөл
 
-1. Update DTOs in `src/types/api.ts`.
-2. Update endpoint paths and response mapping only in `src/lib/services/*`.
-3. Keep page and chart components unchanged unless the API model fundamentally changes.
+1. `src/types/api.ts` дотор DTO төрлүүдийг шинэчилнэ.
+2. Endpoint path болон mapping-ийг `src/lib/services/*` дотор засна.
+3. Page болон chart component-уудыг зөвхөн өгөгдлийн shape үнэхээр өөр болсон үед өөрчилнө.
+
+Энэ бүтэц нь UI-г backend contract-оос хэт хамааралтай болгохгүй байхаар салгасан.

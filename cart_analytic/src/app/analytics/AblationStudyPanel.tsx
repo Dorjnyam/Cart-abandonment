@@ -11,16 +11,35 @@ import {
   Cell,
 } from "recharts";
 import { AblationBadge } from "@/components/ui/AblationBadge";
+import { CHART_TOKENS } from "@/lib/chart-tokens";
 import { fetchAblationSummary, type AblationSummary, type VariantMetrics } from "@/lib/services/ablation";
 
 const VARIANT_COLORS: Record<string, string> = {
-  baseline: "#6B7280",
-  extended: "#2563EB",
-  full:     "#7C3AED",
+  baseline: CHART_TOKENS.variantBaseline,
+  extended: CHART_TOKENS.variantExtended,
+  full:     CHART_TOKENS.variantFull,
 };
+
+function isNumber(value: number | null | undefined): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+function pctLabel(value: number | null | undefined): string {
+  return isNumber(value) ? `${Math.round(value * 100)}%` : "—";
+}
+
+function decimalLabel(value: number | null | undefined): string {
+  return isNumber(value) ? value.toFixed(2) : "—";
+}
+
+function ppLabel(value: number | null | undefined): string {
+  if (!isNumber(value)) return "—";
+  return `${value > 0 ? "+" : ""}${Math.round(value * 100)}pp`;
+}
 
 function deltaLabel(baseline: VariantMetrics, current: VariantMetrics): string {
   if (current.model_variant === "baseline") return "—";
+  if (!isNumber(current.avg_confidence) || !isNumber(baseline.avg_confidence)) return "—";
   const diff = Math.round((current.avg_confidence - baseline.avg_confidence) * 100);
   return diff >= 0 ? `+${diff}pp` : `${diff}pp`;
 }
@@ -56,9 +75,20 @@ export default function AblationStudyPanel() {
   }
 
   const baseline = data.variants.find((v) => v.model_variant === "baseline");
+  const chartVariants = data.variants.filter((v) => isNumber(v.avg_confidence));
+  const hasMetrics = data.variants.some(
+    (v) => isNumber(v.abandonment_rate) || isNumber(v.avg_confidence) || isNumber(v.avg_score),
+  );
 
   return (
     <div className="space-y-6">
+      {!hasMetrics ? (
+        <div className="rounded-xl border border-outline-variant/15 bg-surface-container-lowest px-5 py-4 text-sm leading-relaxed text-on-surface-variant">
+          Ablation хувилбарын prediction metric одоогоор алга байна. Энэ нь API ажиллахгүй гэсэн үг биш:
+          baseline / extended / full хувилбараар таамаглал хадгалагдаагүй үед хүснэгт хоосон metric-ийг “—” гэж харуулна.
+        </div>
+      ) : null}
+
       {/* Огнооны range picker */}
       <div className="flex flex-wrap items-center gap-3">
         <label className="text-xs font-semibold text-on-surface-variant">Эхлэх огноо</label>
@@ -107,10 +137,10 @@ export default function AblationStudyPanel() {
                   {v.count.toLocaleString()}
                 </td>
                 <td className="px-4 py-3 tabular-nums text-on-surface">
-                  {Math.round(v.abandonment_rate * 100)}%
+                  {pctLabel(v.abandonment_rate)}
                 </td>
                 <td className="px-4 py-3 tabular-nums text-on-surface">
-                  {v.avg_confidence.toFixed(2)}
+                  {decimalLabel(v.avg_confidence)}
                 </td>
                 <td className="px-4 py-3">
                   {baseline ? (
@@ -118,7 +148,9 @@ export default function AblationStudyPanel() {
                       className={
                         v.model_variant === "baseline"
                           ? "text-on-surface-variant"
-                          : Math.round((v.avg_confidence - baseline.avg_confidence) * 100) >= 0
+                          : isNumber(v.avg_confidence) &&
+                              isNumber(baseline.avg_confidence) &&
+                              Math.round((v.avg_confidence - baseline.avg_confidence) * 100) >= 0
                             ? "font-semibold text-green-700"
                             : "font-semibold text-red-700"
                       }
@@ -136,21 +168,27 @@ export default function AblationStudyPanel() {
       {/* Bar chart хэсэг */}
       <div className="rounded-xl border border-outline-variant/10 bg-surface-container-lowest p-5 shadow-card">
         <h4 className="text-sm font-bold text-on-surface mb-4">Загварын итгэлийн харьцуулалт</h4>
-        <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={data.variants} barSize={40}>
-            <XAxis dataKey="model_variant" tick={{ fontSize: 12 }} />
-            <YAxis domain={[0, 1]} tick={{ fontSize: 11 }} tickFormatter={(v: number) => v.toFixed(1)} />
-            <Tooltip
-              formatter={(value) => [Number(value).toFixed(2), "Итгэл"]}
-              labelFormatter={(label) => `Загвар: ${label}`}
-            />
-            <Bar dataKey="avg_confidence" radius={[6, 6, 0, 0]}>
-              {data.variants.map((v) => (
-                <Cell key={v.model_variant} fill={VARIANT_COLORS[v.model_variant] ?? "#6B7280"} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+        {chartVariants.length ? (
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={chartVariants} barSize={40}>
+              <XAxis dataKey="model_variant" tick={{ fontSize: 12 }} />
+              <YAxis domain={[0, 1]} tick={{ fontSize: 11 }} tickFormatter={(v: number) => v.toFixed(1)} />
+              <Tooltip
+                formatter={(value) => [Number(value).toFixed(2), "Итгэл"]}
+                labelFormatter={(label) => `Загвар: ${label}`}
+              />
+              <Bar dataKey="avg_confidence" radius={[6, 6, 0, 0]}>
+                {chartVariants.map((v) => (
+                  <Cell key={v.model_variant} fill={VARIANT_COLORS[v.model_variant] ?? CHART_TOKENS.variantBaseline} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="grid h-[200px] place-items-center rounded-lg bg-surface-container-low/60 text-sm text-on-surface-variant">
+            Итгэлийн metric хараахан үүсээгүй байна.
+          </div>
+        )}
       </div>
 
       {/* Нэгтгэсэн delta */}
@@ -158,16 +196,14 @@ export default function AblationStudyPanel() {
         <div className="flex flex-wrap gap-4">
           <div className="rounded-xl border border-outline-variant/10 bg-surface-container-lowest px-5 py-4 shadow-sm">
             <p className="text-xs text-on-surface-variant font-semibold uppercase tracking-wider">Орхилтын хувийн өөрчлөлт</p>
-            <p className={`mt-1 font-display text-2xl font-semibold tabular-nums ${data.comparison.abandonment_rate_delta <= 0 ? "text-green-700" : "text-red-700"}`}>
-              {data.comparison.abandonment_rate_delta > 0 ? "+" : ""}
-              {Math.round(data.comparison.abandonment_rate_delta * 100)}pp
+            <p className={`mt-1 font-display text-2xl font-semibold tabular-nums ${isNumber(data.comparison.abandonment_rate_delta) && data.comparison.abandonment_rate_delta <= 0 ? "text-green-700" : "text-red-700"}`}>
+              {ppLabel(data.comparison.abandonment_rate_delta)}
             </p>
           </div>
           <div className="rounded-xl border border-outline-variant/10 bg-surface-container-lowest px-5 py-4 shadow-sm">
             <p className="text-xs text-on-surface-variant font-semibold uppercase tracking-wider">Итгэлийн өөрчлөлт</p>
-            <p className={`mt-1 font-display text-2xl font-semibold tabular-nums ${data.comparison.confidence_delta >= 0 ? "text-green-700" : "text-red-700"}`}>
-              {data.comparison.confidence_delta > 0 ? "+" : ""}
-              {Math.round(data.comparison.confidence_delta * 100)}pp
+            <p className={`mt-1 font-display text-2xl font-semibold tabular-nums ${isNumber(data.comparison.confidence_delta) && data.comparison.confidence_delta >= 0 ? "text-green-700" : "text-red-700"}`}>
+              {ppLabel(data.comparison.confidence_delta)}
             </p>
           </div>
         </div>

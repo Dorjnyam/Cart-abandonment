@@ -1,185 +1,118 @@
-# Main Service (Django)
+# Main Service
 
-Энэ төсөл нь multi-tenant дэлгүүрүүдийн хэрэглээний үйл явдлыг (Observer -> `raw_events`) цуглуулж, Celery-р боловсруулан `S1-S7` оноо + Gemini зөвлөмж үүсгэж, Dashboard-д REST API-аар харуулах үндсэн үйлчилгээ юм.
+Main service нь Django дээр ажилладаг төв API юм. Энэ service tenant, API key, analytics session, prediction result, diagnosis, recommendation зэрэг dashboard-д хэрэгтэй өгөгдлийг хадгалж REST endpoint-оор гаргана.
 
-## Товч ойлголт (хурдан урсгал)
-1. `Tenant` болон `APIKey` үүсгэнэ (WF-01).
-2. Observer тал event илгээж `raw_events` дүүргэнэ (WF-02) ба `session_end` дээр Redis queue рүү enqueue хийнэ.
-3. Main Service-ийн Celery worker message-ийг авч `process_session` гүйцэтгэнэ (WF-03/04).
-4. `raw_events` -> feature extraction -> `S1-S7` score -> Gemini -> `Diagnosis` + `Recommendation` хадгална (WF-05–07).
-5. Dashboard API-уудаар `overview/scores/history/recommendation` татаж, recommendation үзсэн/хэрэгжүүлсэн status-ууд update хийнэ (WF-08–09).
+## Үндсэн үүрэг
 
-## Урьдчилсан шаардлага
-- Python (ж: 3.12)
-- PostgreSQL (observer DB read хийхэд тусдаа холболт хэрэгтэй байж болно)
-- Redis (заавал биш, гэхдээ queue mode болон хурдан processing-д хэрэгтэй)
+1. Demo tenant болон API key үүсгэнэ.
+2. Observer database болон Kafka-аас ирсэн event/session мэдээллийг уншина.
+3. Feature болон ML service-ээс ирсэн prediction result-ийг `PredictionResult` model-д хадгална.
+4. S1-S7 оношлогоо болон recommendation үүсгэнэ.
+5. Dashboard frontend-д `/api/` prefix-тэй endpoint-уудаар өгөгдөл өгнө.
 
-## 1) Хамаарах package суулгах
+## Шаардлага
+
+- Python 3.12 орчим хувилбар
+- PostgreSQL
+- Redis, Celery
+- Kafka
+- Сонголтоор MinIO/S3 export
+
+## Environment
+
+`main_service/settings.py` дараах env утгуудыг уншина.
+
+| Variable | Тайлбар |
+|---|---|
+| `DJANGO_SECRET_KEY` | Django secret key |
+| `DJANGO_DEBUG` | Local үед `true`, deployment үед `false` |
+| `DJANGO_ALLOWED_HOSTS` | Comma-separated host list |
+| `DATABASE_URL` | Main service database URL |
+| `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_PORT` | `DATABASE_URL` өгөөгүй үед ашиглах DB config |
+| `OBSERVER_DB_HOST`, `OBSERVER_DB_NAME`, `OBSERVER_DB_USER`, `OBSERVER_DB_PASSWORD`, `OBSERVER_DB_PORT` | Observer DB-г read-only байдлаар унших config |
+| `REDIS_URL` | Redis base URL |
+| `CELERY_BROKER_URL` | Celery broker |
+| `CELERY_RESULT_BACKEND` | Celery result backend |
+| `KAFKA_BOOTSTRAP_SERVERS` | Kafka broker list |
+| `KAFKA_PREDICTION_DONE_TOPIC` | Default: `prediction_done` |
+| `KAFKA_CONSUMER_GROUP` | Default: `main-service-predictions` |
+| `DUCKDB_PATH` | Local analytics export path |
+| `GEMINI_API_KEY` | Байхгүй үед rule-based fallback recommendation ашиглана |
+
+## Local ажиллуулах
+
 ```powershell
-cd "C:\Users\dell\OneDrive\Desktop\main_service"
+cd main_service
 python -m pip install -r requirements.txt
-```
-
-## 2) Environment хувьсагч (заавал/сонголт)
-`main_service/settings.py` нь дараахыг ашигладаг:
-
-- `DJANGO_SECRET_KEY` (заавал биш, default байна)
-- `DJANGO_DEBUG` (заавал биш; default `true`)
-- `DJANGO_ALLOWED_HOSTS` (заавал биш; comma-аар хязгаарлалт)
-
-### PostgreSQL (Main Service DB)
-`DATABASE_URL` эсвэл `DB_*` env ашиглана.
-
-- `DATABASE_URL` (ж: `postgres://user:pass@host:5432/main_service`)
-- Эсвэл доорх `DB_*` (unset үед SQLite fallback):
-  - `DB_HOST`
-  - `DB_NAME`
-  - `DB_USER`
-  - `DB_PASSWORD`
-  - `DB_PORT` (default `5432`)
-
-### Observer DB alias (READ-ONLY гэж үзэх)
-Observer DB read хийхэд:
-- `OBSERVER_DB_HOST`
-- `OBSERVER_DB_NAME`
-- `OBSERVER_DB_USER`
-- `OBSERVER_DB_PASSWORD`
-- `OBSERVER_DB_PORT` (default `5432`)
-
-### Redis / Celery
-- `REDIS_URL` (default `redis://localhost:6379`)
-- `CELERY_BROKER_URL` (default `${REDIS_URL}/0`)
-- `CELERY_RESULT_BACKEND` (default `${REDIS_URL}/1`)
-
-### Kafka (prediction_done bridge)
-- `KAFKA_BOOTSTRAP_SERVERS` (comma-separated, ж: `localhost:9092`)
-- `KAFKA_PREDICTION_DONE_TOPIC` (default `prediction_done`)
-- `KAFKA_CONSUMER_GROUP` (default `main-service-predictions`)
-- `KAFKA_TASK_TIMEOUT_SECONDS` (optional; wait time before giving up on Celery task)
-
-### DuckDB
-- `DUCKDB_PATH` (default `<BASE_DIR>/analytics.duckdb`)
-
-### MinIO / S3 export
-- `MINIO_ENDPOINT` (ж: `localhost:9000` эсвэл `s3.amazonaws.com`)
-- `MINIO_BUCKET`
-- `MINIO_ACCESS_KEY`
-- `MINIO_SECRET_KEY`
-- `MINIO_USE_SSL` (`true`/`false`, default `false`)
-
-### Gemini
-- `GEMINI_API_KEY` (заавал биш)
-Кey байхгүй үед Mongolian fallback зөвлөмж автоматаар ашиглагдана.
-
-## 3) Migration хийх
-```powershell
-cd "C:\Users\dell\OneDrive\Desktop\main_service"
-python manage.py makemigrations
 python manage.py migrate
-```
-
-## 4) Superuser үүсгэх
-```powershell
-python manage.py createsuperuser
-```
-
-## 5) Run хийх
-### Web server
-```powershell
 python manage.py runserver
 ```
 
-### Celery worker
+Celery worker:
+
 ```powershell
 celery -A main_service.celery:app worker -l info
 ```
 
-### Celery beat (scheduler)
-`WF-04` polling болон `WF-03` queue consume-ийн loop-г ажиллуулахын тулд:
-```powershell
-celery -A main_service.celery:app beat -l info
-```
+Prediction consumer:
 
-### Kafka consumer (prediction_done -> Celery)
 ```powershell
 python manage.py consume_prediction_done
 ```
 
-## Dashboard REST API (хамгийн хэрэгтэй endpoint-ууд)
-Бүгд `/api/` prefix-тэй.
+Superuser хэрэгтэй бол:
 
-### Auth (SimpleJWT)
-- `POST /api/auth/login/`
-- `POST /api/auth/refresh/`
-- `POST /api/auth/logout/`
+```powershell
+python manage.py createsuperuser
+```
 
-SimpleJWT стандарт serializer тул **login** дээр `username` болон `password` ашиглаарай.
+## Гол endpoint-ууд
 
-### Tenant (WF-01)
-- `POST /api/admin/tenants/`
-  - body: `{ "name": "...", "domain": "...", "tier": "basic|smart|full" }`
-- `POST /api/tenant/apikey/generate/`
-  - body: `{ "tier": "basic|smart|full", "suffix_len": 12 }` (suffix_len optional)
-  - response-д `raw_key` + `observer_install_snippet` агуулагдана.
+Бүх endpoint `/api/` prefix-тэй.
 
-### Team (WF-10)
-- `GET /api/team/` (tenant scoped)
-- `POST /api/team/invite/`
-  - body: `{ "tenant_id": 1, "email": "a@b.com", "role": "member|developer" }`
+| Endpoint | Тайлбар |
+|---|---|
+| `POST /api/auth/login/` | Dashboard login |
+| `POST /api/auth/refresh/` | JWT refresh |
+| `POST /api/auth/logout/` | Logout |
+| `POST /api/admin/tenants/` | Tenant үүсгэх |
+| `POST /api/tenant/apikey/generate/` | Observer API key үүсгэх |
+| `GET /api/team/` | Tenant-ийн team member жагсаалт |
+| `POST /api/team/invite/` | Team member нэмэх |
+| `GET /api/analytics/overview/` | Dashboard KPI |
+| `GET /api/analytics/scores/` | S1-S7 score |
+| `GET /api/analytics/history/` | Trend |
+| `GET /api/analytics/recommendation/` | Recommendation жагсаалт |
+| `PATCH /api/analytics/recommendation/{id}/implement/` | Recommendation status update |
+| `GET /api/sessions/` | Session жагсаалт |
+| `GET /api/sessions/{id}/` | Нэг session-ийн detail |
+| `GET /api/health/` | Service health |
 
-### Analytics (WF-08/09)
-- `GET /api/analytics/overview/`
-- `GET /api/analytics/scores/`
-- `GET /api/analytics/history/`
-- `GET /api/analytics/recommendation/`
-- `GET /api/analytics/abandonment-rate/`
-- `GET /api/analytics/feature-importance/`
-  - `Recommendation.status` нь `created -> viewed` болж автоматаар шилжинэ.
-- `PATCH /api/analytics/recommendation/{id}/implement/`
-  - owner/member зөвшөөрөгдөнө
-  - developer хориглогдоно
+## Observer ingest contract
 
-### Sessions + health
-- `GET /api/sessions/` (paginated)
-- `GET /api/sessions/{id}/` (session + SHAP)
-- `GET /api/health/`
+Main service доторх Observer-compatible ingest endpoint нь MVP туршилтад ашиглагдана.
 
-## Observer ingest contract (`/track`)
-Main Service дотор Observer-ийн contract-г MVP маягаар симуляц хийнэ.
+```http
+POST /track
+X-API-Key: <raw_key>
+Content-Type: application/json
+```
 
-- URL: `POST /track` (эсвэл `POST /track/`)
-- Header: `X-API-Key: <raw_key>`
-- Body хамгийн багадаа:
 ```json
 {
   "session_id": "uuid-or-string",
   "visitor_id": "uuid-or-string",
-  "event_type": "page_view|session_end|...",
-  "payload": { "..." : "..." }
+  "event_type": "page_view",
+  "payload": {}
 }
 ```
 
-`event_type == "session_end"` үед `ca:diagnosis:queue` рүү enqueue хийнэ.
+`session_end` event ирэх үед diagnosis queue руу нэмэгдэнэ.
 
-## raw_events schema (Observer DB талд)
-Processing хийх үед `raw_events` хүснэгтээс дараах талбаруудыг уншина:
-- `tenant_id`
-- `session_id`
-- `visitor_id`
-- `event_type`
-- `payload` (JSON string гэж таамаглана)
-- `created_at`
+## Тест
 
-## Admin (Django Admin)
-Дараах model-ууд admin дээр гарч байгаа:
-- `tenants`: `Tenant`, `APIKey`, `TeamMember`
-- `analytics`: `Diagnosis`, `Recommendation`, `ProcessedSession`
-- `auth`: built-in `User`
-
-Admin дээр `key_hash` нь sensitive тул товч masked preview хэлбэрээр харуулагдана.
-
-## Тест ажиллуулах
 ```powershell
 python manage.py test
 ```
 
+Тест ажиллуулахын өмнө env болон test database тохиргоо зөв эсэхийг шалгана.

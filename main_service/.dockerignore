@@ -1,0 +1,13 @@
+.claude
+.pytest_cache
+.vscode
+__pycache__
+*.pyc
+*.pyo
+*.sqlite3
+*.duckdb
+.env
+.env.*
+.git
+htmlcov
+coverage

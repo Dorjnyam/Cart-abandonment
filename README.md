@@ -1,38 +1,37 @@
 # Сагс орхилтын шалтгаан шинжилгээний систем
 
-Энэ repository нь “Consumer behavior in e-commerce: analyzing the reasons for cart abandonment” дипломын ажлын thesis MVP хэрэгжүүлэлт юм. Систем нь demo ecommerce үйлдлийн өгөгдлийг Observer-оор цуглуулж, Session, Feature, ML, Main service-ээр боловсруулан Analytics Dashboard дээр prediction, S1-S7 diagnosis, recommendation хэлбэрээр харуулна.
+Энэ repository нь “Consumer behavior in e-commerce: analyzing the reasons for cart abandonment” дипломын ажлын практик хэсэг юм. Системийн зорилго нь demo e-commerce дэлгүүрийн хэрэглэгчийн үйлдлийг цуглуулж, session болгон нэгтгэж, сагс орхих магадлал болон S1-S7 шалтгааны оношлогоог dashboard дээр харуулах.
 
-## Архитектурын урсгал
+## Системийн урсгал
 
 ```text
 Demo ecommerce
-→ Observer
-→ PostgreSQL raw_events
-→ Kafka raw_events
-→ Session
-→ Kafka session_enriched
-→ Feature
-→ Kafka feature_ready
-→ ML (XGBoost)
-→ Kafka prediction_done
-→ Main
-→ Dashboard API
-→ Analytics dashboard UI
+-> Observer
+-> PostgreSQL raw_events
+-> Kafka raw_events
+-> Session
+-> Kafka session_enriched
+-> Feature
+-> Kafka feature_ready
+-> ML (XGBoost)
+-> Kafka prediction_done
+-> Main API
+-> Analytics dashboard
 ```
 
-## Services and ports
+## Гол service-үүд
 
-| Service | Port |
-|---|---:|
-| Demo ecommerce | 3000 |
-| Analytics dashboard | 3001 |
-| Main API | 8000 |
-| Observer | 8001 |
-| Session | 8002 |
-| Feature | 8003 |
-| ML | 8004 |
+| Service | Port | Үүрэг |
+|---|---:|---|
+| Demo ecommerce | 3000 | Туршилтын sneaker store |
+| Analytics dashboard | 3001 | Session, prediction, diagnosis, recommendation харах UI |
+| Main API | 8000 | Dashboard API, tenant, diagnosis, recommendation |
+| Observer | 8001 | Browser event цуглуулах |
+| Session | 8002 | Raw event-үүдийг session болгон нэгтгэх |
+| Feature | 8003 | ML-д орох feature vector бэлдэх |
+| ML | 8004 | XGBoost prediction гаргах |
 
-## Quick start
+## Ажиллуулах
 
 ```bash
 docker compose config --quiet
@@ -40,21 +39,21 @@ docker compose up --build -d
 docker compose ps
 ```
 
-Stop and clean local volumes:
+Зогсоох, local volume цэвэрлэх:
 
 ```bash
 docker compose down -v
 ```
 
-Default demo login:
+Demo оролт:
 
 - Dashboard: `http://localhost:3001`
 - Demo shop: `http://localhost:3000`
-- User: `demo@example.com`
+- Email: `demo@example.com`
 - Password: `change-me-demo-password`
-- Demo observer key: `tk_full_demo_mvp`
+- Observer key: `tk_full_demo_mvp`
 
-## Health checks
+## Health check
 
 - Main: `http://localhost:8000/api/health/`
 - Observer: `http://localhost:8001/health`
@@ -62,44 +61,45 @@ Default demo login:
 - Feature: `http://localhost:8003/health`
 - ML: `http://localhost:8004/health`
 
-## Баталгаажсан E2E use cases
+## E2E шалгалт
+
+Гурван үндсэн хэрэглээний кейсийг доорх script-ээр шалгана.
 
 ```bash
 python scripts/audit/e2e_three_use_cases.py
 ```
 
-| Use case | Expected result |
+| Use case | Хүлээгдэж буй үр дүн |
 |---|---|
 | UC1 technical/mobile abandonment | `ABANDONED`, `S2 Technical friction` |
 | UC2 converted purchase | `CONVERTED`, diagnosis/recommendation үүсэхгүй |
 | UC3 price-sensitive abandonment | `ABANDONED`, `S5 Price sensitivity` |
 
-## ML claim safety
+## ML үр дүнг тайлбарлах нь
 
-Active inference model нь XGBoost-only. F1 = 0.8279 нь 1200 synthetic/simulated session dataset дээрх MVP test split-ийн үр дүн бөгөөд бодит хэрэглэгчийн production performance-ийн баталгаа биш.
+Одоогийн inference path нь XGBoost загвар ашиглаж байгаа. F1 = 0.8279 нь 1200 synthetic/simulated session бүхий MVP test split дээр гарсан үр дүн. Үүнийг бодит production хэрэглэгчдийн баталгаатай performance гэж тайлбарлахгүй.
 
-LSTM нь active inference биш, future work.
+LSTM код нь дараагийн судалгааны чиглэлд үлдсэн бөгөөд одоогийн prediction pipeline-д идэвхтэй ашиглагдахгүй.
 
-## Documentation
+## Баримт бичиг
 
-Docusaurus баримт бичиг:
+Үндсэн contract болон хамгаалалтын материал:
+
+- `docs/contracts/`
+- `docs/defense_evidence/`
+- `docs/final_audit/`
+
+Docusaurus documentation build:
 
 ```bash
 cd cart-analytics-docusaurus/cart-analytics-docs
 npm run build
 ```
 
-Contract docs: `docs/contracts/`
+## Түгээмэл асуудал
 
-Baseline/evidence:
-
-- `docs/cleanup_baseline/`
-- `docs/defense_evidence/`
-
-## Troubleshooting
-
-- Docker engine асуудал: Docker Desktop/Engine ажиллаж байгаа эсэхийг шалга.
-- Kafka topic асуудал: `docker compose logs kafka kafka-init`.
-- Main consumer readiness: Main health дээр `prediction_done_consumer=ok`.
-- Dashboard empty state: Main API real data, auth token, `NEXT_PUBLIC_MOCK_FALLBACK` тохиргоог шалга.
-- Gemini unavailable: deterministic fallback recommendation expected behavior.
+- Docker асахгүй бол Docker Desktop/Engine ажиллаж байгаа эсэхийг шалгана.
+- Kafka topic үүсээгүй бол `docker compose logs kafka kafka-init` гэж шалгана.
+- Main service prediction consumer бэлэн эсэхийг `/api/health/` дээрээс харна.
+- Dashboard хоосон байвал Main API, login token, `NEXT_PUBLIC_MOCK_FALLBACK` тохиргоог шалгана.
+- Gemini key байхгүй үед систем deterministic fallback recommendation ашиглана.

@@ -23,7 +23,7 @@ To elevate the "tech" aesthetic, use Glassmorphism for floating elements (like p
 *   **Signature Glow:** For hover states on interactive cards, use a subtle `primary` (#d4fe42) outer glow (`box-shadow: 0 0 20px rgba(212, 254, 66, 0.15)`).
 
 ## 3. Typography: Technical Precision
-We utilize a high-contrast pairing to distinguish between "Brand Voice" and "Metadata."
+Use a high-contrast pairing to distinguish between "Brand Voice" and "Metadata."
 
 *   **Brand Voice (Headings):** `Space Grotesk` (Bold). Use the `display-lg` scale for hero titles and `headline-md` for product names. This typeface brings a technical, geometric edge.
 *   **Metadata (Technical Details):** `Inter` (or `DM Mono` for prices/SKUs). Use `label-md` for technical specs, sizing, and pricing. 

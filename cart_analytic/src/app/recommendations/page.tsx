@@ -11,6 +11,8 @@ import {
   XCircle,
 } from "lucide-react";
 import EditorialShell from "@/components/editorial/EditorialShell";
+import { useLanguage } from "@/components/editorial/LanguageContext";
+import { Badge, Card } from "@/components/ui/Card";
 import {
   fetchDashboardRecommendations,
   updateDashboardRecommendationStatus,
@@ -19,55 +21,48 @@ import {
   type RecommendationsResponse,
 } from "@/lib/services/dashboard-mvp";
 import { priorityLabel, sourceLabel } from "@/lib/mn-labels";
+import { cn } from "@/lib/utils";
 
 type RecommendationItem = NonNullable<RecommendationContract>;
 
 const STATUS_COLUMNS: Array<{
   key: RecommendationStatus;
-  label: string;
   Icon: typeof Lightbulb;
   accent: string;
 }> = [
-  { key: "new", label: "Шинэ", Icon: Lightbulb, accent: "#9C6B14" },
-  { key: "in_progress", label: "Хийгдэж байна", Icon: Clock3, accent: "#3E6E8E" },
-  { key: "done", label: "Дууссан", Icon: CheckCircle2, accent: "#1F4D3E" },
-  { key: "dismissed", label: "Хассан", Icon: XCircle, accent: "#A8A29E" },
+  { key: "new", Icon: Lightbulb, accent: "bg-warning" },
+  { key: "in_progress", Icon: Clock3, accent: "bg-secondary" },
+  { key: "done", Icon: CheckCircle2, accent: "bg-primary" },
+  { key: "dismissed", Icon: XCircle, accent: "bg-muted" },
 ];
 
-function priorityTone(priority: string) {
-  if (priority === "high") return { bg: "rgb(160 53 33 / 0.08)", fg: "#7E2A1A", dot: "#A03521" };
-  if (priority === "medium") return { bg: "rgb(156 107 20 / 0.10)", fg: "#7C5410", dot: "#9C6B14" };
-  return { bg: "rgb(31 77 62 / 0.08)", fg: "#1F4D3E", dot: "#1F4D3E" };
+function priorityVariant(priority: string): "error" | "warning" | "success" {
+  if (priority === "high") return "error";
+  if (priority === "medium") return "warning";
+  return "success";
 }
 
-function MetricCell({
+function MetricTile({
   label,
   value,
   accent,
-  hint,
 }: {
   label: string;
   value: number | string;
   accent?: boolean;
-  hint?: string;
 }) {
   return (
-    <div className="tile rounded-md px-4 py-3">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant/70">{label}</p>
+    <Card>
+      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted">{label}</p>
       <p
-        className={`mt-1.5 tabular-nums ${accent ? "text-error" : "text-on-surface"}`}
-        style={{
-          fontFamily: "var(--font-display)",
-          fontVariationSettings: '"opsz" 144, "SOFT" 30',
-          fontSize: 22,
-          fontWeight: 400,
-          letterSpacing: "-0.02em",
-        }}
+        className={cn(
+          "mt-2 font-display font-extrabold tabular-nums text-2xl leading-none",
+          accent ? "text-error" : "text-text",
+        )}
       >
         {value}
       </p>
-      {hint ? <p className="mt-0.5 text-[10.5px] text-on-surface-variant/70">{hint}</p> : null}
-    </div>
+    </Card>
   );
 }
 
@@ -76,6 +71,23 @@ export default function RecommendationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
+  const { t, lang } = useLanguage();
+
+  const COLUMNS = useMemo(
+    () =>
+      STATUS_COLUMNS.map((col) => ({
+        ...col,
+        label:
+          col.key === "new"
+            ? t.recommendations.new
+            : col.key === "in_progress"
+              ? t.recommendations.inProgress
+              : col.key === "done"
+                ? t.recommendations.done
+                : t.recommendations.dismissed,
+      })),
+    [t],
+  );
 
   async function load() {
     setLoading(true);
@@ -83,7 +95,13 @@ export default function RecommendationsPage() {
     try {
       setData(await fetchDashboardRecommendations());
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Зөвлөмжийн API хүсэлт амжилтгүй боллоо.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : lang === "EN"
+            ? "Recommendations request failed."
+            : "Зөвлөмжийн API хүсэлт амжилтгүй боллоо.",
+      );
       setData(null);
     } finally {
       setLoading(false);
@@ -92,6 +110,7 @@ export default function RecommendationsPage() {
 
   useEffect(() => {
     void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const grouped = useMemo(() => {
@@ -128,62 +147,57 @@ export default function RecommendationsPage() {
     }
   }
 
+  const labels = {
+    expectedImpact: lang === "EN" ? "Expected impact" : "Хүлээгдэж буй нөлөө",
+    evidence: lang === "EN" ? "Evidence" : "Нотолгоо",
+    steps: lang === "EN" ? "Steps" : "Хэрэгжүүлэх алхмууд",
+    start: lang === "EN" ? "Start" : "Эхлүүлэх",
+    markDone: lang === "EN" ? "Mark done" : "Дууссан болгох",
+    dismiss: lang === "EN" ? "Dismiss" : "Хасах",
+    empty: lang === "EN" ? "Empty" : "Хоосон",
+    noTitle: lang === "EN" ? "No recommendations yet" : "Зөвлөмж одоогоор алга",
+    noBody:
+      lang === "EN"
+        ? "Once Main service generates diagnoses, recommendations will appear here automatically."
+        : "Main сервис оношлогоо үүсгэмэгц зөвлөмж энд автоматаар гарч ирнэ.",
+  };
+
   function renderCard(item: RecommendationItem) {
-    const tone = priorityTone(item.priority);
     return (
-      <article
+      <Card
         key={item.id}
-        className="tile rounded-md card-lift flex flex-col gap-3 px-4 py-3.5"
+        className="flex flex-col hover:border-primary/40"
       >
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span
-            className="rounded-[3px] px-1.5 py-0.5 font-mono text-[10.5px] font-semibold tracking-[0.04em]"
-            style={{ background: "rgb(31 77 62 / 0.08)", color: "#1F4D3E" }}
-          >
-            {item.reason_code}
-          </span>
-          <span
-            className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-0.5 text-[10.5px] font-medium uppercase tracking-[0.14em]"
-            style={{ background: tone.bg, color: tone.fg }}
-          >
-            <span aria-hidden className="size-1 rounded-full" style={{ background: tone.dot }} />
-            {priorityLabel(item.priority)}
-          </span>
-          <span className="ml-auto text-[10px] font-mono text-on-surface-variant/70">
+        <div className="flex flex-wrap items-center gap-1.5 mb-3">
+          <Badge variant="primary">{item.reason_code}</Badge>
+          <Badge variant={priorityVariant(item.priority)}>{priorityLabel(item.priority)}</Badge>
+          <span className="ml-auto text-[10px] font-mono text-muted">
             {sourceLabel(item.source)}
           </span>
         </div>
 
-        <h3
-          className="text-[15px] leading-[1.25] text-on-surface"
-          style={{
-            fontFamily: "var(--font-display)",
-            fontVariationSettings: '"opsz" 96, "SOFT" 30',
-            fontWeight: 400,
-            letterSpacing: "-0.018em",
-          }}
-        >
+        <h3 className="font-display font-extrabold text-base leading-snug text-text">
           {item.title}
         </h3>
-        <p className="text-[12px] leading-[1.55] text-on-surface-variant">{item.summary}</p>
+        <p className="mt-2 text-xs leading-relaxed text-muted">{item.summary}</p>
 
-        <div className="space-y-2.5">
+        <div className="mt-4 space-y-3">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant/70">
-              Хүлээгдэж буй нөлөө
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted">
+              {labels.expectedImpact}
             </p>
-            <p className="mt-1 text-[11.5px] leading-[1.5] text-on-surface">{item.expected_impact}</p>
+            <p className="mt-1 text-xs leading-relaxed text-text">{item.expected_impact}</p>
           </div>
 
           {item.evidence.length ? (
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant/70">
-                Нотолгоо
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted">
+                {labels.evidence}
               </p>
-              <ul className="mt-1 space-y-1 text-[11.5px] leading-[1.5] text-on-surface-variant">
+              <ul className="mt-1 space-y-1 text-xs leading-relaxed text-muted">
                 {item.evidence.map((evidence) => (
                   <li key={evidence} className="flex gap-2">
-                    <span aria-hidden className="mt-1.5 size-1 shrink-0 rounded-full bg-on-surface-variant/40" />
+                    <span className="mt-1.5 size-1 shrink-0 rounded-full bg-muted/60" />
                     <span>{evidence}</span>
                   </li>
                 ))}
@@ -193,19 +207,16 @@ export default function RecommendationsPage() {
 
           {item.action_steps.length ? (
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant/70">
-                Хэрэгжүүлэх алхмууд
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted">
+                {labels.steps}
               </p>
-              <ol className="mt-1 space-y-1.5 text-[11.5px] leading-[1.5] text-on-surface">
+              <ol className="mt-1 space-y-1.5 text-xs leading-relaxed text-text">
                 {item.action_steps.map((step, i) => (
                   <li key={step} className="flex gap-2">
-                    <span
-                      className="flex size-4 shrink-0 items-center justify-center rounded-full font-mono text-[9px] font-semibold"
-                      style={{ background: "rgb(28 25 23 / 0.06)", color: "rgb(28 25 23)" }}
-                    >
+                    <span className="flex size-5 shrink-0 items-center justify-center rounded-full font-mono text-[10px] font-bold bg-primary/10 text-primary">
                       {i + 1}
                     </span>
-                    <span className="text-on-surface-variant">{step}</span>
+                    <span className="text-muted pt-0.5">{step}</span>
                   </li>
                 ))}
               </ol>
@@ -213,127 +224,104 @@ export default function RecommendationsPage() {
           ) : null}
         </div>
 
-        <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-2 hairline-t">
-          {item.status !== "in_progress" ? (
-            <button
-              type="button"
-              disabled={busyId === item.id}
-              onClick={() => void setStatus(item, "in_progress")}
-              className="inline-flex items-center gap-1 rounded-md hairline bg-surface-container-lowest px-2 py-1 text-[10.5px] font-medium text-on-surface hover:bg-surface-container-low transition-colors disabled:opacity-50"
-            >
-              <Clock3 className="size-3" aria-hidden />
-              Эхлүүлэх
-            </button>
-          ) : null}
-          {item.status !== "done" ? (
-            <button
-              type="button"
-              disabled={busyId === item.id}
-              onClick={() => void setStatus(item, "done")}
-              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10.5px] font-semibold text-white hover:opacity-95 transition-opacity disabled:opacity-50"
-              style={{ background: "#1F4D3E" }}
-            >
-              <Check className="size-3" aria-hidden />
-              Дууссан болгох
-            </button>
-          ) : null}
-          {item.status !== "dismissed" ? (
-            <button
-              type="button"
-              disabled={busyId === item.id}
-              onClick={() => void setStatus(item, "dismissed")}
-              className="ml-auto inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10.5px] font-medium text-on-surface-variant hover:text-on-surface hover:bg-[rgb(28_25_23/0.04)] transition-colors disabled:opacity-50"
-            >
-              Хасах
-            </button>
-          ) : null}
+        <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-4 border-t border-surface-muted -mx-6 px-6 mt-4">
+          <div className="pt-4 flex flex-wrap items-center gap-1.5 w-full">
+            {item.status !== "in_progress" ? (
+              <button
+                type="button"
+                disabled={busyId === item.id}
+                onClick={() => void setStatus(item, "in_progress")}
+                className="inline-flex items-center gap-1 rounded-lg bg-surface-muted px-2.5 py-1 text-[11px] font-bold text-text hover:bg-surface-muted/70 transition-colors disabled:opacity-50"
+              >
+                <Clock3 className="size-3" />
+                {labels.start}
+              </button>
+            ) : null}
+            {item.status !== "done" ? (
+              <button
+                type="button"
+                disabled={busyId === item.id}
+                onClick={() => void setStatus(item, "done")}
+                className="inline-flex items-center gap-1 rounded-lg bg-primary px-2.5 py-1 text-[11px] font-bold text-white hover:bg-primary/90 transition-colors disabled:opacity-50"
+              >
+                <Check className="size-3" />
+                {labels.markDone}
+              </button>
+            ) : null}
+            {item.status !== "dismissed" ? (
+              <button
+                type="button"
+                disabled={busyId === item.id}
+                onClick={() => void setStatus(item, "dismissed")}
+                className="ml-auto inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-bold text-muted hover:text-text hover:bg-surface-muted transition-colors disabled:opacity-50"
+              >
+                {labels.dismiss}
+              </button>
+            ) : null}
+          </div>
         </div>
-      </article>
+      </Card>
     );
   }
 
   return (
-    <EditorialShell activeNav="recommendations" title="Дараа нь юу засах вэ" subtitle="Gemini / нөөц дүрмийн ажлын самбар">
-      <div className="mx-auto max-w-[1400px] px-6 py-8 sm:px-8 lg:px-10">
-        <header className="page-enter">
-          <p className="text-[10.5px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant/70">
-            Зөвлөмжүүд · хийх ажлын дараалал
-          </p>
-          <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <h1
-                className="text-[36px] leading-[1.05] text-on-surface"
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontVariationSettings: '"opsz" 144, "SOFT" 30',
-                  fontWeight: 400,
-                  letterSpacing: "-0.024em",
-                }}
-              >
-                Дараа нь юу засах вэ
-              </h1>
-              <p className="mt-1.5 max-w-[68ch] text-[12.5px] text-on-surface-variant">
-                Gemini болон нөөц дүрмүүд давамгай шалтгааныг бодит хэрэгжүүлэх ажлууд болгон хувиргана.
-                Багийн гүйцэтгэлийг хянахын тулд картуудыг багануудын хооронд шилжүүлнэ. Төлөвийн өөрчлөлт Main сервист хадгалагдана.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => void load()}
-              className="inline-flex items-center gap-1.5 rounded-md hairline bg-surface-container-lowest px-3 py-1.5 text-[12px] font-medium text-on-surface hover:bg-surface-container-low transition-colors"
-            >
-              <RefreshCw className={`size-3.5 ${loading ? "animate-spin" : ""}`} aria-hidden />
-              Шинэчлэх
-            </button>
-          </div>
-        </header>
-
-        <div className="editorial-rule mt-6" />
-
-        {/* Stats хэсэг */}
-        <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5 stagger-children">
-          <MetricCell label="Нийт" value={data?.stats?.total ?? 0} hint="Идэвхтэй зүйлс" />
-          <MetricCell label="Шинэ" value={data?.stats?.new ?? 0} hint="Хянах шаардлагатай" />
-          <MetricCell label="Хийгдэж байна" value={data?.stats?.in_progress ?? 0} hint="Баг хэрэгжүүлж байна" />
-          <MetricCell label="Дууссан" value={data?.stats?.done ?? 0} hint="Дууссанаар тэмдэглэсэн" />
-          <MetricCell label="Хассан" value={data?.stats?.dismissed ?? 0} hint="Тусад нь тавьсан" />
+    <EditorialShell
+      activeNav="recommendations"
+      title={t.recommendations.title}
+      subtitle={t.recommendations.subtitle}
+      right={
+        <button
+          type="button"
+          onClick={() => void load()}
+          className="inline-flex items-center gap-1.5 rounded-xl bg-surface-muted px-3 py-1.5 text-xs font-bold text-text hover:bg-surface-muted/70"
+        >
+          <RefreshCw className={cn("size-3.5", loading && "animate-spin")} />
+          {t.common.refresh}
+        </button>
+      }
+    >
+      <div className="space-y-6">
+        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5 stagger-children">
+          <MetricTile label={t.common.total} value={data?.stats?.total ?? 0} />
+          <MetricTile label={t.recommendations.new} value={data?.stats?.new ?? 0} accent />
+          <MetricTile label={t.recommendations.inProgress} value={data?.stats?.in_progress ?? 0} />
+          <MetricTile label={t.recommendations.done} value={data?.stats?.done ?? 0} />
+          <MetricTile label={t.recommendations.dismissed} value={data?.stats?.dismissed ?? 0} />
         </section>
 
         {error ? (
-          <div className="mt-4 rounded-md border border-error/25 bg-error/[0.05] px-4 py-3 text-[12.5px] text-error">
+          <div className="rounded-xl bg-error/10 border border-error/30 px-4 py-3 text-sm text-error">
             {error}
           </div>
         ) : null}
 
-        {/* Board хэсэг */}
         {loading ? (
-          <div className="mt-6 grid gap-4 lg:grid-cols-4">
+          <div className="grid gap-4 lg:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="skeleton h-80 rounded-md" />
+              <div key={i} className="h-80 rounded-xl bg-surface-muted animate-pulse" />
             ))}
           </div>
         ) : data?.results.length ? (
-          <div className="mt-6 grid gap-4 xl:grid-cols-4">
-            {STATUS_COLUMNS.map(({ key, label, Icon, accent }) => (
-              <section key={key} className="rounded-md hairline bg-surface-container-low/30 p-3 flex flex-col">
-                <header className="flex items-center justify-between gap-3 px-1 pb-2.5 mb-2 hairline-b">
-                  <h2 className="inline-flex items-center gap-2 text-[12.5px] font-medium text-on-surface">
-                    <span aria-hidden className="size-1.5 rounded-full" style={{ background: accent }} />
-                    <Icon className="size-3.5 text-on-surface-variant/60" aria-hidden />
+          <div className="grid gap-4 xl:grid-cols-4">
+            {COLUMNS.map(({ key, label, Icon, accent }) => (
+              <section
+                key={key}
+                className="rounded-xl bg-surface-muted/40 border border-surface-muted p-3 flex flex-col"
+              >
+                <header className="flex items-center justify-between gap-3 px-2 pb-3 mb-3 border-b border-surface-muted">
+                  <h2 className="inline-flex items-center gap-2 text-sm font-bold text-text">
+                    <span className={cn("size-2 rounded-full", accent)} />
+                    <Icon className="size-4 text-muted" />
                     {label}
                   </h2>
-                  <span
-                    className="rounded-md hairline bg-surface-container-lowest px-1.5 py-0.5 font-mono text-[10.5px] tabular-nums text-on-surface"
-                  >
-                    {grouped[key].length}
-                  </span>
+                  <Badge>{grouped[key].length}</Badge>
                 </header>
                 <div className="space-y-3 flex-1">
                   {grouped[key].length ? (
                     grouped[key].map(renderCard)
                   ) : (
-                    <div className="rounded-md hairline bg-surface-container-lowest/50 px-3 py-8 text-center">
-                      <p className="text-[11.5px] text-on-surface-variant/70">Хоосон</p>
+                    <div className="rounded-xl bg-surface border border-dashed border-surface-muted px-3 py-8 text-center">
+                      <p className="text-xs text-muted">{labels.empty}</p>
                     </div>
                   )}
                 </div>
@@ -341,24 +329,15 @@ export default function RecommendationsPage() {
             ))}
           </div>
         ) : (
-          <div className="mt-6 tile rounded-md px-6 py-16 text-center">
-            <Sparkles className="mx-auto size-6 text-on-surface-variant/60" aria-hidden />
-            <p
-              className="mt-3 text-[20px] text-on-surface"
-              style={{
-                fontFamily: "var(--font-display)",
-                fontVariationSettings: '"opsz" 96',
-                fontWeight: 400,
-                letterSpacing: "-0.02em",
-              }}
-            >
-              Зөвлөмж одоогоор алга
+          <Card className="px-6 py-16 text-center">
+            <Sparkles className="mx-auto size-7 text-muted" />
+            <p className="mt-4 font-display font-extrabold text-xl text-text">
+              {labels.noTitle}
             </p>
-            <p className="mx-auto mt-2 max-w-[42ch] text-[12.5px] text-on-surface-variant">
-              Main сервис оношлогоо үүсгэхийн тулд demo орхилтын урсгал ажиллуулна уу.
-              Давамгай шалтгаан тогтоогдмогц зөвлөмж автоматаар үүснэ.
+            <p className="mx-auto mt-2 max-w-[42ch] text-sm text-muted leading-relaxed">
+              {labels.noBody}
             </p>
-          </div>
+          </Card>
         )}
       </div>
     </EditorialShell>

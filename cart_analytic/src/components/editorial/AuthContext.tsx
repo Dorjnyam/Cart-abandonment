@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/api-config";
 
 export type UserRole = "admin" | "owner" | "member" | "developer";
@@ -46,7 +46,15 @@ function readStored(): StoredSession {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSessionState] = useState<StoredSession>(readStored);
+  const [session, setSessionState] = useState<StoredSession>({});
+
+  useEffect(() => {
+    // Keep server-rendered HTML and the first client render identical; then hydrate auth.
+    const timer = window.setTimeout(() => {
+      setSessionState(readStored());
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const persistSession = useCallback((next: StoredSession) => {
     setSessionState(next);

@@ -25,12 +25,13 @@ Consumers нь `prediction_done`-оос `prediction_done_v2` руу шилжих
 
 | Port | Үйлчилгээ | Тайлбар |
 |------|----------|---------|
-| 8000 | [Main Service (Django)](./06-main-service) | Dashboard API + Auth |
-| 8001 | [Observer Service (FastAPI)](./02-observer-service) | Event ingestion |
-| 8002 | [Session Service (FastAPI)](./03-session-service) | Session accumulation |
-| 8003 | [Feature Service (FastAPI)](./04-feature-service) | Feature computation sidecar |
-| 8004 | [ML Prediction Service (FastAPI)](./05-ml-prediction-service) | Prediction API + inference |
-| 3000 | [KICKLAB](./07-kicklab) / [CartAnalytics Frontend](./08-cartanalytics) | Next.js web apps |
+| 8000 | [Main Service (Django)](./main-service) | Dashboard API + Auth |
+| 8001 | [Observer Service (FastAPI)](./observer-service) | Event ingestion |
+| 8002 | [Session Service (FastAPI)](./session-service) | Session accumulation |
+| 8003 | [Feature Service (FastAPI)](./feature-service) | Feature computation sidecar |
+| 8004 | [ML Prediction Service (FastAPI)](./ml-prediction-service) | Prediction API + inference |
+| 3000 | [KICKLAB](./kicklab) | Demo ecommerce |
+| 3001 | [CartAnalytics Frontend](./cartanalytics) | Analytics dashboard |
 
 ---
 

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from django.conf import settings
 
+DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
+
 
 def generate_recommendation_mn(*, diagnosis, features: dict, scores: dict, tenant) -> str:
     """Generate a recommendation. Falls back locally when Gemini is not configured."""
@@ -21,11 +23,12 @@ def generate_recommendation_mn(*, diagnosis, features: dict, scores: dict, tenan
         from google import genai
 
         client = genai.Client(api_key=api_key)
+        model = getattr(settings, "GEMINI_MODEL", DEFAULT_GEMINI_MODEL)
         prompt = (
             f"Store: {tenant.name}. Scores: {scores}. Features: {features}. "
             "Write 3 concise ecommerce cart-abandonment recommendations in English."
         )
-        resp = client.models.generate_content(model="gemini-1.5-flash", contents=prompt)
+        resp = client.models.generate_content(model=model, contents=prompt)
         text = getattr(resp, "text", None) or str(resp)
         return text.strip() if text.strip() else fallback
     except Exception:

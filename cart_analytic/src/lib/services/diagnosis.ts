@@ -13,9 +13,26 @@ export type DiagnosisEntry = {
   dominantScore: ScoreLabel;
   predictionScore: number;
   scores?: Record<string, number>;
+  reasonLabel?: string;
+  explanation?: string;
+  recommendation?: DiagnosisRecommendation | null;
 };
 
 const mockDiagnoses: DiagnosisEntry[] = [];
+
+export type DiagnosisRecommendation = {
+  title?: string;
+  summary?: string;
+  body?: string;
+  reason_code?: string;
+  priority?: string;
+  effort?: string;
+  expected_impact?: string;
+  evidence?: string[];
+  action_steps?: string[];
+  warning?: string;
+  source?: string;
+};
 
 type ApiDiagnosisEntry = {
   id: string;
@@ -29,9 +46,26 @@ type ApiDiagnosisEntry = {
   prediction_score?: number;
   abandonment_probability?: number;
   recommendation?: string | null;
+  reason_label?: string;
+  explanation?: string;
   model_version?: string | null;
   scores?: Record<string, number>;
 };
+
+function parseRecommendation(value: ApiDiagnosisEntry["recommendation"]): DiagnosisRecommendation | null {
+  if (!value) return null;
+  try {
+    const parsed = JSON.parse(value) as DiagnosisRecommendation;
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch {
+    return {
+      title: "Recommendation",
+      summary: value,
+      body: value,
+      source: "fallback",
+    };
+  }
+}
 
 function mapApiEntry(api: ApiDiagnosisEntry): DiagnosisEntry {
   return {
@@ -42,6 +76,9 @@ function mapApiEntry(api: ApiDiagnosisEntry): DiagnosisEntry {
     dominantScore: ((api.dominant_reason ?? api.dominant_score_key) as ScoreLabel) ?? dominantFromScores(api.scores),
     predictionScore: api.abandonment_probability ?? api.prediction_score ?? 0,
     scores: api.scores,
+    reasonLabel: api.reason_label,
+    explanation: api.explanation,
+    recommendation: parseRecommendation(api.recommendation),
   };
 }
 

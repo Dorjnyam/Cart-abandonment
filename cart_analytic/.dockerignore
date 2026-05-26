@@ -1,5 +1,6 @@
 node_modules
 .next
+.claude
 out
 build
 .env
@@ -7,3 +8,4 @@ build
 npm-debug.log*
 coverage
 .git
+tsconfig.tsbuildinfo

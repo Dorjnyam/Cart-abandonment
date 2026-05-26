@@ -13,30 +13,29 @@ import {
   RefreshCw,
   Server,
   ShieldCheck,
+  Terminal,
   Workflow,
 } from "lucide-react";
 import EditorialShell from "@/components/editorial/EditorialShell";
+import { useLanguage } from "@/components/editorial/LanguageContext";
+import { Badge, Card } from "@/components/ui/Card";
 import {
   fetchDashboardIntegration,
   type IntegrationResponse,
 } from "@/lib/services/dashboard-mvp";
 import { fetchPipelineMonitor, type PipelineMonitor, type ServiceHealth } from "@/lib/services/pipeline";
 import { healthLabel } from "@/lib/mn-labels";
+import { cn } from "@/lib/utils";
+
+function healthVariant(health: ServiceHealth): "success" | "warning" | "error" | "default" {
+  if (health === "healthy") return "success";
+  if (health === "degraded") return "warning";
+  if (health === "down") return "error";
+  return "default";
+}
 
 function StatusPill({ health }: { health: ServiceHealth }) {
-  const map: Record<ServiceHealth, { bg: string; text: string; dot: string; label: string }> = {
-    healthy: { bg: "bg-emerald-500/10", text: "text-emerald-600 dark:text-emerald-300", dot: "bg-emerald-500", label: healthLabel("healthy") },
-    degraded: { bg: "bg-amber-500/10", text: "text-amber-600 dark:text-amber-300", dot: "bg-amber-500", label: healthLabel("degraded") },
-    down: { bg: "bg-error/10", text: "text-error", dot: "bg-rose-500", label: healthLabel("down") },
-    unknown: { bg: "bg-surface-container-high/60", text: "text-on-surface-variant", dot: "bg-slate-400", label: healthLabel("unknown") },
-  };
-  const tone = map[health];
-  return (
-    <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[11px] font-semibold ${tone.bg} ${tone.text}`}>
-      <span className={`size-1.5 rounded-full ${tone.dot}`} aria-hidden />
-      {tone.label}
-    </span>
-  );
+  return <Badge variant={healthVariant(health)}>{healthLabel(health)}</Badge>;
 }
 
 export default function InstallationPage() {
@@ -45,23 +44,33 @@ export default function InstallationPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const { t, lang } = useLanguage();
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
-    try {
-      const [i, p] = await Promise.all([fetchDashboardIntegration(), fetchPipelineMonitor()]);
-      setIntegration(i);
-      setPipeline(p);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Интеграцийн хүсэлт амжилтгүй боллоо.");
+    const [iRes, pRes] = await Promise.allSettled([
+      fetchDashboardIntegration(),
+      fetchPipelineMonitor(),
+    ]);
+    if (iRes.status === "fulfilled") {
+      setIntegration(iRes.value);
+    } else {
       setIntegration(null);
-    } finally {
-      setLoading(false);
+      setError(
+        iRes.reason instanceof Error
+          ? iRes.reason.message
+          : lang === "EN"
+            ? "Failed to load integration."
+            : "Интеграцийн хүсэлт амжилтгүй боллоо.",
+      );
     }
-  }, []);
+    setPipeline(pRes.status === "fulfilled" ? pRes.value : null);
+    setLoading(false);
+  }, [lang]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
   }, [load]);
 
@@ -72,230 +81,266 @@ export default function InstallationPage() {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
-      /* Алдааг зориуд үл тооно. */
+      /* ignore */
     }
   }
+
+  const stepLabels = {
+    apiKey: lang === "EN" ? "Generate API key" : "API түлхүүр үүсгэх",
+    apiKeyDesc:
+      lang === "EN"
+        ? "Open Settings → Tracking & API Keys and create a production key."
+        : "Тохиргоо → API түлхүүр хэсэгт production түлхүүр үүсгэнэ.",
+    openSettings: lang === "EN" ? "Open settings" : "Тохиргоо нээх",
+    install: lang === "EN" ? "Install observer snippet" : "Observer snippet суулгах",
+    installDesc:
+      lang === "EN"
+        ? "Add the script tag to every storefront page, ideally just before </head>."
+        : "Script tag-ийг storefront-ийн бүх хуудсанд оруулна.",
+    verify: lang === "EN" ? "Verify events" : "Эвент шалгах",
+    verifyDesc:
+      lang === "EN"
+        ? "Trigger a checkout and watch events appear in the live pipeline monitor."
+        : "Сагсанд бараа нэмэхэд эвентүүд монитор дээр гарч ирэх ёстой.",
+    openMonitor: lang === "EN" ? "Open monitor" : "Шууд монитор",
+    copy: lang === "EN" ? "Copy" : t.installation.copy,
+    copied: lang === "EN" ? "Copied" : t.installation.copied,
+    refresh: t.common.refresh,
+    observerEndpoint: lang === "EN" ? "Observer endpoint" : "Observer endpoint",
+    kafkaTopics: lang === "EN" ? "Kafka topics" : "Kafka topics",
+    demoLinks: lang === "EN" ? "Demo links" : "Demo холбоосууд",
+    recentEvents:
+      lang === "EN" ? "Recent events from storefront" : "Storefront-оос ирсэн сүүлийн эвентүүд",
+    pipelineSummary: lang === "EN" ? "Pipeline status" : "Pipeline товч төлөв",
+    snippetTitle: lang === "EN" ? "Installation snippet" : "Observer суулгах snippet",
+    snippetSubtitle:
+      lang === "EN"
+        ? "Replace the demo key with a production key from Settings."
+        : "Demo түлхүүрийг production-р солих боломжтой.",
+    cluster: lang === "EN" ? "Cluster status" : "Кластерын төлөв",
+    demoStore: lang === "EN" ? "Demo store" : "Demo дэлгүүр",
+    dashboardL: lang === "EN" ? "Dashboard" : "Dashboard",
+    pipelineMon: lang === "EN" ? "Pipeline monitor" : "Pipeline монитор",
+    empty:
+      lang === "EN"
+        ? "No events yet. Trigger checkout flow on your storefront."
+        : "Эвент одоогоор алга. Storefront дээр урсгал ажиллуулна уу.",
+    last10: lang === "EN" ? "Last 10" : "Сүүлийн 10",
+  };
 
   return (
     <EditorialShell
       activeNav="installation"
-      title="Суулгалт"
-      breadcrumbs={[{ label: "Суулгалт" }]}
+      title={t.installation.title}
+      subtitle={t.installation.subtitle}
+      right={
+        <button
+          type="button"
+          onClick={() => void load()}
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-surface-muted text-text text-xs font-bold hover:bg-surface-muted/70 transition-all"
+        >
+          <RefreshCw className="size-3.5" />
+          {stepLabels.refresh}
+        </button>
+      }
     >
-      <div className="mx-auto max-w-6xl space-y-5 px-4 py-5 sm:px-6">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h1 className="text-[18px] font-semibold tracking-tight text-on-surface">Суулгалт</h1>
-            <p className="mt-1 max-w-2xl text-[13px] text-on-surface-variant">
-              Storefront-оо сагс орхилтын pipeline-т холбоно. Observer эвент хүлээн авч, pipeline-ийн бусад хэсэг хэдхэн секундын дотор оноолно.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => void load()}
-            className="inline-flex items-center gap-2 rounded-md border border-outline-variant/[0.12] bg-surface-container-lowest px-3 py-1.5 text-[12px] font-medium text-on-surface hover:bg-surface-container-low"
-          >
-            <RefreshCw className="size-3.5" aria-hidden />
-            Шинэчлэх
-          </button>
-        </div>
-
+      <div className="space-y-6">
         {error ? (
-          <div className="rounded-md border border-error/25 bg-error/5 px-4 py-3 text-[12.5px] text-error">{error}</div>
+          <div className="rounded-xl bg-error/10 border border-error/30 px-4 py-3 text-sm text-error">
+            {error}
+          </div>
         ) : null}
 
         {loading || !integration ? (
-          <div className="flex h-64 items-center justify-center text-on-surface-variant">
-            <Loader2 className="size-5 animate-spin" aria-hidden />
+          <div className="flex h-64 items-center justify-center text-muted">
+            <Loader2 className="size-6 animate-spin" />
           </div>
         ) : (
           <>
-            <section className="rounded-md border border-outline-variant/[0.08] bg-surface-container-lowest">
-              <header className="border-b border-outline-variant/[0.06] px-5 py-3">
-                <h2 className="text-[13px] font-semibold text-on-surface">Суулгалтын checklist</h2>
-                <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Бодит эвент хүлээн авах гурван алхам.</p>
-              </header>
-              <ol className="divide-y divide-outline-variant/[0.06]">
-                <li className="grid grid-cols-[28px_1fr_auto] gap-3 px-5 py-3.5">
-                  <span className="mt-0.5 flex size-5 items-center justify-center rounded-full bg-primary/10 text-[11px] font-semibold text-primary">1</span>
-                  <div>
-                    <p className="text-[13px] font-semibold text-on-surface">API түлхүүр үүсгэх</p>
-                    <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Тохиргоо → Tracking &amp; API Keys хэсгийг нээж production түлхүүр үүсгэнэ.</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[
+                { step: 1, title: stepLabels.apiKey, desc: stepLabels.apiKeyDesc, href: "/settings?tab=keys", cta: stepLabels.openSettings, Icon: ShieldCheck, status: "done" as const },
+                { step: 2, title: stepLabels.install, desc: stepLabels.installDesc, action: "copy" as const, Icon: Terminal, status: "current" as const },
+                { step: 3, title: stepLabels.verify, desc: stepLabels.verifyDesc, href: "/pipeline", cta: stepLabels.openMonitor, Icon: Activity, status: "pending" as const },
+              ].map((s) => (
+                <div
+                  key={s.step}
+                  className={cn(
+                    "rounded-xl bg-surface border-2 p-5 transition-all",
+                    s.status === "current"
+                      ? "border-primary"
+                      : "border-surface-muted",
+                  )}
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div
+                      className={cn(
+                        "w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold",
+                        s.status === "done"
+                          ? "bg-success text-white"
+                          : s.status === "current"
+                            ? "bg-primary text-white"
+                            : "bg-surface-muted text-muted",
+                      )}
+                    >
+                      {s.status === "done" ? <Check className="w-4 h-4" /> : s.step}
+                    </div>
+                    <s.Icon className="w-5 h-5 text-muted" />
                   </div>
-                  <Link href="/settings?tab=keys" className="self-center text-[11.5px] font-semibold text-primary hover:underline">
-                    Тохиргоо нээх
-                  </Link>
-                </li>
-                <li className="grid grid-cols-[28px_1fr_auto] gap-3 px-5 py-3.5">
-                  <span className="mt-0.5 flex size-5 items-center justify-center rounded-full bg-primary/10 text-[11px] font-semibold text-primary">2</span>
-                  <div>
-                    <p className="text-[13px] font-semibold text-on-surface">Observer snippet суулгах</p>
-                    <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Script tag-ийг storefront-ийн бүх хуудсанд, боломжтой бол хаагдах &lt;/head&gt; tag-аас өмнө нэмнэ.</p>
-                  </div>
-                  <button
-                    onClick={() => void copySnippet()}
-                    className="self-center inline-flex items-center gap-1.5 rounded-md border border-outline-variant/[0.12] bg-surface-container-lowest px-2.5 py-1 text-[11.5px] font-medium text-on-surface hover:bg-surface-container-low"
-                  >
-                    {copied ? <Check className="size-3.5" aria-hidden /> : <Copy className="size-3.5" aria-hidden />}
-                    {copied ? "Хуулагдсан" : "Хуулах"}
-                  </button>
-                </li>
-                <li className="grid grid-cols-[28px_1fr_auto] gap-3 px-5 py-3.5">
-                  <span className="mt-0.5 flex size-5 items-center justify-center rounded-full bg-primary/10 text-[11px] font-semibold text-primary">3</span>
-                  <div>
-                    <p className="text-[13px] font-semibold text-on-surface">Эвент шалгах</p>
-                    <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Бүтээгдэхүүн үзэж, сагсанд нэмээд доорх сүүлийн эвентийн хүснэгтийг шалгана.</p>
-                  </div>
-                  <Link href="/pipeline" className="self-center text-[11.5px] font-semibold text-primary hover:underline">
-                    Шууд монитор
-                  </Link>
-                </li>
-              </ol>
-            </section>
+                  <h3 className="font-display font-bold text-text mb-1">{s.title}</h3>
+                  <p className="text-xs text-muted leading-relaxed mb-4">{s.desc}</p>
+                  {s.action === "copy" ? (
+                    <button
+                      type="button"
+                      onClick={() => void copySnippet()}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-bold hover:bg-primary/15 transition-all"
+                    >
+                      {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
+                      {copied ? stepLabels.copied : stepLabels.copy}
+                    </button>
+                  ) : s.href ? (
+                    <Link
+                      href={s.href}
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline"
+                    >
+                      {s.cta} <ArrowUpRight className="size-3.5" />
+                    </Link>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+
+            <Card
+              title={stepLabels.snippetTitle}
+              subtitle={stepLabels.snippetSubtitle}
+              headerAction={
+                <button
+                  onClick={() => void copySnippet()}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary/90 transition-all"
+                >
+                  {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
+                  {copied ? stepLabels.copied : stepLabels.copy}
+                </button>
+              }
+              noPadding
+            >
+              <pre className="overflow-x-auto bg-[#0E1110] text-[#86D9A7] px-6 py-4 text-[12px] leading-relaxed font-mono">
+                <code>{integration.observer.snippet}</code>
+              </pre>
+            </Card>
 
             <div className="grid gap-4 lg:grid-cols-3">
-              <section className="rounded-md border border-outline-variant/[0.08] bg-surface-container-lowest">
-                <header className="border-b border-outline-variant/[0.06] px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="size-4 text-on-surface-variant" strokeWidth={1.75} aria-hidden />
-                    <h2 className="text-[13px] font-semibold text-on-surface">Observer endpoint</h2>
+              <Card title={stepLabels.observerEndpoint} icon={ShieldCheck}>
+                <dl className="space-y-2 text-sm">
+                  <div className="flex items-center justify-between gap-3">
+                    <dt className="text-muted">URL</dt>
+                    <dd className="font-mono text-text truncate">{integration.observer.url}</dd>
                   </div>
-                </header>
-                <dl className="divide-y divide-outline-variant/[0.06]">
-                  <div className="grid grid-cols-[100px_1fr] gap-3 px-4 py-2.5 text-[12px]">
-                    <dt className="text-on-surface-variant">URL</dt>
-                    <dd className="truncate font-mono text-on-surface">{integration.observer.url}</dd>
-                  </div>
-                  <div className="grid grid-cols-[100px_1fr] gap-3 px-4 py-2.5 text-[12px]">
-                    <dt className="text-on-surface-variant">Төлөв</dt>
+                  <div className="flex items-center justify-between gap-3">
+                    <dt className="text-muted">{t.common.status}</dt>
                     <dd>
                       <StatusPill health={(integration.observer.health as ServiceHealth) ?? "unknown"} />
                     </dd>
                   </div>
-                  <div className="grid grid-cols-[100px_1fr] gap-3 px-4 py-2.5 text-[12px]">
-                    <dt className="text-on-surface-variant">Demo түлхүүр</dt>
-                    <dd className="truncate font-mono text-on-surface">{integration.observer.demo_api_key}</dd>
+                  <div className="flex items-center justify-between gap-3">
+                    <dt className="text-muted">{lang === "EN" ? "Demo key" : "Demo түлхүүр"}</dt>
+                    <dd className="font-mono text-text truncate">{integration.observer.demo_api_key}</dd>
                   </div>
                 </dl>
-              </section>
+              </Card>
 
-              <section className="rounded-md border border-outline-variant/[0.08] bg-surface-container-lowest">
-                <header className="border-b border-outline-variant/[0.06] px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <Workflow className="size-4 text-on-surface-variant" strokeWidth={1.75} aria-hidden />
-                    <h2 className="text-[13px] font-semibold text-on-surface">Kafka topics</h2>
-                  </div>
-                </header>
-                <div className="px-4 py-3 space-y-2">
-                  <div className="flex items-center justify-between text-[12px]">
-                    <span className="text-on-surface-variant">Кластерын төлөв</span>
+              <Card title={stepLabels.kafkaTopics} icon={Workflow}>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted">{stepLabels.cluster}</span>
                     <StatusPill health={(integration.kafka.health as ServiceHealth) ?? "unknown"} />
                   </div>
                   <div className="flex flex-wrap gap-1.5">
-                    {integration.kafka.topics.map((t) => (
-                      <span key={t} className="rounded-md border border-outline-variant/[0.12] bg-surface-container-low/60 px-2 py-0.5 font-mono text-[11px] text-on-surface">
-                        {t}
+                    {(integration.kafka?.topics ?? []).map((tp) => (
+                      <span
+                        key={tp}
+                        className="rounded-md border border-surface-muted bg-bg px-2 py-0.5 font-mono text-[11px] text-text"
+                      >
+                        {tp}
                       </span>
                     ))}
                   </div>
                 </div>
-              </section>
+              </Card>
 
-              <section className="rounded-md border border-outline-variant/[0.08] bg-surface-container-lowest">
-                <header className="border-b border-outline-variant/[0.06] px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <Server className="size-4 text-on-surface-variant" strokeWidth={1.75} aria-hidden />
-                    <h2 className="text-[13px] font-semibold text-on-surface">Demo холбоосууд</h2>
-                  </div>
-                </header>
-                <div className="space-y-1.5 px-4 py-3 text-[12.5px]">
+              <Card title={stepLabels.demoLinks} icon={Server}>
+                <div className="space-y-2 text-sm">
                   <Link href={integration.demo_shop.url} className="flex items-center gap-2 text-primary hover:underline">
-                    Demo дэлгүүр <ExternalLink className="size-3.5" aria-hidden />
+                    {stepLabels.demoStore} <ExternalLink className="size-3.5" />
                   </Link>
                   <Link href={integration.dashboard.url} className="flex items-center gap-2 text-primary hover:underline">
-                    Dashboard <ExternalLink className="size-3.5" aria-hidden />
+                    {stepLabels.dashboardL} <ExternalLink className="size-3.5" />
                   </Link>
                   <Link href="/pipeline" className="flex items-center gap-2 text-primary hover:underline">
-                    Pipeline монитор <ArrowUpRight className="size-3.5" aria-hidden />
+                    {stepLabels.pipelineMon} <ArrowUpRight className="size-3.5" />
                   </Link>
                 </div>
-              </section>
+              </Card>
             </div>
 
-            <section className="rounded-md border border-outline-variant/[0.08] bg-surface-container-lowest">
-              <header className="flex flex-wrap items-center justify-between gap-2 border-b border-outline-variant/[0.06] px-5 py-3">
-                <div>
-                  <h2 className="text-[13px] font-semibold text-on-surface">Observer суулгах snippet</h2>
-                  <p className="mt-0.5 text-[11.5px] text-on-surface-variant">Тохиргооноос бодит түлхүүр үүсгэвэл энэ snippet-д шууд оруулж болно.</p>
-                </div>
-                <button
-                  onClick={() => void copySnippet()}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-[12px] font-semibold text-on-primary hover:opacity-95"
-                >
-                  {copied ? <Check className="size-3.5" aria-hidden /> : <Copy className="size-3.5" aria-hidden />}
-                  {copied ? "Хуулагдсан" : "Snippet хуулах"}
-                </button>
-              </header>
-              <pre className="overflow-x-auto bg-[#0b1220] px-5 py-4 text-[12px] leading-relaxed text-slate-100">
-                <code>{integration.observer.snippet}</code>
-              </pre>
-            </section>
-
             <div className="grid gap-4 lg:grid-cols-2">
-              <section className="rounded-md border border-outline-variant/[0.08] bg-surface-container-lowest">
-                <header className="flex items-center justify-between border-b border-outline-variant/[0.06] px-5 py-3">
-                  <div className="flex items-center gap-2">
-                    <Activity className="size-4 text-on-surface-variant" strokeWidth={1.75} aria-hidden />
-                    <h2 className="text-[13px] font-semibold text-on-surface">Storefront-оос ирсэн сүүлийн эвентүүд</h2>
-                  </div>
-                  <span className="text-[11px] text-on-surface-variant">Сүүлийн 10</span>
-                </header>
-                {integration.last_events.length ? (
-                  <>
-                    <div className="grid grid-cols-[1fr_1fr_auto] bg-surface-container-low/40 px-5 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">
-                      <span>Сесс</span><span>Эвент</span><span className="text-right">Үүссэн</span>
+              <Card
+                title={stepLabels.recentEvents}
+                icon={Activity}
+                headerAction={<span className="text-[11px] text-muted">{stepLabels.last10}</span>}
+                noPadding
+              >
+                {(integration.last_events?.length ?? 0) > 0 ? (
+                  <div className="divide-y divide-surface-muted">
+                    <div className="grid grid-cols-[1fr_1fr_auto] gap-3 px-6 py-2 text-[10px] font-bold uppercase tracking-wider text-muted bg-bg">
+                      <span>{t.sessions.table.session}</span>
+                      <span>{lang === "EN" ? "Event" : "Эвент"}</span>
+                      <span className="text-right">{lang === "EN" ? "When" : "Үүссэн"}</span>
                     </div>
-                    {integration.last_events.map((event, i) => (
-                      <div key={`${event.session_id}-${i}`} className="grid grid-cols-[1fr_1fr_auto] gap-3 border-t border-outline-variant/[0.06] px-5 py-2 text-[12px]">
-                        <span className="truncate font-mono text-on-surface">{event.session_id}</span>
-                        <span className="truncate text-on-surface-variant">{event.event_type}</span>
-                        <span className="text-right text-on-surface-variant">{event.created_at}</span>
+                    {(integration.last_events ?? []).map((event, i) => (
+                      <div
+                        key={`${event.session_id}-${i}`}
+                        className="grid grid-cols-[1fr_1fr_auto] gap-3 px-6 py-2.5 text-xs"
+                      >
+                        <span className="truncate font-mono text-text">{event.session_id}</span>
+                        <span className="truncate text-muted">{event.event_type}</span>
+                        <span className="text-right text-muted">{event.created_at}</span>
                       </div>
                     ))}
-                  </>
+                  </div>
                 ) : (
-                  <div className="px-5 py-8 text-center text-[12px] text-on-surface-variant">
-                    Эвент одоогоор алга. Шалгахын тулд storefront дээр урсгал ажиллуулна уу.
-                  </div>
+                  <div className="px-6 py-12 text-center text-sm text-muted">{stepLabels.empty}</div>
                 )}
-              </section>
+              </Card>
 
-              <section className="rounded-md border border-outline-variant/[0.08] bg-surface-container-lowest">
-                <header className="flex items-center justify-between border-b border-outline-variant/[0.06] px-5 py-3">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="size-4 text-on-surface-variant" strokeWidth={1.75} aria-hidden />
-                    <h2 className="text-[13px] font-semibold text-on-surface">Pipeline товч төлөв</h2>
-                  </div>
-                  <Link href="/pipeline" className="text-[11.5px] font-semibold text-primary hover:underline">
-                    Монитор нээх
+              <Card
+                title={stepLabels.pipelineSummary}
+                icon={CheckCircle2}
+                headerAction={
+                  <Link href="/pipeline" className="text-xs font-bold text-primary hover:underline">
+                    {stepLabels.openMonitor}
                   </Link>
-                </header>
+                }
+                noPadding
+              >
                 {pipeline ? (
-                  <ul className="divide-y divide-outline-variant/[0.06]">
+                  <ul className="divide-y divide-surface-muted">
                     {[...pipeline.services, ...pipeline.infra].map((s) => (
-                      <li key={s.id} className="grid grid-cols-[1fr_auto] items-center gap-3 px-5 py-2 text-[12px]">
+                      <li key={s.id} className="grid grid-cols-[1fr_auto] gap-3 px-6 py-3 items-center">
                         <div className="min-w-0">
-                          <p className="truncate text-on-surface">{s.name}</p>
-                          {s.detail ? <p className="truncate text-[11px] text-on-surface-variant">{s.detail}</p> : null}
+                          <p className="truncate text-sm text-text font-semibold">{s.name}</p>
+                          {s.detail ? <p className="truncate text-xs text-muted mt-0.5">{s.detail}</p> : null}
                         </div>
                         <StatusPill health={s.health} />
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <div className="px-5 py-8 text-center text-[12px] text-on-surface-variant">Pipeline өгөгдөл боломжгүй байна.</div>
+                  <div className="px-6 py-12 text-center text-sm text-muted">
+                    {lang === "EN" ? "Pipeline unavailable." : "Pipeline өгөгдөл боломжгүй байна."}
+                  </div>
                 )}
-              </section>
+              </Card>
             </div>
           </>
         )}

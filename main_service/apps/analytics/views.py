@@ -753,6 +753,8 @@ class DashboardSessionDetailView(APIView):
             "developer_details": {
                 "session": _dashboard_session_row(session, diagnosis),
                 "shap_values": getattr(prediction, "shap_values", {}) if prediction else {},
+                "feature_vector": getattr(prediction, "feature_vector", {}) if prediction else {},
+                "outcome_metadata": getattr(prediction, "outcome_metadata", {}) if prediction else {},
             },
         })
 
@@ -1788,7 +1790,13 @@ class AblationSummaryView(APIView):
 
             count = qs.count()
             if count == 0:
-                results.append({"model_variant": variant, "count": 0})
+                results.append({
+                    "model_variant": variant,
+                    "count": 0,
+                    "abandonment_rate": None,
+                    "avg_confidence": None,
+                    "avg_score": None,
+                })
                 continue
 
             abandoned = _abandoned_prediction_count(qs)
@@ -1811,7 +1819,12 @@ class AblationSummaryView(APIView):
                 "confidence_delta": round(full["avg_confidence"] - baseline["avg_confidence"], 4),
             }
 
-        return Response({"variants": results, "comparison": comparison})
+        return Response({
+            "tenant_id": tenant.id,
+            "date_range": {"from": date_from, "to": date_to},
+            "variants": results,
+            "comparison": comparison,
+        })
 
 
 # ---------------------------------------------------------------------------

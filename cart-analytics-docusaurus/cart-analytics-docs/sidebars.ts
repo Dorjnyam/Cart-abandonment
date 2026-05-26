@@ -35,7 +35,7 @@ const sidebars: SidebarsConfig = {
     {
       type: 'category',
       label: 'Demo ба туршилт',
-      items: ['demo/uc1', 'demo/uc2', 'demo/uc3', 'demo/e2e-script'],
+      items: ['demo/uc1', 'demo/uc2', 'demo/uc3', 'demo/e2e-script', 'demo/ten-use-cases', 'demo/production-readiness'],
     },
     {
       type: 'category',

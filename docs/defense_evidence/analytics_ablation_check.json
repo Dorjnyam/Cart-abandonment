@@ -1,0 +1,87 @@
+{
+  "final_result": "PASS",
+  "api_summary": {
+    "tenant_id": 1,
+    "date_range": {
+      "from": null,
+      "to": null
+    },
+    "variants": [
+      {
+        "model_variant": "baseline",
+        "count": 0,
+        "abandonment_rate": null,
+        "avg_confidence": null,
+        "avg_score": null
+      },
+      {
+        "model_variant": "extended",
+        "count": 0,
+        "abandonment_rate": null,
+        "avg_confidence": null,
+        "avg_score": null
+      },
+      {
+        "model_variant": "full",
+        "count": 0,
+        "abandonment_rate": null,
+        "avg_confidence": null,
+        "avg_score": null
+      }
+    ],
+    "comparison": null
+  },
+  "api_calls": [
+    {
+      "url": "http://localhost:8000/api/pipeline/monitor/",
+      "status": 200
+    },
+    {
+      "url": "http://localhost:8000/api/ablation/summary/?",
+      "status": 200
+    },
+    {
+      "url": "http://localhost:8000/api/analytics/feature-importance/?",
+      "status": 200
+    },
+    {
+      "url": "http://localhost:8000/api/dashboard/overview/",
+      "status": 200
+    },
+    {
+      "url": "http://localhost:8000/api/analytics/abandonment-rate/",
+      "status": 200
+    },
+    {
+      "url": "http://localhost:8000/api/dashboard/sessions/?page_size=100",
+      "status": 200
+    },
+    {
+      "url": "http://localhost:8000/api/ablation/summary/?",
+      "status": 200
+    },
+    {
+      "url": "http://localhost:8000/api/analytics/feature-importance/?",
+      "status": 200
+    },
+    {
+      "url": "http://localhost:8000/api/pipeline/monitor/",
+      "status": 200
+    },
+    {
+      "url": "http://localhost:8000/api/analytics/abandonment-rate/",
+      "status": 200
+    },
+    {
+      "url": "http://localhost:8000/api/dashboard/overview/",
+      "status": 200
+    },
+    {
+      "url": "http://localhost:8000/api/dashboard/sessions/?page_size=100",
+      "status": 200
+    }
+  ],
+  "failures": [],
+  "body_excerpt": "Cart Analytics\nТойм\nАналитик\nСессүүд\nОношлогоо\nЗөвлөмжүүд\nУрсгалын монитор\nСуулгалт\nТохиргоо\nАблацийн туршилт\nПрофайл\nБаримт бичиг\nТусламж\nГарах\nCART ANALYTICS\nML ОЙЛГОЛТ БА МОДЕЛИЙН ШИНЖИЛГЭЭ\nМОДЕЛИЙН ГҮЙЦЭТГЭЛ БОЛОН ШИНЖ ЧАНАРЫН АЧ ХОЛБОГДЛЫГ ГҮНЗГИЙРҮҮЛЭН СУДЛАХ.\nХэвийн\nMN\ndemo\nЭЗЭМШИГЧ\nD\nML ойлголт ба моделийн шинжилгээ\nМоделийн гүйцэтгэл болон шинж чанарын ач холбогдлыг гүнзгийрүүлэн судлах.\nТойм\nАблацийн туршилт\nАблацийн туршилт\nИжил тестийн багц дээр моделийн хувилбаруудыг харьцуулах.\nAblation хувилбарын prediction metric одоогоор алга байна. Энэ нь API ажиллахгүй гэсэн үг биш: baseline / extended / full хувилбараар таамаглал хадгалагдаагүй үед хүснэгт хоосон metric-ийг “—” гэж харуулна.\nЭхлэх огноо\nДуусах огноо\nХайх\nЗАГВАРЫН ХУВИЛБАР\tТААМАГЛАЛ\tОРХИЛТЫН ХУВЬ\tДУНДАЖ ИТГЭЛ\tСУУРЬТАЙ ХАРЬЦУУЛАХАД\nСуурь\t0\t—\t—\t— итгэл\nӨргөтгөсөн\t0\t—\t—\t— итгэл\nБүрэн\t0\t—\t—\t— итгэл\nЗагварын итгэлийн харьцуулалт\nИтгэлийн metric хараахан үүсээгүй байна.",
+  "screenshot": "docs\\defense_evidence\\analytics_ablation_fixed.png"
+}

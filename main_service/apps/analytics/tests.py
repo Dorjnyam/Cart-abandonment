@@ -186,6 +186,8 @@ class AnalyticsSmokeTests(TestCase):
         self.assertEqual(diagnosis.predicted_class, "abandoned")
         self.assertEqual(diagnosis.model_version, "test-model")
         self.assertEqual(diagnosis.top_features[0]["feature"], "rage_click")
+        prediction = PredictionResult.objects.get(session__session_id="external-tenant-session")
+        self.assertEqual(prediction.feature_vector["rage_click"], 6)
 
     def test_prediction_payload_with_purchase_success_skips_abandonment_diagnosis(self):
         from apps.analytics.prediction_pipeline import handle_prediction_payload
@@ -217,6 +219,7 @@ class AnalyticsSmokeTests(TestCase):
         self.assertEqual(prediction.predicted_class, "abandoned")
         self.assertEqual(prediction.business_outcome, "converted")
         self.assertTrue(prediction.prediction_overridden)
+        self.assertEqual(prediction.feature_vector["event_count"], 6)
 
     def test_prediction_payload_duplicate_is_idempotent(self):
         from apps.analytics.prediction_pipeline import handle_prediction_payload

@@ -1,0 +1,357 @@
+﻿{
+  "checked_at": "2026-05-13T19:14:52Z",
+  "mock_fallback_expected": false,
+  "fresh_sessions": [
+    {
+      "case": "uc03_price_sensitive_abandonment",
+      "original_session_id": "live_web_check_1_uc03_price_sensitive_abandonment_20260513185509",
+      "canonical_session_id": "4b3e6dfa-0e1e-5d9f-90f1-750bedbeec58",
+      "visitor_id": "live_web_visitor_1_20260513185509",
+      "sent_statuses": [
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "event_types_sent": [
+        "page_view",
+        "product_view",
+        "add_to_cart",
+        "cart_view",
+        "checkout_start",
+        "cart_view",
+        "checkout_start",
+        "abandon_checkout"
+      ],
+      "dashboard_status": 200,
+      "event_count": 8,
+      "timeline_types": [
+        "page_view",
+        "product_view",
+        "add_to_cart",
+        "cart_view",
+        "checkout_start",
+        "cart_view",
+        "checkout_start",
+        "abandon_checkout"
+      ],
+      "session_state": "ABANDONED",
+      "business_outcome": "abandoned",
+      "predicted_class": "abandoned",
+      "ml_predicted_class": "abandoned",
+      "abandonment_probability": 0.6831,
+      "dominant_reason": "S5",
+      "scores": {
+        "S1": 0.35,
+        "S2": 0.08,
+        "S3": 0.2333,
+        "S4": 0.0,
+        "S5": 0.9,
+        "S6": 0.25,
+        "S7": 0.2
+      },
+      "has_all_s1_s7": true,
+      "score_keys": [
+        "S1",
+        "S2",
+        "S3",
+        "S4",
+        "S5",
+        "S6",
+        "S7"
+      ],
+      "recommendation_id": 34,
+      "recommendation_title": "Fix price sensitivity",
+      "recommendation_source": "fallback",
+      "recommendation_status": "new",
+      "failures": [],
+      "result": "PASS"
+    },
+    {
+      "case": "uc08_external_referral_influence",
+      "original_session_id": "live_web_check_2_uc08_external_referral_influence_20260513185509",
+      "canonical_session_id": "caedc735-dbbe-55b4-9a8e-71665390f4ab",
+      "visitor_id": "live_web_visitor_2_20260513185509",
+      "sent_statuses": [
+        200,
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "event_types_sent": [
+        "page_view",
+        "product_view",
+        "add_to_cart",
+        "cart_view",
+        "checkout_start",
+        "abandon_checkout"
+      ],
+      "dashboard_status": 200,
+      "event_count": 6,
+      "timeline_types": [
+        "page_view",
+        "product_view",
+        "add_to_cart",
+        "cart_view",
+        "checkout_start",
+        "abandon_checkout"
+      ],
+      "session_state": "ABANDONED",
+      "business_outcome": "abandoned",
+      "predicted_class": "abandoned",
+      "ml_predicted_class": "abandoned",
+      "abandonment_probability": 0.4566,
+      "dominant_reason": "S7",
+      "scores": {
+        "S1": 0.5,
+        "S2": 0.08,
+        "S3": 0.2,
+        "S4": 0.2067,
+        "S5": 0.0996,
+        "S6": 0.0,
+        "S7": 1.0
+      },
+      "has_all_s1_s7": true,
+      "score_keys": [
+        "S1",
+        "S2",
+        "S3",
+        "S4",
+        "S5",
+        "S6",
+        "S7"
+      ],
+      "recommendation_id": 35,
+      "recommendation_title": "Fix external influence/referral effect",
+      "recommendation_source": "fallback",
+      "recommendation_status": "new",
+      "failures": [],
+      "result": "PASS"
+    }
+  ],
+  "pages": [
+    {
+      "name": "analytics",
+      "url": "http://localhost:3001/analytics",
+      "loaded": true,
+      "title": "Cart Analytics — Сагс орхилтын аналитик",
+      "body_sample": "Cart Analytics\nOverview\nAnalytics\nSessions\nDiagnosis\nRecommendations\nLive Pipeline\nInstallation\nSettings\nAblation Study\nProfile\nDocumentation\nHelp\nSign out\nCART ANALYTICS\nML INSIGHTS & MODEL ANALYTICS\nDEEP DIVE INTO MODEL PERFORMANCE AND FEATURE IMPORTANCE.\nХэвийн\nEN\n\ndemo\n\nЭЗЭМШИГЧ\n\nD\nML Insights & Model Analytics\n\nDeep dive into model performance and feature importance.\n\nOverview\nAblation Study\n\nHIGH-RISK SESSIONS\n\n29\n\n67% of total\n\nAVG ABANDONMENT\n\n72.1%\n\nStable\n\nCONVERSION RATE\n\n27.9%\n\n12 converted sessions\n\nTOP SHAP WEIGHT\n\n0.64\n\nscroll_up_count\n\nAbandonment trend\n\nSessions and abandonment rate\n\nDaily\n7 days\nОрхилт %Сесс\n2026-05-07\n2026-05-08\n2026-05-09\n2026-05-10\n2026-05-11\n2026-05-12\n2026-05-13\n0\n9\n18\n27\n36\n0\n0.2\n0.4\n0.6\n0.8\nSHAP feature importance\n\nDrivers of abandonment\n\n0\n0.2\n0.4\n0.6\n0.8\nmouse_distance\ncart_value\ncart_churn_count\navg_price_in_session\ntime_on_page_sec\npage_load_ms\norder_total\ndist_product_count\nScore distribution\n\nSessions classified by prediction score\n\n0.0-0.2\n0.2-0.4\n0.4-0.6\n0.6-0.8\n0.8-1.0\n0\n8\n16\n24\n32\nModel logic\n\nGradient-boosted ensemble explained with SHAP. Trained on checkout-step telemetry.\n\nscroll_up_count\n64%\nactive_time_ms\n57%\nmouse_distance\n44%\nfrustration_index\n42%\nFeature breakdown\n\nscroll_up_count\n\n64%\n\nactive_time_ms\n\n57%\n\nmouse_distance\n\n44%\n\nfrustration_index\n\n42%\n\ncart_value\n\n42%\n\nprice_hesitation_score\n\n36%\n\ncart_churn_count\n\n33%\n\ndirection_changes\n\n32%\n\navg_price_in_session\n\n32%\n\nmongolian_trust_barrier\n\n31%\n\ntime_on_page_sec\n\n",
+      "api_events": [
+        {
+          "url": "http://localhost:8000/api/pipeline/monitor/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/pipeline/monitor/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/pipeline/monitor/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/analytics/feature-importance/?",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/dashboard/overview/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/analytics/abandonment-rate/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/dashboard/sessions/?page_size=100",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/analytics/feature-importance/?",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/pipeline/monitor/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/analytics/abandonment-rate/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/dashboard/sessions/?page_size=100",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/dashboard/overview/",
+          "status": 200
+        }
+      ],
+      "screenshot": "C:\\Users\\dell\\Downloads\\Diplom\\codebase\\docs\\defense_evidence\\analytic_web_analytics.png",
+      "failures": [],
+      "result": "PASS"
+    },
+    {
+      "name": "dashboard",
+      "url": "http://localhost:3001/dashboard",
+      "loaded": true,
+      "title": "Cart Analytics — Сагс орхилтын аналитик",
+      "body_sample": "Cart Analytics\nOverview\nAnalytics\nSessions\nDiagnosis\nRecommendations\nLive Pipeline\nInstallation\nSettings\nAblation Study\nProfile\nDocumentation\nHelp\nSign out\nCART ANALYTICS\nPERFORMANCE OVERVIEW\nMONITOR ACTIVE AND HISTORICAL CART SESSIONS.\nХэвийн\nEN\n\ndemo\n\nЭЗЭМШИГЧ\n\nD\n7d\n14d\n30d\nRefresh\nPerformance Overview\n\nMonitor active and historical cart sessions.\n\nxgboost\n·\nxgboost-synthetic-mvp\n·\nτ 0.5\nTOTAL SESSIONS\n43\nLast 30 days\n12.4%\nABANDONMENT RATE\n72.1%\n31 · abandoned\n1.8 pp\nCONVERSION RATE\n27.9%\n12 · completed\n1.8 pp\nAVERAGE P(ABANDON)\n55.0%\nτ = 0.50\n0.3 pp\n\nHIGH RISK SESSIONS\n\n29\n\nP ≥ 0.5\n\nACTIVE RECOMMENDATIONS\n\n27\n\nTOP REASON\n\nS7\n\nExternal influence/referral effect\n\nAVERAGE REASON SCORE\n\n0.26\n\nAbandonment Trend\n\nSessions processed daily and the abandonment rate.\n\nSessions\nAbandon rate\n2026-05-07\n2026-05-08\n2026-05-09\n2026-05-10\n2026-05-11\n2026-05-12\n2026-05-13\n0%\n20%\n40%\n60%\n80%\n0\n9\n18\n27\n36\nTop Reason\n\nExternal influence/referral effect\n\nS7\n0.26\n\nThe session is affected by external referrers, social traffic, outbound clicks, or unload behavior.\n\nOpen diagnosis\nConversion Funnel\n1.page_view\n43\n2.product_view\n43\n3.add_to_cart\n40\n4.cart_view\n40\n5.checkout_start\n43\n6.purchase_success\n12\nReason Scores S1–S7\nS1\nPsychological hesitation\n3 dominant\n0.38\nS2\nTechnical friction\n5 dominant\n0.24\nS3\nTrust issue\n3 dominant\n0.30\nS4\nMobile usability issue\n3 dominant\n0.14\nS5\nPrice sensitivity\n5 dominant\n0.27\nS6\nIndecision/navigation disorder\n6 dominant\n0.25\nS7\nExternal influence/referral effec",
+      "api_events": [
+        {
+          "url": "http://localhost:8000/api/pipeline/monitor/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/dashboard/overview/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/pipeline/monitor/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/dashboard/overview/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/dashboard/overview/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/dashboard/overview/",
+          "status": 200
+        }
+      ],
+      "screenshot": null,
+      "failures": [],
+      "result": "PASS"
+    },
+    {
+      "name": "diagnosis",
+      "url": "http://localhost:3001/diagnosis",
+      "loaded": true,
+      "title": "Cart Analytics — Сагс орхилтын аналитик",
+      "body_sample": "Cart Analytics\nOverview\nAnalytics\nSessions\nDiagnosis\nRecommendations\nLive Pipeline\nInstallation\nSettings\nAblation Study\nProfile\nDocumentation\nHelp\nSign out\nCART ANALYTICS\nROOT CAUSE DIAGNOSIS\nA BREAKDOWN OF WHY CUSTOMERS ARE ABANDONING CARTS BASED ON INTENT ANALYSIS.\nХэвийн\nEN\n\ndemo\n\nЭЗЭМШИГЧ\n\nD\nRefresh\nRoot Cause Diagnosis\n\nA breakdown of why customers are abandoning carts based on intent analysis.\n\nDominant reason formula\n\nPick the maximum of the seven standard scores\n\ndominant_reason = argmax(S1, S2, S3, S4, S5, S6, S7)\n\nArgmax keeps the dashboard truthful: every dominant label here came from the Main service, not a local recompute.\n\nHighest scoring reason\n\n31 sessions diagnosed\n\nS1\nPsychological hesitation\n\nСэтгэлзүйн эргэлзээ: checkout дуусахаас өмнө эргэлзэх дохио илэрсэн.\n\nAVERAGE SCORE\n0.38\nDOMINANT SESSIONS\n3\nAverage S1–S7 score across diagnosed sessions\n\nHigher means the reason is showing up more strongly\n\n0.0\n0.3\n0.5\n0.8\n1.0\nS1\nS2\nS3\nS4\nS5\nS6\nS7\nS1\nPsychological hesitation\nБАГА\nAVERAGE SCORE\n0.38\n\nThe visitor shows hesitation signals such as tab switching, copying, long dwell time, or cart abandonment.\n\nSUGGESTED ACTION\n\nInspect the affected checkout step.\n\n3 sessions dominant\n10% share\nS2\nTechnical friction\nБАГА\nAVERAGE SCORE\n0.24\n\nThe session contains technical friction such as rage clicks, JavaScript errors, slow page load, or form friction.\n\nSUGGESTED ACTION\n\nInspect the affected checkout step.\n\n5 sessions dominant\n16% share\nS3\nTrust issue\nБАГА\nAVERAGE SCORE\n0.",
+      "api_events": [
+        {
+          "url": "http://localhost:8000/api/pipeline/monitor/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/dashboard/reasons/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/dashboard/reasons/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/pipeline/monitor/",
+          "status": 200
+        }
+      ],
+      "screenshot": null,
+      "failures": [],
+      "result": "PASS"
+    },
+    {
+      "name": "recommendations",
+      "url": "http://localhost:3001/recommendations",
+      "loaded": true,
+      "title": "Cart Analytics — Сагс орхилтын аналитик",
+      "body_sample": "Cart Analytics\nOverview\nAnalytics\nSessions\nDiagnosis\nRecommendations\nLive Pipeline\nInstallation\nSettings\nAblation Study\nProfile\nDocumentation\nHelp\nSign out\nCART ANALYTICS\nRECOMMENDATIONS\nRECOVERY TASKS FROM THE RECOMMENDATION PIPELINE.\nХэвийн\nEN\n\ndemo\n\nЭЗЭМШИГЧ\n\nD\nRefresh\nRecommendations\n\nRecovery tasks from the recommendation pipeline.\n\nTOTAL\n\n31\n\nNEW\n\n27\n\nIN PROGRESS\n\n0\n\nDONE\n\n0\n\nDISMISSED\n\n4\n\nNew\n27\nS7\nБАГА\nНөөц дүрэм\nFix external influence/referral effect\n\nThe session is most strongly explained by S7 - External influence/referral effect. Review the evidence, remove the strongest visible barrier, and measure conversion rate after the change.\n\nEXPECTED IMPACT\n\nLower cart abandonment and improve checkout conversion.\n\nEVIDENCE\n\nDominant reason is S7 (External influence/referral effect).\nAbandonment probability is 0.46.\n\nSTEPS\n\n1\nInspect the checkout/cart step related to the dominant reason.\n2\nMake one focused UX or messaging change.\n3\nCompare abandonment rate before and after the change.\nStart\nMark done\nDismiss\nS5\nДУНД\nНөөц дүрэм\nFix price sensitivity\n\nThe session is most strongly explained by S5 - Price sensitivity. Review the evidence, remove the strongest visible barrier, and measure conversion rate after the change.\n\nEXPECTED IMPACT\n\nLower cart abandonment and improve checkout conversion.\n\nEVIDENCE\n\nDominant reason is S5 (Price sensitivity).\nAbandonment probability is 0.68.\n\nSTEPS\n\n1\nInspect the checkout/cart step related to the dominant reas",
+      "api_events": [
+        {
+          "url": "http://localhost:8000/api/pipeline/monitor/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/dashboard/recommendations/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/dashboard/recommendations/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/pipeline/monitor/",
+          "status": 200
+        }
+      ],
+      "screenshot": null,
+      "failures": [],
+      "result": "PASS"
+    },
+    {
+      "name": "session_price_sensitive",
+      "url": "http://localhost:3001/sessions/4b3e6dfa-0e1e-5d9f-90f1-750bedbeec58",
+      "loaded": true,
+      "title": "Cart Analytics — Сагс орхилтын аналитик",
+      "body_sample": "Cart Analytics\nOverview\nAnalytics\nSessions\nDiagnosis\nRecommendations\nLive Pipeline\nInstallation\nSettings\nAblation Study\nProfile\nDocumentation\nHelp\nSign out\nСЕССҮҮД\n4B3E6DFA-0E1E-5D9F-90F1-750BEDBEEC58\nХэвийн\nEN\n\ndemo\n\nЭЗЭМШИГЧ\n\nD\nСессийн нотолгоо\n\n4b3e6dfa-0e1e-5d9f-90f1-750bedbeec58\n\nБүртгэл рүү буцах\n\nСЕССИЙН НОТОЛГОО · ML ТАЙЛБАРЫН ДАРААЛАЛ\n\nНотолгооны дэлгэц\n\n4b3e6dfa-0e1e-5d9f-90f1-750bedbeec58\n\nШинэчлэх\nML таамаглал\n\nТаамаглал: Орхисон\n\nxgboost · vxgboost-synthetic-mvp\n\n68.3%\n\nМАГАДЛАЛ\n\nДунд эрсдэл\n\nАнгилагч энэ сессийг сургасан сагс орхилтын тархалттай харьцуулж үнэлнэ. Магадлал босгоос давбал сессийг орхисон гэж тэмдэглэнэ.\n\nБОСГО\n0.5\nТААМАГЛАСАН АНГИЛАЛ\nОрхисон\nДЭЛГҮҮР\n00000000-0000-0000-0000-000000000001\nЭВЕНТ\n8\nДавамгай шалтгаан\n\nS1–S7 оношлогооноос · хамгийн их оноо\n\nS5\nPrice sensitivity\n\nThe visitor shows price sensitivity through coupon usage, high cart value, or explicit price hesitation.\n\nЭвентийн дараалал\n\n8 эвент бүртгэгдсэн\n\n1\n\npage_view\n\n—\n\n—\n\n2\n\nproduct_view\n\n—\n\n—\n\n3\n\nadd_to_cart\n\n—\n\n—\n\n4\n\ncart_view\n\n—\n\n—\n\n5\n\ncheckout_start\n\n—\n\n—\n\n6\n\ncart_view\n\n—\n\n—\n\n7\n\ncheckout_start\n\n—\n\n—\n\n8\n\nabandon_checkout\n\n—\n\n—\n\nS1–S7 оноо\n\n0–1 хооронд нормчилсон · давамгайг тодруулсан\n\nS1\nСэтгэлзүйн эргэлзээ\n0.35\nS2\nТехникийн саатал\n0.08\nS3\nИтгэлцлийн асуудал\n0.23\nS4\nМобайл хэрэглээний хүндрэл\n0.00\nS5\nҮнийн мэдрэмж\n0.90\nS6\nШийдвэргүй байдал / навигацийн төөрөгдөл\n0.25\nS7\nГадны нөлөө / эх сурвалжийн эффект\n0.20\nЗагварын гол онцлогууд\n\nXGBoost хувь нэмрийн хэмжээ\n\nmouse_distance\n0.50",
+      "api_events": [
+        {
+          "url": "http://localhost:8000/api/pipeline/monitor/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/pipeline/monitor/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/dashboard/sessions/4b3e6dfa-0e1e-5d9f-90f1-750bedbeec58/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/pipeline/monitor/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/dashboard/sessions/4b3e6dfa-0e1e-5d9f-90f1-750bedbeec58/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/pipeline/monitor/",
+          "status": 200
+        }
+      ],
+      "screenshot": "C:\\Users\\dell\\Downloads\\Diplom\\codebase\\docs\\defense_evidence\\analytic_web_session_price_sensitive.png",
+      "failures": [],
+      "result": "PASS"
+    },
+    {
+      "name": "session_external_referral",
+      "url": "http://localhost:3001/sessions/caedc735-dbbe-55b4-9a8e-71665390f4ab",
+      "loaded": true,
+      "title": "Cart Analytics — Сагс орхилтын аналитик",
+      "body_sample": "Cart Analytics\nOverview\nAnalytics\nSessions\nDiagnosis\nRecommendations\nLive Pipeline\nInstallation\nSettings\nAblation Study\nProfile\nDocumentation\nHelp\nSign out\nСЕССҮҮД\nCAEDC735-DBBE-55B4-9A8E-71665390F4AB\nХэвийн\nEN\n\ndemo\n\nЭЗЭМШИГЧ\n\nD\nСессийн нотолгоо\n\ncaedc735-dbbe-55b4-9a8e-71665390f4ab\n\nБүртгэл рүү буцах\n\nСЕССИЙН НОТОЛГОО · ML ТАЙЛБАРЫН ДАРААЛАЛ\n\nНотолгооны дэлгэц\n\ncaedc735-dbbe-55b4-9a8e-71665390f4ab\n\nШинэчлэх\nML таамаглал\n\nТаамаглал: Орхисон\n\nxgboost · vxgboost-synthetic-mvp\n\n45.7%\n\nМАГАДЛАЛ\n\nБага эрсдэл\n\nАнгилагч энэ сессийг сургасан сагс орхилтын тархалттай харьцуулж үнэлнэ. Магадлал босгоос давбал сессийг орхисон гэж тэмдэглэнэ.\n\nБОСГО\n0.5\nТААМАГЛАСАН АНГИЛАЛ\nОрхисон\nДЭЛГҮҮР\n00000000-0000-0000-0000-000000000001\nЭВЕНТ\n6\nДавамгай шалтгаан\n\nS1–S7 оношлогооноос · хамгийн их оноо\n\nS7\nExternal influence/referral effect\n\nThe session is affected by external referrers, social traffic, outbound clicks, or unload behavior.\n\nЭвентийн дараалал\n\n6 эвент бүртгэгдсэн\n\n1\n\npage_view\n\n—\n\n—\n\n2\n\nproduct_view\n\n—\n\n—\n\n3\n\nadd_to_cart\n\n—\n\n—\n\n4\n\ncart_view\n\n—\n\n—\n\n5\n\ncheckout_start\n\n—\n\n—\n\n6\n\nabandon_checkout\n\n—\n\n—\n\nS1–S7 оноо\n\n0–1 хооронд нормчилсон · давамгайг тодруулсан\n\nS1\nСэтгэлзүйн эргэлзээ\n0.50\nS2\nТехникийн саатал\n0.08\nS3\nИтгэлцлийн асуудал\n0.20\nS4\nМобайл хэрэглээний хүндрэл\n0.21\nS5\nҮнийн мэдрэмж\n0.10\nS6\nШийдвэргүй байдал / навигацийн төөрөгдөл\n0.00\nS7\nГадны нөлөө / эх сурвалжийн эффект\n1.00\nЗагварын гол онцлогууд\n\nXGBoost хувь нэмрийн хэмжээ\n\nactive_time_ms\n0.721\nmouse_distance\n0.487\navg_price_",
+      "api_events": [
+        {
+          "url": "http://localhost:8000/api/pipeline/monitor/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/dashboard/sessions/caedc735-dbbe-55b4-9a8e-71665390f4ab/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/dashboard/sessions/caedc735-dbbe-55b4-9a8e-71665390f4ab/",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:8000/api/pipeline/monitor/",
+          "status": 200
+        }
+      ],
+      "screenshot": null,
+      "failures": [],
+      "result": "PASS"
+    }
+  ],
+  "final_result": "PASS"
+}

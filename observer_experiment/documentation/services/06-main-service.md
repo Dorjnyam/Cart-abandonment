@@ -14,7 +14,7 @@ title: Main Service
 | **Технологи** | Python 3.12, Django 5.1, DRF, SimpleJWT, Celery, Redis, PostgreSQL, DuckDB, Kafka, MinIO/S3, Google Gemini API |
 | **Үйлчилгээний төрөл** | REST API + Celery worker + Kafka consumer |
 
-**Хийдэг зүйл:** Multi-tenant SaaS backend — Observer-ийн raw event-ийг уншиж, **7 хэмжигдэхүүний (S1-S7) behavioral scoring pipeline** ажиллуулж, Google Gemini-ийн тусламжтайгаар Монгол хэлний AI recommendation гаргаж, tenant-ийн dashboard-д REST API өгдөг.
+**Хийдэг зүйл:** Multi-tenant SaaS backend — Observer-ийн raw event-ийг уншиж, **7 хэмжигдэхүүний (S1-S7) behavioral scoring pipeline** ажиллуулж, Google Gemini-ийн тусламжтайгаар Монгол хэлний recommendation гаргаж, tenant-ийн dashboard-д REST API өгдөг.
 
 ---
 

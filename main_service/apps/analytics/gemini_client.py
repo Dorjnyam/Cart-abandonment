@@ -7,11 +7,41 @@ from typing import Any
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
+DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
 
 STATIC_FALLBACK = (
     "The session shows measurable cart abandonment risk. Review the dominant S1-S7 reason, "
     "remove the strongest checkout barrier, and validate the change with a small A/B test."
 )
+
+
+def _parse_json_object(text: str) -> dict[str, Any] | None:
+    """Parse a JSON object from strict JSON, fenced JSON, or light surrounding prose."""
+
+    cleaned = text.strip()
+    if cleaned.startswith("```"):
+        lines = cleaned.splitlines()
+        if lines and lines[0].lstrip().startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].strip().startswith("```"):
+            lines = lines[:-1]
+        cleaned = "\n".join(lines).strip()
+
+    try:
+        parsed = json.loads(cleaned)
+        return parsed if isinstance(parsed, dict) else None
+    except json.JSONDecodeError:
+        pass
+
+    start = cleaned.find("{")
+    end = cleaned.rfind("}")
+    if start == -1 or end == -1 or end <= start:
+        return None
+    try:
+        parsed = json.loads(cleaned[start : end + 1])
+    except json.JSONDecodeError:
+        return None
+    return parsed if isinstance(parsed, dict) else None
 
 
 def generate_recommendation(scores: dict, session_context: dict) -> str:
@@ -26,12 +56,13 @@ def generate_recommendation(scores: dict, session_context: dict) -> str:
         from google import genai
 
         client = genai.Client(api_key=api_key)
+        model = getattr(settings, "GEMINI_MODEL", DEFAULT_GEMINI_MODEL)
         prompt = (
             "You are advising an ecommerce owner. "
             f"Scores: {scores}. Context: {session_context}. "
             "Write 2-3 concise, practical recommendations in English."
         )
-        resp = client.models.generate_content(model="gemini-1.5-flash", contents=prompt)
+        resp = client.models.generate_content(model=model, contents=prompt)
         text = getattr(resp, "text", None) or str(resp)
         return text.strip() if text.strip() else f"{STATIC_FALLBACK} Dominant reason: {dominant}."
     except Exception as exc:
@@ -111,6 +142,7 @@ def generate_structured_recommendation(
         from google import genai
 
         client = genai.Client(api_key=api_key)
+        model = getattr(settings, "GEMINI_MODEL", DEFAULT_GEMINI_MODEL)
         prompt = f"""
 You are an ecommerce conversion analyst.
 
@@ -141,10 +173,10 @@ Return schema:
   "warning": "limitation or empty string"
 }}
 """.strip()
-        resp = client.models.generate_content(model="gemini-1.5-flash", contents=prompt)
+        resp = client.models.generate_content(model=model, contents=prompt)
         text = (getattr(resp, "text", None) or str(resp)).strip()
-        parsed = json.loads(text)
-        if not isinstance(parsed, dict):
+        parsed = _parse_json_object(text)
+        if parsed is None:
             return fallback
         parsed["source"] = "gemini"
         parsed.setdefault("reason_code", dominant_reason)

@@ -1,0 +1,51 @@
+{
+  "dataset": "data\\sessions.csv",
+  "model_version": "xgboost-synthetic-mvp",
+  "synthetic_dataset": true,
+  "split": {
+    "train": 720,
+    "validation": 240,
+    "test": 240,
+    "random_state": 42,
+    "stratified": true
+  },
+  "models": {
+    "majority": {
+      "accuracy": 0.5,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "roc_auc": 0.5,
+      "pr_auc": 0.5,
+      "threshold": 0.5,
+      "positive_support": 120,
+      "negative_support": 120
+    },
+    "logistic_regression": {
+      "accuracy": 0.8208333333333333,
+      "precision": 0.8468468468468469,
+      "recall": 0.7833333333333333,
+      "f1": 0.8138528138528138,
+      "roc_auc": 0.8436111111111111,
+      "pr_auc": 0.8223197580409277,
+      "threshold": 0.5,
+      "positive_support": 120,
+      "negative_support": 120
+    },
+    "xgboost": {
+      "accuracy": 0.825,
+      "precision": 0.8145161290322581,
+      "recall": 0.8416666666666667,
+      "f1": 0.8278688524590164,
+      "roc_auc": 0.8413194444444444,
+      "pr_auc": 0.7790402332350311,
+      "threshold": 0.38999999999999996,
+      "positive_support": 120,
+      "negative_support": 120
+    }
+  },
+  "threshold_tuning": {
+    "best_threshold": 0.38999999999999996,
+    "validation_f1": 0.7786885245901639
+  }
+}

@@ -101,7 +101,7 @@ function TenantDetailContent() {
         ))}
       </div>
 
-      {/* API keys placeholder хэсэг */}
+      {/* API түлхүүрийн товч мэдээлэл */}
       <div className="rounded-xl border border-outline-variant/10 bg-surface-container-lowest p-6 shadow-card space-y-3">
         <h3 className="text-sm font-bold text-on-surface">API Түлхүүрүүд</h3>
         <div className="rounded-lg border border-outline-variant/10 bg-surface-container-low px-4 py-3 font-mono text-sm text-on-surface-variant">

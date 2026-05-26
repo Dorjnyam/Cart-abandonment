@@ -5,28 +5,40 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertCircle } from "lucide-react";
 import AuthShell from "@/components/editorial/AuthShell";
+import { useLanguage } from "@/components/editorial/LanguageContext";
 import { authInputClass, FieldGroup, SubmitButton } from "@/components/editorial/AuthFormParts";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/api-config";
+import { cn } from "@/lib/utils";
 
 type Plan = "basic" | "pro" | "enterprise";
 
-const PLANS: { id: Plan; label: string; desc: string }[] = [
-  { id: "basic", label: "Basic", desc: "Жижиг дэлгүүр" },
-  { id: "pro", label: "Pro", desc: "Өсөж буй бизнес" },
-  { id: "enterprise", label: "Enterprise", desc: "Том баг" },
-];
-
 export default function SignupPage() {
   const router = useRouter();
+  const { t, lang } = useLanguage();
   const [plan, setPlan] = useState<Plan>("pro");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  const PLANS: { id: Plan; label: string; desc: string }[] = [
+    { id: "basic", label: "Basic", desc: lang === "EN" ? "Small store" : "Жижиг дэлгүүр" },
+    { id: "pro", label: "Pro", desc: lang === "EN" ? "Growing business" : "Өсөж буй бизнес" },
+    {
+      id: "enterprise",
+      label: "Enterprise",
+      desc: lang === "EN" ? "Large team" : "Том баг",
+    },
+  ];
+
   return (
     <AuthShell
-      eyebrow="Бүртгүүлэх"
-      title="Шинэ данс үүсгэх"
-      description="Дэлгүүрийн мэдээллээ оруулаад аналитикийн ажлын орчин үүсгэнэ."
+      eyebrow={t.login.signUp}
+      title={t.login.newAccount}
+      description={
+        lang === "EN"
+          ? "Add your store details and spin up a new analytics workspace."
+          : "Дэлгүүрийн мэдээллээ оруулаад аналитикийн ажлын орчин үүсгэнэ."
+      }
+      size="lg"
     >
       <form
         className="space-y-5"
@@ -39,11 +51,19 @@ export default function SignupPage() {
           const confirm = String(form.get("confirm") ?? "");
 
           if (password.length < 8) {
-            setError("Нууц үг хамгийн багадаа 8 тэмдэгттэй байх ёстой.");
+            setError(
+              lang === "EN"
+                ? "Password must be at least 8 characters."
+                : "Нууц үг хамгийн багадаа 8 тэмдэгттэй байх ёстой.",
+            );
             return;
           }
           if (password !== confirm) {
-            setError("Нууц үг давталттайгаа таарахгүй байна.");
+            setError(
+              lang === "EN"
+                ? "Passwords do not match."
+                : "Нууц үг давталттайгаа таарахгүй байна.",
+            );
             return;
           }
 
@@ -60,17 +80,27 @@ export default function SignupPage() {
                 detail?: string;
                 email?: string[];
               };
-              throw new Error(body.detail ?? body.email?.[0] ?? "Бүртгэл үүсгэхэд алдаа гарлаа.");
+              throw new Error(
+                body.detail ??
+                  body.email?.[0] ??
+                  (lang === "EN" ? "Failed to create account." : "Бүртгэл үүсгэхэд алдаа гарлаа."),
+              );
             }
             router.push("/login?registered=true");
-          } catch (error) {
-            setError(error instanceof Error ? error.message : "Бүртгэл үүсгэхэд алдаа гарлаа.");
+          } catch (err) {
+            setError(
+              err instanceof Error
+                ? err.message
+                : lang === "EN"
+                  ? "Failed to create account."
+                  : "Бүртгэл үүсгэхэд алдаа гарлаа.",
+            );
           } finally {
             setIsLoading(false);
           }
         }}
       >
-        <FieldGroup label="Дэлгүүрийн нэр">
+        <FieldGroup label={t.login.storeName}>
           <input
             name="store_name"
             type="text"
@@ -82,45 +112,45 @@ export default function SignupPage() {
           />
         </FieldGroup>
 
-        <FieldGroup label="Имэйл">
+        <FieldGroup label={t.login.email}>
           <input
             name="email"
             type="email"
             required
             disabled={isLoading}
-            placeholder="name@example.mn"
+            placeholder="name@company.mn"
             autoComplete="email"
             className={authInputClass}
           />
         </FieldGroup>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <FieldGroup label="Нууц үг">
+          <FieldGroup label={t.login.password}>
             <input
               name="password"
               type="password"
               required
               minLength={8}
               disabled={isLoading}
-              placeholder="8+ тэмдэгт"
+              placeholder={lang === "EN" ? "8+ characters" : "8+ тэмдэгт"}
               autoComplete="new-password"
               className={authInputClass}
             />
           </FieldGroup>
-          <FieldGroup label="Нууц үг давтах">
+          <FieldGroup label={t.login.confirmPassword}>
             <input
               name="confirm"
               type="password"
               required
               disabled={isLoading}
-              placeholder="Давтаж оруулах"
+              placeholder="••••••••"
               autoComplete="new-password"
               className={authInputClass}
             />
           </FieldGroup>
         </div>
 
-        <FieldGroup label="Төлөвлөгөө">
+        <FieldGroup label={lang === "EN" ? "Plan" : "Төлөвлөгөө"}>
           <div className="grid gap-2 sm:grid-cols-3">
             {PLANS.map((item) => {
               const active = plan === item.id;
@@ -129,14 +159,14 @@ export default function SignupPage() {
                   key={item.id}
                   type="button"
                   onClick={() => setPlan(item.id)}
-                  className={[
-                    "rounded-xl border px-3 py-3 text-left transition",
+                  className={cn(
+                    "rounded-xl border px-3 py-3 text-left transition-all",
                     active
-                      ? "border-[#0f766e] bg-[#e7f4f1] text-[#0f4f49]"
-                      : "border-[#d9e6e2] bg-white text-[#637570] hover:border-[#0f766e]/50",
-                  ].join(" ")}
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-surface-muted bg-surface text-muted hover:border-primary/40",
+                  )}
                 >
-                  <span className="block font-semibold">{item.label}</span>
+                  <span className="block font-extrabold text-sm">{item.label}</span>
                   <span className="mt-1 block text-xs">{item.desc}</span>
                 </button>
               );
@@ -145,20 +175,23 @@ export default function SignupPage() {
         </FieldGroup>
 
         {error ? (
-          <div className="flex items-start gap-3 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
-            <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
-            <p>{error}</p>
+          <div className="flex items-start gap-3 rounded-2xl bg-error/10 px-4 py-3 text-sm text-error" role="alert">
+            <AlertCircle className="mt-0.5 size-4 shrink-0" />
+            <p className="font-medium">{error}</p>
           </div>
         ) : null}
 
-        <SubmitButton isLoading={isLoading} loadingLabel="Бүртгэж байна">
-          Данс үүсгэх
+        <SubmitButton
+          isLoading={isLoading}
+          loadingLabel={lang === "EN" ? "Creating" : "Бүртгэж байна"}
+        >
+          {t.login.createAccount}
         </SubmitButton>
 
-        <p className="text-center text-sm text-[#637570]">
-          Данс байгаа юу?{" "}
-          <Link href="/login" className="font-semibold text-[#0f766e] hover:underline">
-            Нэвтрэх
+        <p className="text-center text-sm text-muted">
+          {t.login.haveAccount}{" "}
+          <Link href="/login" className="font-extrabold text-primary hover:underline">
+            {t.login.signIn}
           </Link>
         </p>
       </form>
