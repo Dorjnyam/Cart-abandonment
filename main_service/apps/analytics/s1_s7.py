@@ -12,32 +12,32 @@ class ReasonInfo:
 
 REASON_INFO: dict[str, ReasonInfo] = {
     "S1": ReasonInfo(
-        "Psychological hesitation",
-        "The visitor shows hesitation signals such as tab switching, copying, long dwell time, or cart abandonment.",
+        "Сэтгэл зүйн эргэлзээ",
+        "Хэрэглэгч таб солих, хуулах, хуудсан дээр удаан хугацаагаар байх, эсвэл сагс орхих дохио зэрэг эргэлзээний шинж тэмдэг үзүүлж байна.",
     ),
     "S2": ReasonInfo(
-        "Technical friction",
-        "The session contains technical friction such as rage clicks, JavaScript errors, slow page load, or form friction.",
+        "Техникийн саатал",
+        "Сессэд дахин дахин товших (rage click), JavaScript алдаа, хуудас удаан ачаалах, эсвэл формын хүндрэл зэрэг техникийн саатал ажиглагдлаа.",
     ),
     "S3": ReasonInfo(
-        "Trust issue",
-        "The visitor shows trust barriers such as guest checkout, weak payment confidence, or product availability concerns.",
+        "Итгэлцлийн асуудал",
+        "Хэрэглэгч бүртгэлгүйгээр төлбөр төлөх, төлбөрийн хэрэгсэлд итгэхгүй байх, эсвэл бараа бэлэн байгаа эсэхэд эргэлзэх зэрэг итгэлцлийн саадтай тулгарч байна.",
     ),
     "S4": ReasonInfo(
-        "Mobile usability issue",
-        "The session is mobile-heavy and contains mobile usability friction.",
+        "Гар утасны ашиглалтын асуудал",
+        "Энэхүү сесс нь гар утас давамгайлсан бөгөөд гар утасны ашиглалтын хүндрэлийг агуулж байна.",
     ),
     "S5": ReasonInfo(
-        "Price sensitivity",
-        "The visitor shows price sensitivity through coupon usage, high cart value, or explicit price hesitation.",
+        "Үнийн мэдрэмж",
+        "Хэрэглэгч купон ашиглах, сагсны өндөр дүн, эсвэл үнийн эргэлзээ зэргээр үнийн мэдрэмжтэй байгаагаа харуулж байна.",
     ),
     "S6": ReasonInfo(
-        "Indecision/navigation disorder",
-        "The visitor loops through products, cart edits, search, filters, or back navigation without committing.",
+        "Шийдэмгий бус байдал / Навигацийн төөрөгдөл",
+        "Хэрэглэгч бараануудын хооронд эргэлдэх, сагс засах, хайлт, шүүлтүүр эсвэл буцах навигацийг шийдвэр гаргахгүйгээр давтан хийж байна.",
     ),
     "S7": ReasonInfo(
-        "External influence/referral effect",
-        "The session is affected by external referrers, social traffic, outbound clicks, or unload behavior.",
+        "Гадаад нөлөө / Реферрал эффект",
+        "Сессэд гадаад холбоос, сошиал траффик, гадагшаа чиглэсэн товшилт эсвэл хуудсыг хаах зан төлөв нөлөөлсөн байна.",
     ),
 }
 
